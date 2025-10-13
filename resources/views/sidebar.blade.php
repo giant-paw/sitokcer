@@ -1,43 +1,392 @@
-<aside class="sidebar">
-    <div class="sidebar-header">
-        <h3>Menu Navigasi</h3>
-    </div>
-    <ul class="sidebar-menu">
-        <li><a href="/">Dashboard</a></li>
-        <li><a href="/produk">Produk</a></li>
-        <li><a href="/laporan">Laporan</a></li>
-        <li><a href="/pengaturan">Pengaturan</a></li>
-    </ul>
-</aside>
+<!DOCTYPE html>
+<html lang="id">
 
-<style>
-    .sidebar {
-        width: 250px;
-        background-color: #2c3e50;
-        color: white;
-        height: 100vh;
-        padding: 20px;
-        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        flex-shrink: 0; /* Mencegah sidebar menyusut */
-    }
-    .sidebar-header h3 {
-        margin-top: 0;
-        text-align: center;
-    }
-    .sidebar-menu {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    .sidebar-menu li a {
-        display: block;
-        color: white;
-        text-decoration: none;
-        padding: 12px 15px;
-        border-radius: 5px;
-        transition: background-color 0.3s;
-    }
-    .sidebar-menu li a:hover {
-        background-color: #34495e;
-    }
-</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Improved Sidebar</title>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3>Menu Navigasi</h3>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="{{ request()->is('home') ? 'active-link' : '' }}">
+                <a href="#home">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>Home</span>
+                </a>
+            </li>
+
+            <li class="menu-item has-dropdown {{ request()->is('dashboard*') ? 'active' : '' }}">
+                <a href="#" class="dropdown-toggle">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Dashboards</span>
+                    <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </a>
+                {{-- Submenu yang awalnya tersembunyi --}}
+                <ul class="submenu">
+                    <li class="{{ request()->is('dashboard-distribusi') ? 'active-link' : '' }}"><a
+                            href="{{ route('dashboard.distribusi') }}">Distribusi</a></li>
+                    <li class="{{ request()->is('dashboard-nwa') ? 'active-link' : '' }}"><a
+                            href="{{ route('dashboard.nwa') }}">NWA</a></li>
+                    <li class="{{ request()->is('dashboard-produksi') ? 'active-link' : '' }}"><a
+                            href="{{ route('dashboard.produksi') }}">Produksi</a></li>
+                    <li class="{{ request()->is('dashboard-sosial') ? 'active-link' : '' }}"><a
+                            href="{{ route('dashboard.sosial') }}">Sosial</a></li>
+                </ul>
+            </li>
+
+            <li class="menu-item has-dropdown {{ request()->is('sosial*') ? 'active' : '' }}">
+                <a href="#" class="dropdown-toggle">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>Tim Sosial</span>
+                    <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </a>
+
+                {{-- Submenu Level 1 --}}
+                <ul class="submenu">
+                    {{-- Link Biasa --}}
+                    <li class="{{ request()->is('sosial/sosialtahunan*') ? 'active-link' : '' }}">
+                        <a href="#">Sosial Tahunan</a>
+                    </li>
+
+                    {{-- Dropdown Nested: Kegiatan Triwulan --}}
+                    <li
+                        class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-triwulanan*') ? 'active' : '' }}">
+                        <a href="#" class="dropdown-toggle">
+                            <span>Kegiatan Triwulan</span>
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        {{-- Submenu Level 2 --}}
+                        <ul class="submenu">
+                            <li class="{{ request()->is('sosial/kegiatan-triwulanan/seruti*') ? 'active-link' : '' }}">
+                                <a href="{{ route('sosial.seruti') }}">Seruti</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Dropdown Nested: Kegiatan Semesteran --}}
+                    <li
+                        class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-semesteran*') ? 'active' : '' }}">
+                        <a href="#" class="dropdown-toggle">
+                            <span>Kegiatan Semesteran</span>
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        {{-- Submenu Level 2 --}}
+                        <ul class="submenu">
+                            <li
+                                class="{{ request()->is('sosial/kegiatan-semesteran/sakernas*') ? 'active-link' : '' }}">
+                                <a href="{{ route('sosial.sakernas') }}">Sakernas</a>
+                            </li>
+                            <li class="{{ request()->is('sosial/kegiatan-semesteran/susenas*') ? 'active-link' : '' }}">
+                                <a href="{{ route('sosial.susenas') }}">Susenas</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+
+        </ul>
+
+
+    </aside>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #ecf0f1;
+        }
+
+        .sidebar {
+            width: 270px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            height: 100vh;
+            padding: 0;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 15px 12px;
+        }
+
+        .sidebar-menu>li {
+            margin-bottom: 6px;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .sidebar-menu>li>a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transform: translateX(4px);
+        }
+
+        .sidebar-menu>li>a::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: #3498db;
+            border-radius: 0 3px 3px 0;
+            transition: height 0.3s ease;
+        }
+
+        .sidebar-menu>li>a:hover::before {
+            height: 70%;
+        }
+
+        .menu-icon {
+            flex-shrink: 0;
+            opacity: 0.9;
+        }
+
+        /* Dropdown Styles */
+        .menu-item.has-dropdown>a {
+            cursor: pointer;
+        }
+
+        .dropdown-toggle {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .dropdown-toggle span {
+            flex-grow: 1;
+        }
+
+        .arrow {
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+
+        .submenu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Gaya HANYA untuk submenu level 1 (indentasi & border) */
+        .sidebar-menu > li > .submenu {
+            margin-left: 20px;
+            border-left: 2px solid rgba(255, 255, 255, 0.15);
+        }
+        
+        /* Gaya HANYA untuk submenu level 2 (dropdown di dalam dropdown) */
+        .submenu .submenu {
+            margin-left: 15px; /* Indentasi lebih kecil, tanpa border */
+            border-left: none; 
+        }
+
+        .submenu li {
+            margin-bottom: 0;
+        }
+
+        .submenu a {
+            font-size: 0.88rem;
+            padding: 10px 16px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 400;
+            border-radius: 6px;
+            margin: 4px 0;
+        }
+
+        .submenu a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+
+        .submenu a::before {
+            display: none;
+        }
+
+        /* Active States */
+        .menu-item.has-dropdown.active>.submenu {
+            max-height: 500px;
+            padding: 8px 0;
+        }
+
+        .menu-item.has-dropdown.active>.dropdown-toggle {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        .menu-item.has-dropdown.active .arrow {
+            transform: rotate(90deg);
+            opacity: 1;
+        }
+
+        /* Active Link Highlight */
+        .sidebar-menu li.active-link>a {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .sidebar-menu li.active-link>a:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #2471a3 100%);
+            transform: translateX(0);
+        }
+
+        .sidebar-menu li.active-link>a::before {
+            height: 0;
+        }
+
+        .submenu li.active-link>a {
+            color: #3498db;
+            font-weight: 600;
+            background: rgba(52, 152, 219, 0.15);
+        }
+
+        .submenu li.active-link>a:hover {
+            background: rgba(52, 152, 219, 0.25);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- BAGIAN 1: FUNGSI KLIK YANG DIPERBAIKI ---
+            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+
+            dropdownToggles.forEach(function(toggle) {
+                toggle.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const parentMenuItem = this.closest('.menu-item.has-dropdown');
+
+                    // Cari semua dropdown yang sedang terbuka
+                    const currentlyOpen = document.querySelectorAll('.menu-item.has-dropdown.active');
+
+                    currentlyOpen.forEach(function(openItem) {
+                        // Tutup item yang terbuka HANYA JIKA item itu BUKAN induk dari item yang diklik
+                        if (openItem !== parentMenuItem && !openItem.contains(parentMenuItem)) {
+                            openItem.classList.remove('active');
+                        }
+                    });
+
+                    // Buka atau tutup item yang diklik
+                    parentMenuItem.classList.toggle('active');
+                });
+            });
+
+            // --- BAGIAN 2: FUNGSI AUTO-OPEN YANG DIPERBAIKI ---
+            const activeSubmenuItem = document.querySelector('.submenu .active-link');
+            if (activeSubmenuItem) {
+                let current = activeSubmenuItem;
+                // Telusuri ke atas dari item yang aktif
+                while (current) {
+                    // Temukan induk dropdown terdekat
+                    const parentDropdown = current.closest('.menu-item.has-dropdown');
+                    if (parentDropdown) {
+                        // Aktifkan (buka) induk tersebut
+                        parentDropdown.classList.add('active');
+                        // Pindah ke elemen di atasnya untuk melanjutkan pencarian induk berikutnya
+                        current = parentDropdown.parentElement;
+                    } else {
+                        // Jika tidak ada lagi induk dropdown, hentikan pencarian
+                        current = null;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
