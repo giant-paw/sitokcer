@@ -39,22 +39,27 @@ Route::prefix('distribusi')->name('distribusi.')->group(function () {
 
 /* --- TIM PRODUKSI --- */
 Route::prefix('produksi')->name('produksi.')->group(function () {
+    // File ini tidak berada di dalam subfolder, jadi path-nya tetap
     Route::get('/tahunan', fn() => view('timProduksi.produksitahunan'))->name('tahunan');
-    Route::get('/kegiatan-caturwulan/ubinan-padi-palawija', fn() => view('timProduksi.ubinanpadipalawija'))->name('ubinanpadipalawija');
-    Route::get('/kegiatan-caturwulan/update-utp-palawija', fn() => view('timProduksi.updateingutppalawija'))->name('updateutppalawija');
-    Route::get('/kegiatan-triwulan/sktr', fn() => view('timProduksi.SKTR'))->name('sktr');
-    Route::get('/kegiatan-triwulan/tpi', fn() => view('timProduksi.TPI'))->name('tpi');
-    Route::get('/kegiatan-triwulan/sphbst', fn() => view('timProduksi.SPHBST'))->name('sphbst');
-    Route::get('/kegiatan-triwulan/sphtbf', fn() => view('timProduksi.SPHTBF'))->name('sphtbf');
-    Route::get('/kegiatan-triwulan/sphth', fn() => view('timProduksi.SPHTH'))->name('sphth');
-    Route::get('/kegiatan-triwulan/air-bersih', fn() => view('timProduksi.airbersih'))->name('airbersih');
-    Route::get('/kegiatan-bulanan/ksapadi', fn() => view('timProduksi.KSAPadi'))->name('ksapadi');
-    Route::get('/kegiatan-bulanan/ksajagung', fn() => view('timProduksi.KSAJagung'))->name('ksajagung');
-    Route::get('/kegiatan-bulanan/lptb', fn() => view('timProduksi.LPTB'))->name('lptb');
-    Route::get('/kegiatan-bulanan/sphsbs', fn() => view('timProduksi.SPHSBS'))->name('sphsbs');
-    Route::get('/kegiatan-bulanan/sppalawija', fn() => view('timProduksi.SPpalawija'))->name('sppalawija');
-    Route::get('/kegiatan-bulanan/perkebunan', fn() => view('timProduksi.perkebunanbulanan'))->name('perkebunanbulanan');
-    Route::get('/kegiatan-bulanan/ibs', fn() => view('timProduksi.IBSbulanan'))->name('ibsbulanan');
+
+    // Menggunakan path 'ubinanpadi.namafile'
+    Route::get('/kegiatan-caturwulan/ubinan-padi-palawija', fn() => view('timProduksi.ubinanpadi.ubinanpadipalawija'))->name('ubinanpadipalawija');
+    Route::get('/kegiatan-caturwulan/update-utp-palawija', fn() => view('timProduksi.update.updateingutppalawija'))->name('updateingutppalawija');
+    
+    // Menyesuaikan path untuk setiap file yang sekarang ada di dalam foldernya sendiri
+    Route::get('/kegiatan-triwulan/sktr', fn() => view('timProduksi.SKTR.SKTR'))->name('sktr');
+    Route::get('/kegiatan-triwulan/tpi', fn() => view('timProduksi.TPI.TPI'))->name('tpi');
+    Route::get('/kegiatan-triwulan/sphbst', fn() => view('timProduksi.SPHBST.SPHBST'))->name('sphbst');
+    Route::get('/kegiatan-triwulan/sphtbf', fn() => view('timProduksi.SPHTBF.SPHTBF'))->name('sphtbf');
+    Route::get('/kegiatan-triwulan/sphth', fn() => view('timProduksi.SPHTH.SPHTH'))->name('sphth');
+    Route::get('/kegiatan-triwulan/air-bersih', fn() => view('timProduksi.airBersih.airbersih'))->name('airbersih');
+    Route::get('/kegiatan-bulanan/ksapadi', fn() => view('timProduksi.KSAPadi.KSAPadi'))->name('ksapadi');
+    Route::get('/kegiatan-bulanan/ksajagung', fn() => view('timProduksi.KSAjagung.KSAjagung'))->name('ksajagung');
+    Route::get('/kegiatan-bulanan/lptb', fn() => view('timProduksi.LPTB.LPTB'))->name('lptb');
+    Route::get('/kegiatan-bulanan/sphsbs', fn() => view('timProduksi.SPHSBS.SPHSBS'))->name('sphsbs');
+    Route::get('/kegiatan-bulanan/sppalawija', fn() => view('timProduksi.SPpalawija.SPpalawija'))->name('sppalawija');
+    Route::get('/kegiatan-bulanan/perkebunan', fn() => view('timProduksi.perkebunan.perkebunanbulanan'))->name('perkebunanbulanan');
+    Route::get('/kegiatan-bulanan/ibs', fn() => view('timProduksi.IBSbulanan.IBSbulanan'))->name('ibsbulanan');
 });
 
 /* --- TIM NWA --- */

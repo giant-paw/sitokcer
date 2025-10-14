@@ -9,7 +9,7 @@
     {{-- CSS Global Anda --}}
     <link rel="stylesheet" href="{{ asset('css/global.css') }}">
     
-    {{-- 👇 TAMBAHKAN CSS SIDEBAR DI SINI 👇 --}}
+    {{-- 👇 TAMBAHKAN CSS SIDEBAR DI SINI  --}}
     <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
 
     {{-- Tailwind CSS --}}
