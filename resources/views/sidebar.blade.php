@@ -5,7 +5,8 @@
         <li class="{{ request()->is('/') ? 'active-link' : '' }}">
             <a href="{{ route('home') }}">
                 <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                     <polyline points="9 22 9 12 15 12 15 22"></polyline>
                 </svg>
@@ -15,8 +16,8 @@
 
         <li class="menu-item has-dropdown {{ request()->is('dashboard*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
-                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     stroke-linejoin="round">
                     <rect x="3" y="3" width="7" height="7"></rect>
                     <rect x="14" y="3" width="7" height="7"></rect>
@@ -24,8 +25,8 @@
                     <rect x="3" y="14" width="7" height="7"></rect>
                 </svg>
                 <span>Dashboards</span>
-                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
             </a>
@@ -52,8 +53,8 @@
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
                 <span>Tim Sosial</span>
-                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
             </a>
@@ -61,7 +62,8 @@
                 <li class="{{ request()->is('sosial/tahunan*') ? 'active-link' : '' }}">
                     <a href="{{ route('sosial.tahunan.index') }}">Sosial Tahunan</a>
                 </li>
-                <li class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-triwulanan*') ? 'active' : '' }}">
+                <li
+                    class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-triwulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
                         <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -75,7 +77,8 @@
                         </li>
                     </ul>
                 </li>
-                <li class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-semesteran*') ? 'active' : '' }}">
+                <li
+                    class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-semesteran*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Semesteran</span>
                         <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -84,7 +87,8 @@
                         </svg>
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('sosial/kegiatan-semesteran/sakernas*') ? 'active-link' : '' }}">
+                        <li
+                            class="{{ request()->is('sosial/kegiatan-semesteran/sakernas*') ? 'active-link' : '' }}">
                             <a href="{{ route('sosial.sakernas') }}">Sakernas</a>
                         </li>
                         <li class="{{ request()->is('sosial/kegiatan-semesteran/susenas*') ? 'active-link' : '' }}">
@@ -97,17 +101,17 @@
 
         <li class="menu-item has-dropdown {{ request()->is('distribusi*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
-                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
+                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <rect x="1" y="3" width="15" height="13"></rect>
                     <polygon points="16 8 20 8 20 16 16 16 16 8"></polygon>
                     <circle cx="5.5" cy="18.5" r="2.5"></circle>
                     <circle cx="18.5" cy="18.5" r="2.5"></circle>
                 </svg>
                 <span>Tim Distribusi</span>
-                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
             </a>
@@ -163,14 +167,14 @@
 
         <li class="menu-item has-dropdown {{ request()->is('produksi*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
-                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
+                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                 </svg>
                 <span>Tim Produksi</span>
-                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
             </a>
@@ -198,7 +202,8 @@
                         </li>
                     </ul>
                 </li>
-                <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-triwulan*') ? 'active' : '' }}">
+                <li
+                    class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-triwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
                         <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -225,7 +230,8 @@
                         </li>
                     </ul>
                 </li>
-                <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-bulanan*') ? 'active' : '' }}">
+                <li
+                    class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-bulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Bulanan</span>
                         <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -237,17 +243,20 @@
                         <li class="{{ request()->is('produksi/kegiatan-bulanan/ksapadi*') ? 'active-link' : '' }}">
                             <a href="{{ route('produksi.ksapadi') }}">KSA Padi</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/ksajagung*') ? 'active-link' : '' }}">
+                        <li
+                            class="{{ request()->is('produksi/kegiatan-bulanan/ksajagung*') ? 'active-link' : '' }}">
                             <a href="{{ route('produksi.ksajagung') }}">KSA Jagung</a>
                         </li>
                         <li class="{{ request()->is('produksi/kegiatan-bulanan/lptb*') ? 'active-link' : '' }}"><a
                                 href="{{ route('produksi.lptb') }}">LPTB</a></li>
                         <li class="{{ request()->is('produksi/kegiatan-bulanan/sphsbs*') ? 'active-link' : '' }}"><a
                                 href="{{ route('produksi.sphsbs') }}">SPHSBS</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/sppalawija*') ? 'active-link' : '' }}">
+                        <li
+                            class="{{ request()->is('produksi/kegiatan-bulanan/sppalawija*') ? 'active-link' : '' }}">
                             <a href="{{ route('produksi.sppalawija') }}">SP Palawija</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/perkebunan*') ? 'active-link' : '' }}">
+                        <li
+                            class="{{ request()->is('produksi/kegiatan-bulanan/perkebunan*') ? 'active-link' : '' }}">
                             <a href="{{ route('produksi.perkebunanbulanan') }}">Perkebunan Bulanan</a>
                         </li>
                         <li class="{{ request()->is('produksi/kegiatan-bulanan/ibs*') ? 'active-link' : '' }}"><a
@@ -259,16 +268,16 @@
 
         <li class="menu-item has-dropdown {{ request()->is('nwa*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
-                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
+                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <path d="M12 20V10"></path>
                     <path d="M18 20V4"></path>
                     <path d="M6 20V16"></path>
                 </svg>
                 <span>Tim NWA</span>
-                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
             </a>
@@ -301,9 +310,9 @@
 
         <li class="menu-item has-dropdown {{ request()->is('rekapitulasi*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
-                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
+                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                     <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -311,8 +320,8 @@
                     <polyline points="10 9 9 9 8 9"></polyline>
                 </svg>
                 <span>Rekapitulasi</span>
-                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
             </a>
@@ -328,9 +337,9 @@
 
         <li class="{{ request()->is('master-petugas*') ? 'active-link' : '' }}">
             <a href="{{ route('master.petugas') }}">
-                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
+                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                 </svg>
@@ -340,9 +349,9 @@
 
         <li class="{{ request()->is('master-kegiatan*') ? 'active-link' : '' }}">
             <a href="{{ route('master.kegiatan') }}">
-                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
+                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
                     <polyline points="13 2 13 9 20 9"></polyline>
                 </svg>
@@ -352,9 +361,9 @@
 
         <li class="{{ request()->is('user*') ? 'active-link' : '' }}">
             <a href="{{ route('user') }}">
-                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
+                <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                 </svg>
@@ -364,7 +373,7 @@
     </ul>
 </aside>
 
-<!-- <style>
+<style>
     * {
         margin: 0;
         padding: 0;
@@ -548,26 +557,24 @@
 
     /* Menghapus bagian responsive karena diatur oleh AlpineJS dan Tailwind di app.blade.php */
     /* Menghapus gaya logo karena sudah pindah */
-</style> -->
+</style>
 
-<!-- <script>
-    document.addEventListener('DOMContentLoaded', function() {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
         // --- BAGIAN 1: FUNGSI KLIK YANG DIPERBAIKI ---
         const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
 
-        dropdownToggles.forEach(function(toggle) {
-            toggle.addEventListener('click', function(event) {
+        dropdownToggles.forEach(function (toggle) {
+            toggle.addEventListener('click', function (event) {
                 event.preventDefault();
                 const parentMenuItem = this.closest('.menu-item.has-dropdown');
 
                 // Cari semua dropdown yang sedang terbuka
-                const currentlyOpen = document.querySelectorAll(
-                    '.menu-item.has-dropdown.active');
+                const currentlyOpen = document.querySelectorAll('.menu-item.has-dropdown.active');
 
-                currentlyOpen.forEach(function(openItem) {
+                currentlyOpen.forEach(function (openItem) {
                     // Tutup item yang terbuka HANYA JIKA item itu BUKAN induk dari item yang diklik
-                    if (openItem !== parentMenuItem && !openItem.contains(
-                            parentMenuItem)) {
+                    if (openItem !== parentMenuItem && !openItem.contains(parentMenuItem)) {
                         openItem.classList.remove('active');
                     }
                 });
@@ -597,4 +604,4 @@
             }
         }
     });
-</script> -->
+</script>
