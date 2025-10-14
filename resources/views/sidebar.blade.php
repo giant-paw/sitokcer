@@ -65,7 +65,7 @@
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                     <span>Tim Sosial</span>
-                    <svg class="arrow" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor"
+                    <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
@@ -83,7 +83,7 @@
                         class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-triwulanan*') ? 'active' : '' }}">
                         <a href="#" class="dropdown-toggle">
                             <span>Kegiatan Triwulan</span>
-                            <svg class="arrow" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor"
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
                             </svg>
@@ -101,7 +101,7 @@
                         class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-semesteran*') ? 'active' : '' }}">
                         <a href="#" class="dropdown-toggle">
                             <span>Kegiatan Semesteran</span>
-                            <svg class="arrow" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor"
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
                             </svg>
