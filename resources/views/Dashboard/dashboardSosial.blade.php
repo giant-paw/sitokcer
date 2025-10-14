@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard Tim D')
-@section('header-title', 'Dashboard Tim D')
+@section('title', 'Dashboard Tim SOsial')
+@section('header-title', 'Dashboard Tim Sosial')
 
 @section('content')
     <div class="bg-white p-6 rounded-lg shadow-md">
