@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Models\Sitokcer;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class DistribusiTahunan extends Model
+{
+    use HasFactory;
+
+    /**
+     * Nama tabel di database yang digunakan oleh model ini.
+     *
+     * @var string
+     */
+    protected $table = 'sitokcer_distribusi_tahunan';
+
+    /**
+     * Kolom yang diizinkan untuk diisi secara massal.
+     * Menggunakan guarded kosong berarti semua kolom boleh diisi.
+     *
+     * @var array
+     */
+    protected $guarded = ['id'];
+
+    /**
+     * Jika primary key Anda bukan 'id', uncomment dan sesuaikan baris ini.
+     *
+     * @var string
+     */
+    // protected $primaryKey = 'id_distribusi';
+}
