@@ -13,8 +13,8 @@
             <h3>Menu Navigasi</h3>
         </div>
         <ul class="sidebar-menu">
-            <li class="{{ request()->is('home') ? 'active-link' : '' }}">
-                <a href="#home">
+            <li class="{{ request()->is('/') ? 'active-link' : '' }}">
+                <a href="{{ route('home') }}">
                     <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -56,7 +56,7 @@
 
             <li class="menu-item has-dropdown {{ request()->is('sosial*') ? 'active' : '' }}">
                 <a href="#" class="dropdown-toggle">
-                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -65,7 +65,7 @@
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                     <span>Tim Sosial</span>
-                    <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    <svg class="arrow" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
@@ -73,9 +73,9 @@
 
                 {{-- Submenu Level 1 --}}
                 <ul class="submenu">
-                    {{-- Link Biasa --}}
-                    <li class="{{ request()->is('sosial/sosialtahunan*') ? 'active-link' : '' }}">
-                        <a href="#">Sosial Tahunan</a>
+                    {{-- Link Sudah Benar --}}
+                    <li class="{{ request()->is('sosial/tahunan*') ? 'active-link' : '' }}">
+                        <a href="{{ route('sosial.tahunan') }}">Sosial Tahunan</a>
                     </li>
 
                     {{-- Dropdown Nested: Kegiatan Triwulan --}}
@@ -83,8 +83,8 @@
                         class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-triwulanan*') ? 'active' : '' }}">
                         <a href="#" class="dropdown-toggle">
                             <span>Kegiatan Triwulan</span>
-                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
                             </svg>
                         </a>
@@ -101,8 +101,8 @@
                         class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-semesteran*') ? 'active' : '' }}">
                         <a href="#" class="dropdown-toggle">
                             <span>Kegiatan Semesteran</span>
-                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
                             </svg>
                         </a>
@@ -119,6 +119,296 @@
                     </li>
                 </ul>
             </li>
+
+            <li class="menu-item has-dropdown {{ request()->is('distribusi*') ? 'active' : '' }}">
+                <a href="#" class="dropdown-toggle">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="1" y="3" width="15" height="13"></rect>
+                        <polygon points="16 8 20 8 20 16 16 16 16 8"></polygon>
+                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                    </svg>
+                    <span>Tim Distribusi</span>
+                    <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </a>
+
+                {{-- Submenu Level 1 --}}
+                <ul class="submenu">
+                    {{-- Link Biasa --}}
+                    <li class="{{ request()->is('distribusi/tahunan*') ? 'active-link' : '' }}">
+                        <a href="{{ route('distribusi.tahunan') }}">Distribusi Tahunan</a>
+                    </li>
+
+                    {{-- Dropdown Nested: Kegiatan Triwulan --}}
+                    <li
+                        class="menu-item has-dropdown {{ request()->is('distribusi/kegiatan-triwulan*') ? 'active' : '' }}">
+                        <a href="#" class="dropdown-toggle">
+                            <span>Kegiatan Triwulan</span>
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        {{-- Submenu Level 2 --}}
+                        <ul class="submenu">
+                            <li class="{{ request()->is('distribusi/kegiatan-triwulan/spunp*') ? 'active-link' : '' }}">
+                                <a href="{{ route('distribusi.spunp') }}">SPUNP</a>
+                            </li>
+                            <li class="{{ request()->is('distribusi/kegiatan-triwulan/shkk*') ? 'active-link' : '' }}">
+                                <a href="{{ route('distribusi.shkk') }}">SHKK</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Dropdown Nested: Distribusi Bulanan --}}
+                    <li class="menu-item has-dropdown {{ request()->is('distribusi/bulanan*') ? 'active' : '' }}">
+                        <a href="#" class="dropdown-toggle">
+                            <span>Distribusi Bulanan</span>
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        {{-- Submenu Level 2 --}}
+                        <ul class="submenu">
+                            <li class="{{ request()->is('distribusi/bulanan/vhts*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('distribusi.vhts') }}">VHTS</a></li>
+                            <li class="{{ request()->is('distribusi/bulanan/hkd*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('distribusi.hkd') }}">HKD</a></li>
+                            <li class="{{ request()->is('distribusi/bulanan/shpb*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('distribusi.shpb') }}">SHPB</a></li>
+                            <li class="{{ request()->is('distribusi/bulanan/shp*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('distribusi.shp') }}">SHP</a></li>
+                            <li class="{{ request()->is('distribusi/bulanan/shpj*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('distribusi.shpj') }}">SHPJ</a></li>
+                            <li class="{{ request()->is('distribusi/bulanan/shpgb*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('distribusi.shpgb') }}">SHPBG</a></li>
+                            <li class="{{ request()->is('distribusi/bulanan/hd*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('distribusi.hd') }}">HD</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="menu-item has-dropdown {{ request()->is('produksi*') ? 'active' : '' }}">
+                <a href="#" class="dropdown-toggle">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    <span>Tim Produksi</span>
+                    <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </a>
+
+                {{-- Submenu Level 1 --}}
+                <ul class="submenu">
+                    {{-- Link Biasa --}}
+                    <li class="{{ request()->is('produksi/tahunan*') ? 'active-link' : '' }}">
+                        <a href="{{ route('produksi.tahunan') }}">Produksi Tahunan</a>
+                    </li>
+
+                    {{-- Dropdown Nested: Kegiatan Caturwulan --}}
+                    <li
+                        class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-caturwulan*') ? 'active' : '' }}">
+                        <a href="#" class="dropdown-toggle">
+                            <span>Kegiatan Caturwulan</span>
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        {{-- Submenu Level 2 --}}
+                        <ul class="submenu">
+                            <li
+                                class="{{ request()->is('produksi/kegiatan-caturwulan/ubinan-padi-palawija*') ? 'active-link' : '' }}">
+                                <a href="{{ route('produksi.ubinanpadipalawija') }}">Ubinan Padi Palawija</a>
+                            </li>
+                            <li
+                                class="{{ request()->is('produksi/kegiatan-caturwulan/update-utp-palawija*') ? 'active-link' : '' }}">
+                                <a href="{{ route('produksi.updateutppalawija') }}">Update UTP Palawija</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Dropdown Nested: Kegiatan Triwulan --}}
+                    <li
+                        class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-triwulan*') ? 'active' : '' }}">
+                        <a href="#" class="dropdown-toggle">
+                            <span>Kegiatan Triwulan</span>
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        {{-- Submenu Level 2 --}}
+                        <ul class="submenu">
+                            <li class="{{ request()->is('produksi/kegiatan-triwulan/sktr*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('produksi.sktr') }}">SKTR</a></li>
+                            <li class="{{ request()->is('produksi/kegiatan-triwulan/tpi*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('produksi.tpi') }}">TPI</a></li>
+                            <li class="{{ request()->is('produksi/kegiatan-triwulan/sphbst*') ? 'active-link' : '' }}">
+                                <a href="{{ route('produksi.sphbst') }}">SPHBST</a>
+                            </li>
+                            <li class="{{ request()->is('produksi/kegiatan-triwulan/sphtbf*') ? 'active-link' : '' }}">
+                                <a href="{{ route('produksi.sphtbf') }}">SPHTBF</a>
+                            </li>
+                            <li class="{{ request()->is('produksi/kegiatan-triwulan/sphth*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('produksi.sphth') }}">SPHTH</a></li>
+                            <li
+                                class="{{ request()->is('produksi/kegiatan-triwulan/air-bersih*') ? 'active-link' : '' }}">
+                                <a href="{{ route('produksi.airbersih') }}">Air Bersih</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Dropdown Nested: Kegiatan Bulanan --}}
+                    <li
+                        class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-bulanan*') ? 'active' : '' }}">
+                        <a href="#" class="dropdown-toggle">
+                            <span>Kegiatan Bulanan</span>
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        {{-- Submenu Level 2 --}}
+                        <ul class="submenu">
+                            <li class="{{ request()->is('produksi/kegiatan-bulanan/ksapadi*') ? 'active-link' : '' }}">
+                                <a href="{{ route('produksi.ksapadi') }}">KSA Padi</a>
+                            </li>
+                            <li
+                                class="{{ request()->is('produksi/kegiatan-bulanan/ksajagung*') ? 'active-link' : '' }}">
+                                <a href="{{ route('produksi.ksajagung') }}">KSA Jagung</a>
+                            </li>
+                            <li class="{{ request()->is('produksi/kegiatan-bulanan/lptb*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('produksi.lptb') }}">LPTB</a></li>
+                            <li class="{{ request()->is('produksi/kegiatan-bulanan/sphsbs*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('produksi.sphsbs') }}">SPHSBS</a></li>
+                            <li
+                                class="{{ request()->is('produksi/kegiatan-bulanan/sppalawija*') ? 'active-link' : '' }}">
+                                <a href="{{ route('produksi.sppalawija') }}">SP Palawija</a>
+                            </li>
+                            <li
+                                class="{{ request()->is('produksi/kegiatan-bulanan/perkebunan*') ? 'active-link' : '' }}">
+                                <a href="{{ route('produksi.perkebunanbulanan') }}">Perkebunan Bulanan</a>
+                            </li>
+                            <li class="{{ request()->is('produksi/kegiatan-bulanan/ibs*') ? 'active-link' : '' }}"><a
+                                    href="{{ route('produksi.ibsbulanan') }}">IBS Bulanan</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="menu-item has-dropdown {{ request()->is('nwa*') ? 'active' : '' }}">
+                <a href="#" class="dropdown-toggle">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M12 20V10"></path>
+                        <path d="M18 20V4"></path>
+                        <path d="M6 20V16"></path>
+                    </svg>
+                    <span>Tim NWA</span>
+                    <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </a>
+
+                {{-- Submenu Level 1 --}}
+                <ul class="submenu">
+                    {{-- Link Biasa --}}
+                    <li class="{{ request()->is('nwa/tahunan*') ? 'active-link' : '' }}">
+                        <a href="{{ route('nwa.tahunan') }}">NWA Tahunan</a>
+                    </li>
+
+                    {{-- Dropdown Nested: NWA Triwulanan --}}
+                    <li class="menu-item has-dropdown {{ request()->is('nwa/triwulanan*') ? 'active' : '' }}">
+                        <a href="#" class="dropdown-toggle">
+                            <span>NWA Triwulanan</span>
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        {{-- Submenu Level 2 --}}
+                        <ul class="submenu">
+                            <li class="{{ request()->is('nwa/triwulanan/sklnp*') ? 'active-link' : '' }}">
+                                <a href="{{ route('nwa.sklnp') }}">SKLNP</a>
+                            </li>
+                            <li class="{{ request()->is('nwa/triwulanan/snaper*') ? 'active-link' : '' }}">
+                                <a href="{{ route('nwa.snaper') }}">Snaper</a>
+                            </li>
+                            <li class="{{ request()->is('nwa/triwulanan/sktnp*') ? 'active-link' : '' }}">
+                                <a href="{{ route('nwa.sktnp') }}">SKTNP</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="menu-item has-dropdown {{ request()->is('rekapitulasi*') ? 'active' : '' }}">
+                <a href="#" class="dropdown-toggle">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <span>Rekapitulasi</span>
+                    <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </a>
+
+                {{-- Submenu Level 1 --}}
+                <ul class="submenu">
+                    <li class="{{ request()->is('rekapitulasi/pencacah*') ? 'active-link' : '' }}">
+                        <a href="{{ route('rekapitulasi.pencacah') }}">Rekap Pencacah</a>
+                    </li>
+                    <li class="{{ request()->is('rekapitulasi/pengawas*') ? 'active-link' : '' }}">
+                        <a href="{{ route('rekapitulasi.pengawas') }}">Rekap Pengawas</a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="{{ request()->is('master-petugas*') ? 'active-link' : '' }}">
+                <a href="{{ route('master.petugas') }}">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Master Petugas</span>
+                </a>
+            </li>
+
+            <li class="{{ request()->is('master-kegiatan*') ? 'active-link' : '' }}">
+                <a href="{{ route('master.kegiatan') }}">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <polyline points="13 2 13 9 20 9"></polyline>
+                    </svg>
+                    <span>Master Kegiatan</span>
+                </a>
+            </li>
+
 
         </ul>
 
@@ -256,15 +546,16 @@
         }
 
         /* Gaya HANYA untuk submenu level 1 (indentasi & border) */
-        .sidebar-menu > li > .submenu {
+        .sidebar-menu>li>.submenu {
             margin-left: 20px;
             border-left: 2px solid rgba(255, 255, 255, 0.15);
         }
-        
+
         /* Gaya HANYA untuk submenu level 2 (dropdown di dalam dropdown) */
         .submenu .submenu {
-            margin-left: 15px; /* Indentasi lebih kecil, tanpa border */
-            border-left: none; 
+            margin-left: 15px;
+            /* Indentasi lebih kecil, tanpa border */
+            border-left: none;
         }
 
         .submenu li {
@@ -342,19 +633,19 @@
     </style>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // --- BAGIAN 1: FUNGSI KLIK YANG DIPERBAIKI ---
             const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
 
-            dropdownToggles.forEach(function(toggle) {
-                toggle.addEventListener('click', function(event) {
+            dropdownToggles.forEach(function (toggle) {
+                toggle.addEventListener('click', function (event) {
                     event.preventDefault();
                     const parentMenuItem = this.closest('.menu-item.has-dropdown');
 
                     // Cari semua dropdown yang sedang terbuka
                     const currentlyOpen = document.querySelectorAll('.menu-item.has-dropdown.active');
 
-                    currentlyOpen.forEach(function(openItem) {
+                    currentlyOpen.forEach(function (openItem) {
                         // Tutup item yang terbuka HANYA JIKA item itu BUKAN induk dari item yang diklik
                         if (openItem !== parentMenuItem && !openItem.contains(parentMenuItem)) {
                             openItem.classList.remove('active');
