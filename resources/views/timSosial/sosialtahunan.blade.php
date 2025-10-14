@@ -1,0 +1,1 @@
+rdetfgyhujioklp;'/.,mnbvcxzQWERTYUIOPASDFGHJKLZXCVBNM<>?:"{}|!@#$%^&*()_+1234567890-=
