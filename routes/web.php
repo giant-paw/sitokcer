@@ -25,16 +25,16 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 
 /* --- TIM DISTRIBUSI --- */
 Route::prefix('distribusi')->name('distribusi.')->group(function () {
-    Route::get('/tahunan', fn() => view('timDistribusi.distribusitahunan'))->name('tahunan');
-    Route::get('/kegiatan-triwulan/spunp', fn() => view('timDistribusi.SPUNP'))->name('spunp');
-    Route::get('/kegiatan-triwulan/shkk', fn() => view('timDistribusi.SHKK'))->name('shkk');
-    Route::get('/bulanan/vhts', fn() => view('timDistribusi.VHTS'))->name('vhts');
-    Route::get('/bulanan/hkd', fn() => view('timDistribusi.HKD'))->name('hkd');
-    Route::get('/bulanan/shpb', fn() => view('timDistribusi.SHPB'))->name('shpb');
-    Route::get('/bulanan/shp', fn() => view('timDistribusi.SHP'))->name('shp');
-    Route::get('/bulanan/shpj', fn() => view('timDistribusi.SHPJ'))->name('shpj');
-    Route::get('/bulanan/shpgb', fn() => view('timDistribusi.SHPBG'))->name('shpgb');
-    Route::get('/bulanan/hd', fn() => view('timDistribusi.HD'))->name('hd');
+    Route::get('/tahunan', fn() => view('timDistribusi.tahunan.distribusitahunan'))->name('tahunan');
+    Route::get('/kegiatan-triwulan/spunp', fn() => view('timDistribusi.SPUNP.SPUNP'))->name('spunp');
+    Route::get('/kegiatan-triwulan/shkk', fn() => view('timDistribusi.SHKK.SHKK'))->name('shkk');
+    Route::get('/bulanan/vhts', fn() => view('timDistribusi.VHTS.VHTS'))->name('vhts');
+    Route::get('/bulanan/hkd', fn() => view('timDistribusi.HKD.HKD'))->name('hkd');
+    Route::get('/bulanan/shpb', fn() => view('timDistribusi.SHPB.SHPB'))->name('shpb');
+    Route::get('/bulanan/shp', fn() => view('timDistribusi.SHP.SHP'))->name('shp');
+    Route::get('/bulanan/shpj', fn() => view('timDistribusi.SHPJ.SHPJ'))->name('shpj');
+    Route::get('/bulanan/shpgb', fn() => view('timDistribusi.SHPBG.SHPBG'))->name('shpgb');
+    Route::get('/bulanan/hd', fn() => view('timDistribusi.HD.HD'))->name('hd');
 });
 
 /* --- TIM PRODUKSI --- */
@@ -64,16 +64,16 @@ Route::prefix('produksi')->name('produksi.')->group(function () {
 
 /* --- TIM NWA --- */
 Route::prefix('nwa')->name('nwa.')->group(function () {
-    Route::get('/tahunan', fn() => view('timNWA.NWAtahunan'))->name('tahunan');
-    Route::get('/triwulanan/sklnp', fn() => view('timNWA.SKLNP'))->name('sklnp');
-    Route::get('/triwulanan/snaper', fn() => view('timNWA.snaper'))->name('snaper');
-    Route::get('/triwulanan/sktnp', fn() => view('timNWA.SKTNP'))->name('sktnp');
+    Route::get('/tahunan', fn() => view('timNWA.tahunan.NWAtahunan'))->name('tahunan');
+    Route::get('/triwulanan/sklnp', fn() => view('timNWA.SKLNP.SKLNP'))->name('sklnp');
+    Route::get('/triwulanan/snaper', fn() => view('timNWA.snaper.snaper'))->name('snaper');
+    Route::get('/triwulanan/sktnp', fn() => view('timNWA.SKTNP.SKTNP'))->name('sktnp');
 });
 
 /* --- REKAPITULASI --- */
 Route::prefix('rekapitulasi')->name('rekapitulasi.')->group(function () {
-    Route::get('/pencacah', fn() => view('Rekapitulasi.rekappencacah'))->name('pencacah');
-    Route::get('/pengawas', fn() => view('Rekapitulasi.rekappengawas'))->name('pengawas');
+    Route::get('/pencacah', fn() => view('Rekapitulasi.rekapcacah.rekappencacah'))->name('pencacah');
+    Route::get('/pengawas', fn() => view('Rekapitulasi.rekappengawas.rekappengawas'))->name('pengawas');
 });
 
 /* --- MASTER --- */
