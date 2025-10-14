@@ -163,3 +163,8 @@ Route::get('/master-kegiatan', function () {
     // Rute ini sudah benar, menunjuk ke masterkegiatan.blade.php
     return view('masterkegiatan'); 
 })->name('master.kegiatan');
+
+Route::get('/user', function () {
+    // Rute ini sudah benar, menunjuk ke masterkegiatan.blade.php
+    return view('user'); 
+})->name('user');
