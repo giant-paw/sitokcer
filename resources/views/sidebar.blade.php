@@ -4,13 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
     <title>Improved Sidebar</title>
 </head>
 
 <body>
     <aside class="sidebar">
         <div class="sidebar-header">
-            <h3>Menu Navigasi</h3>
+            {{-- Container untuk Logo dan Nama Aplikasi --}}
+            <a href="{{ route('home') }}" class="app-logo">
+
+                {{-- Menggunakan tag <img> untuk logo dari file lokal --}}
+                <img src="{{ asset('logo.png') }}" alt="Logo Sitokcer" class="logo-img">
+
+                {{-- Nama Aplikasi --}}
+                <h1>Sitokcer</h1>
+            </a>
         </div>
         <ul class="sidebar-menu">
             <li class="{{ request()->is('/') ? 'active-link' : '' }}">
@@ -83,8 +93,8 @@
                         class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-triwulanan*') ? 'active' : '' }}">
                         <a href="#" class="dropdown-toggle">
                             <span>Kegiatan Triwulan</span>
-                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
                             </svg>
                         </a>
@@ -101,8 +111,8 @@
                         class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-semesteran*') ? 'active' : '' }}">
                         <a href="#" class="dropdown-toggle">
                             <span>Kegiatan Semesteran</span>
-                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 18 15 12 9 6"></polyline>
                             </svg>
                         </a>
@@ -409,6 +419,19 @@
                 </a>
             </li>
 
+            <li class="{{ request()->is('user*') ? 'active-link' : '' }}">
+                <a href="{{ route('user') }}">
+                    <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        {{-- IKON BARU --}}
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>User</span>
+                </a>
+            </li>
+
 
         </ul>
 
@@ -458,7 +481,7 @@
         }
 
         .sidebar-header h3 {
-            font-size: 1.25rem;
+            font-size: 1.05rem;
             font-weight: 600;
             text-align: center;
             letter-spacing: 0.5px;
@@ -540,23 +563,13 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            margin-left: 20px;
+            border-left: 2px solid rgba(255, 255, 255, 0.15);
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Gaya HANYA untuk submenu level 1 (indentasi & border) */
-        .sidebar-menu>li>.submenu {
-            margin-left: 20px;
-            border-left: 2px solid rgba(255, 255, 255, 0.15);
-        }
-
-        /* Gaya HANYA untuk submenu level 2 (dropdown di dalam dropdown) */
-        .submenu .submenu {
-            margin-left: 15px;
-            /* Indentasi lebih kecil, tanpa border */
-            border-left: none;
-        }
 
         .submenu li {
             margin-bottom: 0;
@@ -629,6 +642,35 @@
                 width: 100%;
                 height: auto;
             }
+        }
+
+        /* Gaya untuk Logo dan Nama Aplikasi */
+        .app-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            /* Jarak antara logo dan teks */
+            text-decoration: none;
+            color: #ffffff;
+        }
+
+        .app-logo h1 {
+            font-size: 2rem;
+            /* Ukuran font nama aplikasi */
+            font-weight: 600;
+            letter-spacing: 1px;
+            font-family: 'Poppins', sans-serif:
+        }
+
+        /* Gaya untuk tag <img> logo */
+        .logo-img {
+            width: 50px;
+            /* Sesuaikan lebar sesuai kebutuhan */
+            height: 50px;
+            /* Sesuaikan tinggi sesuai kebutuhan */
+            object-fit: contain;
+            /* Memastikan gambar tidak gepeng */
         }
     </style>
 
