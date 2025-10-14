@@ -4,8 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>@yield('title', 'Sitokcer')</title>
+    
+    {{-- CSS Global Anda --}}
+    <link rel="stylesheet" href="{{ asset('css/global.css') }}">
+    
+    {{-- 👇 TAMBAHKAN CSS SIDEBAR DI SINI 👇 --}}
+    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
 
     {{-- Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
@@ -93,21 +98,25 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+       document.addEventListener('DOMContentLoaded', function () {
             const menuButton = document.getElementById('user-menu-button');
             const dropdown = document.getElementById('user-menu-dropdown');
 
-            menuButton.addEventListener('click', function () {
-                dropdown.classList.toggle('hidden');
-            });
+            if (menuButton) {
+                menuButton.addEventListener('click', function () {
+                    dropdown.classList.toggle('hidden');
+                });
+            }
 
             window.addEventListener('click', function (e) {
-                if (!menuButton.contains(e.target) && !dropdown.contains(e.target)) {
+                if (menuButton && !menuButton.contains(e.target) && dropdown && !dropdown.contains(e.target)) {
                     dropdown.classList.add('hidden');
                 }
             });
         });
     </script>
+
+     <script src="{{ asset('js/sidebar.js') }}"></script>
 </body>
 
 </html>

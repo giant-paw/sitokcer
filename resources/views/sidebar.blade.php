@@ -373,7 +373,7 @@
     </ul>
 </aside>
 
-<style>
+<!-- <style>
     * {
         margin: 0;
         padding: 0;
@@ -557,9 +557,9 @@
 
     /* Menghapus bagian responsive karena diatur oleh AlpineJS dan Tailwind di app.blade.php */
     /* Menghapus gaya logo karena sudah pindah */
-</style>
+</style> -->
 
-<script>
+<!-- <script>
     document.addEventListener('DOMContentLoaded', function () {
         // --- BAGIAN 1: FUNGSI KLIK YANG DIPERBAIKI ---
         const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
@@ -604,4 +604,4 @@
             }
         }
     });
-</script>
+</script> -->
