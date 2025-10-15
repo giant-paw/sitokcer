@@ -27,9 +27,9 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 
 /* --- TIM DISTRIBUSI --- */
 Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
-    Route::resource('tahunan', DistribusiTahunanController::class);
-    
+    Route::get('tahunan/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('tahunan.searchPetugas');
     Route::post('tahunan/bulk-delete', [DistribusiTahunanController::class, 'bulkDelete'])->name('tahunan.bulkDelete');
+    Route::resource('tahunan', DistribusiTahunanController::class);
     
 
 

@@ -54,7 +54,7 @@ class DistribusiTahunanController extends Controller
 
         DistribusiTahunan::create($validatedData);
 
-        return back()->with('success', 'Data berhasil ditambahkan!');
+        return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
 
     public function edit($id)
@@ -81,8 +81,7 @@ class DistribusiTahunanController extends Controller
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
         $distribusi->update($validatedData);
-
-        return redirect()->route('tim-distribusi.tahunan.index')->with('success', 'Data berhasil diperbarui!');
+        return redirect()->route('tim-distribusi.tahunan.index')->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
     public function bulkDelete(Request $request)
@@ -93,8 +92,7 @@ class DistribusiTahunanController extends Controller
         ]);
 
         DistribusiTahunan::whereIn('id_distribusi', $request->ids)->delete();
-
-        return back()->with('success', 'Data yang dipilih berhasil dihapus!');
+        return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true, 'hide_after' => 2]);
     }
 
     public function destroy($id)
@@ -102,6 +100,26 @@ class DistribusiTahunanController extends Controller
         $distribusi = DistribusiTahunan::findOrFail($id);
         $distribusi->delete();
 
-        return redirect()->route('tim-distribusi.tahunan.index')->with('success', 'Data berhasil dihapus!');
+        return redirect()->route('tim-distribusi.tahunan.index')->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
+    }
+
+    public function searchPetugas(Request $request)
+    {
+        $request->validate([
+            'field' => 'required|in:pencacah,pengawas',
+            'query' => 'nullable|string|max:100',
+        ]);
+
+        $field = $request->input('field');
+        $query = $request->input('query', '');
+
+        $data = DistribusiTahunan::query()
+            ->select($field)
+            ->where($field, 'LIKE', "%{$query}%")
+            ->distinct() 
+            ->limit(5)  
+            ->pluck($field);
+
+        return response()->json($data);
     }
 }

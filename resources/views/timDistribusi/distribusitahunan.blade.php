@@ -4,6 +4,8 @@
 
 @section('header-title', 'List Target Kegiatan Tahunan Tim Distribusi')
 
+
+
 @section('content')
     <div class="container-fluid">
         <div class="card">
@@ -145,8 +147,10 @@
             <div class="modal-content">
                 <div class="modal-header">
                 <h5 class="modal-title" id="tambahDataModalLabel">Tambah Data Baru</h5>
+                
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+                
+            </div>
                 <div class="modal-body">
                 <div class="mb-3">
                     <label for="nama_kegiatan" class="form-label">Nama Kegiatan</label>
@@ -156,14 +160,19 @@
                     <label for="BS_Responden" class="form-label">Blok Sensus/Responden</label>
                     <input type="text" class="form-control" id="BS_Responden" name="BS_Responden" required>
                 </div>
-                <div class="mb-3">
+
+                <div class="mb-3 autocomplete-container">
                     <label for="pencacah" class="form-label">Pencacah</label>
-                    <input type="text" class="form-control" id="pencacah" name="pencacah" required>
+                    <input type="text" class="form-control" id="pencacah" name="pencacah" required autocomplete="off"> 
+                    <div class="autocomplete-suggestions" id="pencacah-suggestions"></div> 
                 </div>
-                <div class="mb-3">
+
+                <div class="mb-3 autocomplete-container">
                     <label for="pengawas" class="form-label">Pengawas</label>
-                    <input type="text" class="form-control" id="pengawas" name="pengawas" required>
+                    <input type="text" class="form-control" id="pengawas" name="pengawas" required autocomplete="off">
+                    <div class="autocomplete-suggestions" id="pengawas-suggestions"></div>
                 </div>
+
                 <div class="mb-3">
                     <label for="target_penyelesaian" class="form-label">Tanggal Target Penyelesaian</label>
                     <input type="date" class="form-control" id="target_penyelesaian" name="target_penyelesaian" placeholder="dd/mm/yyyy" required>
@@ -189,7 +198,7 @@
         </div>
     </div>
 
-    <!-- Modal e -->
+    <!-- Modal edit -->
     <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <form id="editForm" method="POST">
@@ -209,14 +218,19 @@
                             <label for="edit_BS_Responden" class="form-label">Blok Sensus/Responden</label>
                             <input type="text" class="form-control" id="edit_BS_Responden" name="BS_Responden" required>
                         </div>
-                        <div class="mb-3">
+
+                        <div class="mb-3 autocomplete-container"> 
                             <label for="edit_pencacah" class="form-label">Pencacah</label>
-                            <input type="text" class="form-control" id="edit_pencacah" name="pencacah" required>
+                            <input type="text" class="form-control" id="edit_pencacah" name="pencacah" required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
                         </div>
-                        <div class="mb-3">
+
+                        <div class="mb-3 autocomplete-container">
                             <label for="edit_pengawas" class="form-label">Pengawas</label>
-                            <input type="text" class="form-control" id="edit_pengawas" name="pengawas" required>
+                            <input type="text" class="form-control" id="edit_pengawas" name="pengawas" required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div>
                         </div>
+
                         <div class="mb-3">
                             <label for="edit_target_penyelesaian" class="form-label">Tanggal Target Penyelesaian</label>
                             <input type="date" class="form-control" id="edit_target_penyelesaian" name="target_penyelesaian" placeholder="dd/mm/yyyy" required>
@@ -268,86 +282,160 @@
 @endsection
 
 @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const selectAll = document.getElementById('selectAll');
-            const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+<script>
+    // --- FUNGSI UNTUK AUTOCOMPLETE ---
+    function initAutocomplete(inputId, suggestionsId, fieldName) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
 
-            if (selectAll) {
-                selectAll.addEventListener('change', function () {
-                    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = selectAll.checked);
-                });
+        const suggestionsContainer = document.getElementById(suggestionsId);
+        let debounceTimer;
+
+        input.addEventListener('input', function() {
+            const query = this.value;
+            clearTimeout(debounceTimer);
+            
+            if (query.length < 2) {
+                if(suggestionsContainer) suggestionsContainer.innerHTML = '';
+                return;
             }
 
-            if (bulkDeleteBtn) {
-                bulkDeleteBtn.addEventListener('click', function() {
-                    const selectedIds = [];
-                    document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
-                        selectedIds.push(cb.value);
-                    });
-
-                    if (selectedIds.length === 0) {
-                        alert('Pilih setidaknya satu data untuk dihapus.');
-                        return;
-                    }
-
-                    const deleteModal = new bootstrap.Modal(document.getElementById('deleteDataModal'));
-                    const deleteForm = document.getElementById('deleteForm');
-                    
-                    deleteForm.action = '{{ route("tim-distribusi.tahunan.bulkDelete") }}';
-                    deleteForm.querySelector('input[name="_method"]').value = 'POST'; 
-
-                    deleteForm.querySelectorAll('input[name="ids[]"]').forEach(input => input.remove());
-                    
-                    selectedIds.forEach(id => {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'ids[]';
-                        input.value = id;
-                        deleteForm.appendChild(input);
-                    });
-
-                    deleteModal.show();
-                });
+            debounceTimer = setTimeout(() => {
+                const searchUrl = `{{ route("tim-distribusi.tahunan.searchPetugas") }}?field=${fieldName}&query=${query}`;
+                
+                fetch(searchUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        suggestionsContainer.innerHTML = ''; 
+                        data.forEach(item => {
+                            const suggestionDiv = document.createElement('div');
+                            suggestionDiv.textContent = item;
+                            suggestionDiv.classList.add('autocomplete-suggestion-item');
+                            suggestionDiv.addEventListener('click', function() {
+                                input.value = item;
+                                suggestionsContainer.innerHTML = '';
+                            });
+                            suggestionsContainer.appendChild(suggestionDiv);
+                        });
+                    })
+                    .catch(error => console.error('Autocomplete error:', error));
+            }, 10);
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (e.target.id !== inputId) {
+                if(suggestionsContainer) suggestionsContainer.innerHTML = '';
             }
         });
+    }
 
-        function editData(id) {
-            const getUrl = `/tim-distribusi/tahunan/${id}/edit`;
-            const updateUrl = `/tim-distribusi/tahunan/${id}`;
+    // --- FUNGSI UNTUK EDIT DATA ---
+    function editData(id) {
+        const getUrl = `/tim-distribusi/tahunan/${id}/edit`;
+        const updateUrl = `/tim-distribusi/tahunan/${id}`;
+        const editForm = document.getElementById('editForm');
+        
+        fetch(getUrl)
+            .then(response => {
+                if (!response.ok) throw new Error('Gagal mengambil data dari server.');
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan;
+                document.getElementById('edit_BS_Responden').value = data.BS_Responden;
+                document.getElementById('edit_pencacah').value = data.pencacah;
+                document.getElementById('edit_pengawas').value = data.pengawas;
+                document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian;
+                document.getElementById('edit_flag_progress').value = data.flag_progress;
+                document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan;
+                editForm.action = updateUrl;
+            })
+            .catch(error => {
+                console.error('Terjadi kesalahan:', error);
+                alert('Tidak dapat memuat data untuk diedit. Silakan coba lagi.');
+            });
+    }
 
-            const editForm = document.getElementById('editForm');
+    // --- FUNGSI UNTUK HAPUS SATU DATA ---
+    function deleteData(id) {
+        const deleteForm = document.getElementById('deleteForm');
+        deleteForm.action = `/tim-distribusi/tahunan/${id}`;
+        deleteForm.querySelector('input[name="_method"]').value = 'DELETE';
+        deleteForm.querySelectorAll('input[name="ids[]"]').forEach(input => input.remove());
+    }
 
-            fetch(getUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Gagal mengambil data dari server.');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan;
-                    document.getElementById('edit_BS_Responden').value = data.BS_Responden;
-                    document.getElementById('edit_pencacah').value = data.pencacah;
-                    document.getElementById('edit_pengawas').value = data.pengawas;
-                    document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian;
-                    document.getElementById('edit_flag_progress').value = data.flag_progress;
-                    document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan;
+    document.addEventListener('DOMContentLoaded', function () {
+        // Inisialisasi Autocomplete untuk semua 4 field
+        initAutocomplete('pencacah', 'pencacah-suggestions', 'pencacah');
+        initAutocomplete('pengawas', 'pengawas-suggestions', 'pengawas');
+        initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', 'pencacah');
+        initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', 'pengawas');
 
-                    editForm.action = updateUrl;
-                })
-                .catch(error => {
-                    console.error('Terjadi kesalahan:', error);
-                    alert('Tidak dapat memuat data untuk diedit. Silakan coba lagi.');
+        // Fungsi untuk "Select All" Checkbox
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+            });
+        }
+        
+        // Event listener untuk tombol Bulk Delete
+        const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.addEventListener('click', function() {
+                const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+
+                if (selectedIds.length === 0) {
+                    alert('Pilih setidaknya satu data untuk dihapus.');
+                    return;
+                }
+
+                const deleteModal = new bootstrap.Modal(document.getElementById('deleteDataModal'));
+                const deleteForm = document.getElementById('deleteForm');
+                
+                deleteForm.action = '{{ route("tim-distribusi.tahunan.bulkDelete") }}';
+                deleteForm.querySelector('input[name="_method"]').value = 'POST'; 
+                deleteForm.querySelectorAll('input[name="ids[]"]').forEach(input => input.remove());
+                
+                selectedIds.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ids[]';
+                    input.value = id;
+                    deleteForm.appendChild(input);
                 });
+                deleteModal.show();
+            });
         }
+    });
+</script>
+@endpush
 
-        function deleteData(id) {
-            const deleteForm = document.getElementById('deleteForm');
-            deleteForm.action = `/tim-distribusi/tahunan/${id}`;
-
-            deleteForm.querySelector('input[name="_method"]').value = 'DELETE';
-            deleteForm.querySelectorAll('input[name="ids[]"]').forEach(input => input.remove());
-        }
-    </script>
+@push('styles')
+<style>
+    .autocomplete-container {
+        position: relative;
+    }
+    .autocomplete-suggestions {
+        position: absolute;
+        border: 1px solid #ddd;
+        border-top: none;
+        background-color: #fff;
+        z-index: 1056; 
+        width: 100%;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+    .autocomplete-suggestion-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        color: #0d6efd; 
+        background-color: #f8f9fa;
+        font-weight: 500;
+    }
+    .autocomplete-suggestion-item:hover {
+        background-color: #ffe082; 
+        color: #212529; 
+    }
+</style>
 @endpush
