@@ -20,9 +20,10 @@ class DistribusiTahunanController extends Controller
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
-                $q->where('blok_sensus_responden', 'like', "%{$searchTerm}%")
+                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
                   ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                  ->orWhere('pengawas', 'like', "%{$searchTerm}%");
+                  ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                  ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
 

@@ -93,7 +93,7 @@
                                         <input type="checkbox" class="form-check-input row-checkbox" value="{{ $item->id_distribusi }}">
                                     </td>
                                     <td>{{ $item->nama_kegiatan }}</td>
-                                    <td>{{ $item->blok_sensus_responden }}</td>
+                                    <td>{{ $item->BS_Responden }}</td>
                                     <td>{{ $item->pencacah }}</td>
                                     <td>{{ $item->pengawas }}</td>
                                     <td>{{ $item->target_penyelesaian }}</td>
