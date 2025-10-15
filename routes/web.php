@@ -28,6 +28,9 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 /* --- TIM DISTRIBUSI --- */
 Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
     Route::resource('tahunan', DistribusiTahunanController::class);
+    
+    Route::post('tahunan/bulk-delete', [DistribusiTahunanController::class, 'bulkDelete'])->name('tahunan.bulkDelete');
+    
 
 
     Route::get('/kegiatan-triwulan/spunp', fn() => view('timDistribusi.SPUNP'))->name('spunp');

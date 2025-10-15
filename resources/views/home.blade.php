@@ -19,7 +19,7 @@
         {{-- Baris Kartu Dashboard Utama --}}
         <div class="row mb-5">
             <div class="col-12 col-md-6 col-lg-3 mb-4">
-                <a href="#" class="dashboard-card bg-distribusi">
+                <a href="{{ route('tim-distribusi.tahunan.index') }}" class="dashboard-card bg-distribusi">
                     <div class="dashboard-card-icon">
                         <span>📊</span> {{-- Ganti dengan ikon SVG jika ada --}}
                     </div>

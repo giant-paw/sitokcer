@@ -7,22 +7,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class DistribusiTahunan extends Model
 {
-    use HasFactory;
+    protected $table = 'sitokcer_distribusi_tahunan'; // Specify your table name
+    protected $primaryKey = 'id_distribusi'; // Set primary key to 'id_distribusi'
+    public $timestamps = true; // Enable timestamps (created_at and updated_at)
 
-    protected $table = 'sitokcer_distribusi_tahunan';
-
-    /**
-     * Kolom yang diizinkan untuk diisi secara massal.
-     * Menggunakan guarded kosong berarti semua kolom boleh diisi.
-     *
-     * @var array
-     */
-    protected $guarded = ['id'];
-
-    /**
-     * Jika primary key Anda bukan 'id', uncomment dan sesuaikan baris ini.
-     *
-     * @var string
-     */
-    // protected $primaryKey = 'id_distribusi';
+    // Specify the fillable fields
+    protected $fillable = [
+        'nama_kegiatan',
+        'BS_Responden',
+        'pencacah',
+        'pengawas',
+        'target_penyelesaian',
+        'tahun_kegiatan',
+        'flag_progress',
+        'tanggal_pengumpulan'
+    ];
 }
