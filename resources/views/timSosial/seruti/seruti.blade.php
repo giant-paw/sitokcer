@@ -1,4 +1,4 @@
-@extends('layouts.app') {{-- ganti dengan nama layout utama kamu --}}
+@extends('layouts.app')
 
 @section('title', 'Seruti')
 @section('header-title', 'List Target Seruti (Kegiatan Triwulanan)')
