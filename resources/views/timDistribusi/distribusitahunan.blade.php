@@ -1,23 +1,10 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>List Target Kegiatan Tahunan Tim Distribusi</title>
+@extends('layouts.app')
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+@section('title', 'Distribusi Tahunan - Sitokcer')
 
-    <style>
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-    </style>
-</head>
-<body>
+@section('header-title', 'List Target Kegiatan Tahunan Tim Distribusi')
 
+@section('content')
     <div class="container-fluid mt-4">
         <div class="card">
             <div class="card-header bg-light">
@@ -46,8 +33,8 @@
                     </div>
                 @endif
 
-                <ul class="nav nav-pills mb-3">
-                    <li class="nav-item">
+                <ul class="nav nav-pills mb-3 d-flex flex-wrap gap-8" >
+                    <li class="nav-item"> 
                         <a class="nav-link {{ request('kegiatan') == '' ? 'active' : '' }}" href="{{ route('tim-distribusi.tahunan.index') }}">All data</a>
                     </li>
                     @foreach($kegiatanCounts as $kegiatan)
@@ -59,21 +46,30 @@
                     @endforeach
                 </ul>
 
-                <form action="{{ route('tim-distribusi.tahunan.index') }}" method="GET">
-                    <div class="input-group mb-3">
+                <form action="{{ route('tim-distribusi.tahunan.index') }}" method="GET" class="mb-4">
+                    <div class="row g-2 align-items-center">
                         @if(request('kegiatan'))
                             <input type="hidden" name="kegiatan" value="{{ request('kegiatan') }}">
                         @endif
-                        <input type="text" class="form-control" placeholder="Cari berdasarkan Responden, Pencacah, atau Pengawas..." name="search" value="{{ request('search') }}">
-                        <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                        <div class="col-md-9 col-12">
+                            <input type="text" class="form-control" placeholder="Cari berdasarkan Responden, Pencacah, atau Pengawas..." name="search" value="{{ request('search') }}">
+                        </div>
+                        <div class="col-md-3 col-12">
+                            <button class="btn btn-primary w-100" type="submit">
+                                <i class="bi bi-search"></i> Cari
+                            </button>
+                        </div>
                     </div>
                 </form>
+
 
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col"><input type="checkbox" class="form-check-input"></th>
+                                <th scope="col">
+                                    <input type="checkbox" class="form-check-input" id="selectAll">
+                                </th>
                                 <th scope="col">Nama Kegiatan</th>
                                 <th scope="col">Blok Sensus/Responden</th>
                                 <th scope="col">Pencacah</th>
@@ -86,7 +82,9 @@
                         <tbody>
                             @forelse ($listData as $item)
                                 <tr>
-                                    <td><input type="checkbox" class="form-check-input"></td>
+                                    <td>
+                                        <input type="checkbox" class="form-check-input row-checkbox">
+                                    </td>
                                     <td>{{ $item->nama_kegiatan }}</td>
                                     <td>{{ $item->blok_sensus_responden }}</td>
                                     <td>{{ $item->pencacah }}</td>
@@ -94,7 +92,9 @@
                                     <td>{{ $item->target_penyelesaian }}</td>
                                     <td><span class="badge {{ $item->flag_progress == 'Selesai' ? 'bg-success' : 'bg-warning text-dark' }}">{{ $item->flag_progress }}</span></td>
                                     <td>
-                                        <button class="btn btn-sm btn-warning"><i class="bi bi-pencil-square"></i></button>
+                                        <button class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             @empty
@@ -117,69 +117,65 @@
         </div>
     </div>
 
+    <!-- Modal Tambah Data -->
     <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="tambahDataModalLabel">Distribusi Tahunan, Tambah baru</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="{{ route('tim-distribusi.tahunan.store') }}" method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror" id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required>
-                            @error('nama_kegiatan')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="blok_sensus_responden" class="form-label">Blok Sensus/Responden <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('blok_sensus_responden') is-invalid @enderror" id="blok_sensus_responden" name="blok_sensus_responden" value="{{ old('blok_sensus_responden') }}" required>
-                            @error('blok_sensus_responden')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="pencacah" class="form-label">Pencacah <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror" id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required>
-                            @error('pencacah')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="pengawas" class="form-label">Pengawas <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror" id="pengawas" name="pengawas" value="{{ old('pengawas') }}" required>
-                            @error('pengawas')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="target_penyelesaian" class="form-label">Tanggal Target Penyelesaian (dd/mm/yyyy) <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('target_penyelesaian') is-invalid @enderror" id="target_penyelesaian" name="target_penyelesaian" placeholder="Contoh: 31/12/2025" value="{{ old('target_penyelesaian') }}" required>
-                             @error('target_penyelesaian')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="flag_progress" class="form-label">Flag Progress <span class="text-danger">*</span></label>
-                            <select class="form-select @error('flag_progress') is-invalid @enderror" id="flag_progress" name="flag_progress" required>
-                                <option value="">Silahkan pilih</option>
-                                <option value="Belum Mulai" {{ old('flag_progress') == 'Belum Mulai' ? 'selected' : '' }}>Belum Mulai</option>
-                                <option value="Proses" {{ old('flag_progress') == 'Proses' ? 'selected' : '' }}>Proses</option>
-                                <option value="Selesai" {{ old('flag_progress') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
-                            </select>
-                             @error('flag_progress')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Simpan</button>
-                    </div>
-                </form>
+      <div class="modal-dialog">
+        <form action="{{ route('tim-distribusi.tahunan.store') }}" method="POST">
+          @csrf
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="tambahDataModalLabel">Tambah Data Baru</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="nama_kegiatan" class="form-label">Nama Kegiatan</label>
+                <input type="text" class="form-control" id="nama_kegiatan" name="nama_kegiatan" required>
+              </div>
+              <div class="mb-3">
+                <label for="blok_sensus_responden" class="form-label">Blok Sensus/Responden</label>
+                <input type="text" class="form-control" id="blok_sensus_responden" name="blok_sensus_responden" required>
+              </div>
+              <div class="mb-3">
+                <label for="pencacah" class="form-label">Pencacah</label>
+                <input type="text" class="form-control" id="pencacah" name="pencacah" required>
+              </div>
+              <div class="mb-3">
+                <label for="pengawas" class="form-label">Pengawas</label>
+                <input type="text" class="form-control" id="pengawas" name="pengawas" required>
+              </div>
+              <div class="mb-3">
+                <label for="target_penyelesaian" class="form-label">Tanggal Target Penyelesaian</label>
+                <input type="text" class="form-control" id="target_penyelesaian" name="target_penyelesaian" placeholder="dd/mm/yyyy" required>
+              </div>
+              <div class="mb-3">
+                <label for="flag_progress" class="form-label">Flag Progress</label>
+                <select class="form-select" id="flag_progress" name="flag_progress" required>
+                  <option value="Belum Selesai">Belum Selesai</option>
+                  <option value="Selesai">Selesai</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+              <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
+@endsection
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+@push('scripts')
     <script>
-        // Script untuk menampilkan modal lagi jika ada error validasi dari server
-        @if ($errors->any())
-            const errorModal = new bootstrap.Modal(document.getElementById('tambahDataModal'));
-            errorModal.show();
-        @endif
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAll = document.getElementById('selectAll');
+            if (selectAll) {
+                selectAll.addEventListener('change', function () {
+                    // Ambil ulang semua row-checkbox setiap kali selectAll berubah
+                    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = selectAll.checked);
+                });
+            }
+        });
     </script>
-</body>
-</html>
+@endpush

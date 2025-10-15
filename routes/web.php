@@ -2,9 +2,10 @@
 
 use App\Http\Controllers\SerutiController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SosialTahunanController; // <— tambah ini
+use App\Http\Controllers\SosialTahunanController; 
 use App\Http\Controllers\SosialTriwulananController;
 use App\Http\Controllers\SosialSemesteranController;
+use App\Http\Controllers\DistribusiTahunanController;
 
 Route::get('/', fn() => view('home'))->name('home');
 

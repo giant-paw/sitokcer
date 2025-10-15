@@ -12,11 +12,18 @@
     {{-- CSS Sidebar --}}
     <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
 
+    
     {{-- Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
-
+    
     {{-- Alpine.js --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 
 <body class="bg-gray-100 font-sans">
@@ -114,7 +121,9 @@
         });
     </script>
 
-     <script src="{{ asset('js/sidebar.js') }}"></script>
+    <script src="{{ asset('js/sidebar.js') }}"></script>
+
+     @stack('scripts')
 </body>
 
 </html>

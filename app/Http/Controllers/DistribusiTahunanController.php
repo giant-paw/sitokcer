@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\sitokcer;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sitokcer\DistribusiTahunan;
+use App\Models\DistribusiTahunan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 

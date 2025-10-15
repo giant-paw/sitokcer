@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Sitokcer;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,11 +9,6 @@ class DistribusiTahunan extends Model
 {
     use HasFactory;
 
-    /**
-     * Nama tabel di database yang digunakan oleh model ini.
-     *
-     * @var string
-     */
     protected $table = 'sitokcer_distribusi_tahunan';
 
     /**
