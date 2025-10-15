@@ -140,6 +140,8 @@
                         </li>
                     </ul>
                 </li>
+
+                <!--  -->
                 <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-triwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
