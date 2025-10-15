@@ -35,9 +35,8 @@
                             </label>
                             <input type="text" name="nama_kegiatan"
                                 class="form-control @error('nama_kegiatan') is-invalid @enderror"
-                                value="{{ old('nama_kegiatan', $item->nama_kegiatan) }}" 
-                                placeholder="Contoh: PODES, SPAK, Polkam"
-                                required>
+                                value="{{ old('nama_kegiatan', $item->nama_kegiatan) }}"
+                                placeholder="Contoh: PODES, SPAK, Polkam" required>
                             @error('nama_kegiatan')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -48,8 +47,7 @@
                             <label class="form-label">Blok Sensus/Responden</label>
                             <input type="text" name="blok_sensus"
                                 class="form-control @error('blok_sensus') is-invalid @enderror"
-                                value="{{ old('blok_sensus', $item->blok_sensus) }}"
-                                placeholder="Masukkan blok sensus">
+                                value="{{ old('blok_sensus', $item->blok_sensus) }}" placeholder="Masukkan blok sensus">
                             @error('blok_sensus')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -62,9 +60,7 @@
                             </label>
                             <input type="text" name="pencacah"
                                 class="form-control @error('pencacah') is-invalid @enderror"
-                                value="{{ old('pencacah', $item->pencacah) }}" 
-                                placeholder="Nama pencacah"
-                                required>
+                                value="{{ old('pencacah', $item->pencacah) }}" placeholder="Nama pencacah" required>
                             @error('pencacah')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -77,9 +73,7 @@
                             </label>
                             <input type="text" name="pengawas"
                                 class="form-control @error('pengawas') is-invalid @enderror"
-                                value="{{ old('pengawas', $item->pengawas) }}" 
-                                placeholder="Nama pengawas"
-                                required>
+                                value="{{ old('pengawas', $item->pengawas) }}" placeholder="Nama pengawas" required>
                             @error('pengawas')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -92,8 +86,7 @@
                             </label>
                             <input type="date" name="tgl_target"
                                 class="form-control @error('tgl_target') is-invalid @enderror"
-                                value="{{ old('tgl_target', optional($item->tgl_target)->toDateString()) }}"
-                                required>
+                                value="{{ old('tgl_target', optional($item->tgl_target)->toDateString()) }}" required>
                             @error('tgl_target')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -104,15 +97,14 @@
                             <label class="form-label">
                                 Flag Progress <span class="text-danger">*</span>
                             </label>
-                            <select name="flag_progress" 
-                                class="form-select @error('flag_progress') is-invalid @enderror" 
+                            <select name="flag_progress" class="form-select @error('flag_progress') is-invalid @enderror"
                                 required>
-                                <option value="" disabled {{ old('flag_progress', $item->flag_progress) ? '' : 'selected' }}>
+                                <option value="" disabled
+                                    {{ old('flag_progress', $item->flag_progress) ? '' : 'selected' }}>
                                     -- Pilih Status --
                                 </option>
                                 @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt)
-                                    <option value="{{ $opt }}" 
-                                        @selected(old('flag_progress', $item->flag_progress) === $opt)>
+                                    <option value="{{ $opt }}" @selected(old('flag_progress', $item->flag_progress) === $opt)>
                                         {{ $opt }}
                                     </option>
                                 @endforeach
@@ -169,14 +161,12 @@
         .is-invalid {
             border-color: #dc3545;
         }
-        
         .invalid-feedback {
             display: block;
             margin-top: 0.25rem;
             font-size: 0.875rem;
             color: #dc3545;
         }
-        
         .form-label .text-danger {
             font-weight: bold;
         }

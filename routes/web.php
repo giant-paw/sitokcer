@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\SerutiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SosialTahunanController; // <— tambah ini
+use App\Http\Controllers\SosialTriwulananController;
+use App\Http\Controllers\SosialSemesteranController;
 
 Route::get('/', fn() => view('home'))->name('home');
 
@@ -14,12 +17,10 @@ Route::get('/dashboard-sosial', fn() => view('Dashboard.dashboardSosial'))->name
 
 /* --- TIM SOSIAL --- */
 Route::prefix('sosial')->name('sosial.')->group(function () {
-    // CRUD Sosial Tahunan (index/create/store/show/edit/update/destroy)
     Route::resource('tahunan', SosialTahunanController::class);
-
+    Route::resource('seruti', SerutiController::class);
+    Route::resource('semesteran', SosialSemesteranController::class);
     // Rute lain tetap
-    Route::get('/kegiatan-triwulanan/seruti', fn() => view('timSosial.seruti'))->name('seruti');
-    Route::get('/kegiatan-semesteran/sakernas', fn() => view('timSosial.sakemas'))->name('sakernas');
     Route::get('/kegiatan-semesteran/susenas', fn() => view('timSosial.susenas'))->name('susenas');
 });
 
