@@ -20,7 +20,7 @@
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-grid-1x2-fill menu-icon"></i>
                 <span>Dashboards</span>
-                <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+                
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('dashboard-distribusi') ? 'active-link' : '' }}"><a href="{{ route('dashboard.distribusi') }}">Distribusi</a></li>
@@ -34,7 +34,7 @@
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-people-fill menu-icon"></i>
                 <span>Tim Sosial</span>
-                <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+    
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('sosial/tahunan*') ? 'active-link' : '' }}">
@@ -43,7 +43,7 @@
                 <li class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-triwulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
-                        <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+                        
                     </a>
                     <ul class="submenu">
                         <li class="{{ request()->is('sosial') ? 'active-link' : '' }}">
@@ -54,7 +54,7 @@
                 <li class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-semesteran*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Semesteran</span>
-                        <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+                        
                     </a>
                     <ul class="submenu">
                         <li class="{{ request()->is('sosial/kegiatan-semesteran/sakernas*') ? 'active-link' : '' }}">
@@ -72,7 +72,7 @@
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-truck menu-icon"></i>
                 <span>Tim Distribusi</span>
-                <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+               
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('distribusi/tahunan*') ? 'active-link' : '' }}">
@@ -81,7 +81,7 @@
                 <li class="menu-item has-dropdown {{ request()->is('distribusi/kegiatan-triwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
-                        <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+                       
                     </a>
                     <ul class="submenu">
                         <li class="{{ request()->is('distribusi/kegiatan-triwulan/spunp*') ? 'active-link' : '' }}">
@@ -95,7 +95,7 @@
                 <li class="menu-item has-dropdown {{ request()->is('distribusi/bulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Distribusi Bulanan</span>
-                        <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+                       
                     </a>
                     <ul class="submenu">
                         <li class="{{ request()->is('distribusi/bulanan/vhts*') ? 'active-link' : '' }}"><a href="{{ route('distribusi.vhts') }}">VHTS</a></li>
@@ -114,7 +114,7 @@
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-graph-up-arrow menu-icon"></i>
                 <span>Tim Produksi</span>
-                <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+                
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('produksi/tahunan*') ? 'active-link' : '' }}">
@@ -123,7 +123,7 @@
                 <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-caturwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Caturwulan</span>
-                        <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+                       
                     </a>
                     <ul class="submenu">
                         <li class="{{ request()->is('produksi/kegiatan-caturwulan/ubinan-padi-palawija*') ? 'active-link' : '' }}">
@@ -137,29 +137,43 @@
                 <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-triwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
-                        <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+                       
                     </a>
                     <ul class="submenu">
                         <li class="{{ request()->is('produksi/kegiatan-triwulan/sktr*') ? 'active-link' : '' }}"><a href="{{ route('produksi.sktr') }}">SKTR</a></li>
                         <li class="{{ request()->is('produksi/kegiatan-triwulan/tpi*') ? 'active-link' : '' }}"><a href="{{ route('produksi.tpi') }}">TPI</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sphbst*') ? 'active-link' : '' }}"><a href="{{ route('produksi.sphbst') }}">SPHBST</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sphtbf*') ? 'active-link' : '' }}"><a href="{{ route('produksi.sphtbf') }}">SPHTBF</a></li>
+                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sphbst*') ? 'active-link' : '' }}">
+                            <a href="{{ route('produksi.sphbst') }}">SPHBST</a>
+                        </li>
+                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sphtbf*') ? 'active-link' : '' }}">
+                            <a href="{{ route('produksi.sphtbf') }}">SPHTBF</a>
+                        </li>
                         <li class="{{ request()->is('produksi/kegiatan-triwulan/sphth*') ? 'active-link' : '' }}"><a href="{{ route('produksi.sphth') }}">SPHTH</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/air-bersih*') ? 'active-link' : '' }}"><a href="{{ route('produksi.airbersih') }}">Air Bersih</a></li>
+                        <li class="{{ request()->is('produksi/kegiatan-triwulan/air-bersih*') ? 'active-link' : '' }}">
+                            <a href="{{ route('produksi.airbersih') }}">Air Bersih</a>
+                        </li>
                     </ul>
                 </li>
                 <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-bulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Bulanan</span>
-                        <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+                       
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/ksapadi*') ? 'active-link' : '' }}"><a href="{{ route('produksi.ksapadi') }}">KSA Padi</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/ksajagung*') ? 'active-link' : '' }}"><a href="{{ route('produksi.ksajagung') }}">KSA Jagung</a></li>
+                        <li class="{{ request()->is('produksi/kegiatan-bulanan/ksapadi*') ? 'active-link' : '' }}">
+                            <a href="{{ route('produksi.ksapadi') }}">KSA Padi</a>
+                        </li>
+                        <li class="{{ request()->is('produksi/kegiatan-bulanan/ksajagung*') ? 'active-link' : '' }}">
+                            <a href="{{ route('produksi.ksajagung') }}">KSA Jagung</a>
+                        </li>
                         <li class="{{ request()->is('produksi/kegiatan-bulanan/lptb*') ? 'active-link' : '' }}"><a href="{{ route('produksi.lptb') }}">LPTB</a></li>
                         <li class="{{ request()->is('produksi/kegiatan-bulanan/sphsbs*') ? 'active-link' : '' }}"><a href="{{ route('produksi.sphsbs') }}">SPHSBS</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/sppalawija*') ? 'active-link' : '' }}"><a href="{{ route('produksi.sppalawija') }}">SP Palawija</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/perkebunan*') ? 'active-link' : '' }}"><a href="{{ route('produksi.perkebunanbulanan') }}">Perkebunan Bulanan</a></li>
+                        <li class="{{ request()->is('produksi/kegiatan-bulanan/sppalawija*') ? 'active-link' : '' }}">
+                            <a href="{{ route('produksi.sppalawija') }}">SP Palawija</a>
+                        </li>
+                        <li class="{{ request()->is('produksi/kegiatan-bulanan/perkebunan*') ? 'active-link' : '' }}">
+                            <a href="{{ route('produksi.perkebunanbulanan') }}">Perkebunan Bulanan</a>
+                        </li>
                         <li class="{{ request()->is('produksi/kegiatan-bulanan/ibs*') ? 'active-link' : '' }}"><a href="{{ route('produksi.ibsbulanan') }}">IBS Bulanan</a></li>
                     </ul>
                 </li>
@@ -170,7 +184,7 @@
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-bar-chart-line-fill menu-icon"></i>
                 <span>Tim NWA</span>
-                <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+               
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('nwa/tahunan*') ? 'active-link' : '' }}">
@@ -179,12 +193,18 @@
                 <li class="menu-item has-dropdown {{ request()->is('nwa/triwulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>NWA Triwulanan</span>
-                        <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+                       
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('nwa/triwulanan/sklnp*') ? 'active-link' : '' }}"><a href="{{ route('nwa.sklnp') }}">SKLNP</a></li>
-                        <li class="{{ request()->is('nwa/triwulanan/snaper*') ? 'active-link' : '' }}"><a href="{{ route('nwa.snaper') }}">Snaper</a></li>
-                        <li class="{{ request()->is('nwa/triwulanan/sktnp*') ? 'active-link' : '' }}"><a href="{{ route('nwa.sktnp') }}">SKTNP</a></li>
+                        <li class="{{ request()->is('nwa/triwulanan/sklnp*') ? 'active-link' : '' }}">
+                            <a href="{{ route('nwa.sklnp') }}">SKLNP</a>
+                        </li>
+                        <li class="{{ request()->is('nwa/triwulanan/snaper*') ? 'active-link' : '' }}">
+                            <a href="{{ route('nwa.snaper') }}">Snaper</a>
+                        </li>
+                        <li class="{{ request()->is('nwa/triwulanan/sktnp*') ? 'active-link' : '' }}">
+                            <a href="{{ route('nwa.sktnp') }}">SKTNP</a>
+                        </li>
                     </ul>
                 </li>
             </ul>
@@ -194,7 +214,7 @@
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-file-earmark-text-fill menu-icon"></i>
                 <span>Rekapitulasi</span>
-                <i class="bi bi-chevron-right arrow"></i> {{-- DITAMBAHKAN: Ikon panah dropdown --}}
+                
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('rekapitulasi/pencacah*') ? 'active-link' : '' }}">
@@ -266,33 +286,36 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const dropdownToggles = document.querySelectorAll('.sidebar .dropdown-toggle');
-        dropdownToggles.forEach(function(toggle) {
-            toggle.addEventListener('click', function(event) {
-                event.preventDefault();
-                const parentMenuItem = this.closest('.menu-item.has-dropdown');
-                const currentlyOpen = document.querySelectorAll('.menu-item.has-dropdown.active');
-                currentlyOpen.forEach(function(openItem) {
-                    if (openItem !== parentMenuItem && !openItem.contains(parentMenuItem)) {
-                        openItem.classList.remove('active');
-                    }
-                });
-                parentMenuItem.classList.toggle('active');
-            });
-        });
-        const activeSubmenuItem = document.querySelector('.submenu .active-link');
-        if (activeSubmenuItem) {
-            let current = activeSubmenuItem;
-            while (current) {
-                const parentDropdown = current.closest('.menu-item.has-dropdown');
-                if (parentDropdown) {
-                    parentDropdown.classList.add('active');
-                    current = parentDropdown.parentElement;
-                } else {
-                    current = null;
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdownToggles = document.querySelectorAll('.sidebar .dropdown-toggle');
+
+    dropdownToggles.forEach(function(toggle) {
+        toggle.addEventListener('click', function(event) {
+            event.preventDefault();
+            const parentMenuItem = this.closest('.menu-item.has-dropdown');
+            const parentLevel = parentMenuItem.parentElement; // ul induk
+
+            // Tutup hanya dropdown lain di level yang sama
+            const siblings = parentLevel.querySelectorAll('.menu-item.has-dropdown.active');
+            siblings.forEach(function(sibling) {
+                if (sibling !== parentMenuItem) {
+                    sibling.classList.remove('active');
                 }
-            }
-        }
+            });
+
+            // Toggle menu yang diklik
+            parentMenuItem.classList.toggle('active');
+        });
     });
+
+    // Buka semua parent dropdown yang punya submenu aktif
+    const activeSubmenuItem = document.querySelector('.submenu .active-link');
+    if (activeSubmenuItem) {
+        let current = activeSubmenuItem.closest('.menu-item.has-dropdown');
+        while (current) {
+            current.classList.add('active');
+            current = current.parentElement.closest('.menu-item.has-dropdown');
+        }
+    }
+});
 </script>
