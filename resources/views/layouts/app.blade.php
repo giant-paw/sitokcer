@@ -9,7 +9,7 @@
     {{-- CSS Global Anda --}}
     <link rel="stylesheet" href="{{ asset('css/global.css') }}">
     
-    {{-- 👇 TAMBAHKAN CSS SIDEBAR DI SINI 👇 --}}
+    {{-- CSS Sidebar --}}
     <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
 
     {{-- Tailwind CSS --}}
@@ -23,17 +23,7 @@
 
     <div x-data="{ sidebarOpen: true }" class="flex flex-col h-screen">
 
-        {{-- 
-            ==============================================
-            ==            INILAH PERBAIKANNYA           ==
-            ==============================================
-            1. Mengubah background header menjadi 'bg-white'.
-            2. Mengubah semua warna teks di header dari 'text-white' menjadi 'text-gray-800'.
-            3. Mengubah warna ikon hamburger menjadi 'text-gray-800'.
-            4. Mengubah style avatar pengguna agar kontras: 
-               - Background menjadi 'bg-[#2c3e50]'.
-               - Teks menjadi 'text-white'.
-        --}}
+        {{-- Header --}}
         <header class="bg-white shadow-md w-full p-4 flex justify-between items-center z-20 flex-shrink-0">
             <div class="flex items-center space-x-4">
                 <button @click="sidebarOpen = !sidebarOpen" class="text-gray-800 focus:outline-none">
@@ -51,7 +41,7 @@
                 </a>
             </div>
             <div class="flex items-center space-x-4">
-                <h1 class="text-xl font-semibold text-gray-800 hidden md:block">
+                <h1 class="text-xl font-semibold text-gray-800 hidden md:block mr-auto">
                     @yield('header-title', 'Dashboard')
                 </h1>
                 <div class="relative">
@@ -73,25 +63,33 @@
             </div>
         </header>
 
-        <div class="flex flex-1 overflow-hidden relative">
+        {{-- Container Flex untuk Sidebar dan Content --}}
+        <div class="flex flex-1 overflow-hidden">
 
+            {{-- Overlay untuk mobile --}}
             <div x-show="sidebarOpen" @click="sidebarOpen = false"
                 x-transition:enter="transition-opacity ease-linear duration-300"
-                x-transition:leave="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0"
-                x-transition:leave-start="opacity-100" class="fixed inset-0 bg-gray-900/50 z-30 lg:hidden"
+                x-transition:leave="transition-opacity ease-linear duration-300" 
+                x-transition:enter-start="opacity-0"
+                x-transition:leave-start="opacity-100" 
+                class="fixed inset-0 bg-gray-900/50 z-30 lg:hidden"
                 aria-hidden="true">
             </div>
 
-            <div x-show="sidebarOpen" x-transition:enter="transition ease-in-out duration-300"
-                x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
-                x-transition:leave="transition ease-in-out duration-300" x-transition:leave-start="translate-x-0"
+            {{-- Sidebar dengan lebar tetap --}}
+            <aside x-show="sidebarOpen" 
+                x-transition:enter="transition ease-in-out duration-300"
+                x-transition:enter-start="-translate-x-full" 
+                x-transition:enter-end="translate-x-0"
+                x-transition:leave="transition ease-in-out duration-300" 
+                x-transition:leave-start="translate-x-0"
                 x-transition:leave-end="-translate-x-full"
-                class="absolute inset-y-0 left-0 z-40 border-r border-white/20">
+                class="w-[270px] flex-shrink-0 border-r border-white/20 fixed lg:relative inset-y-0 left-0 z-40 lg:z-0">
                 @include('sidebar')
-            </div>
+            </aside>
 
-            <main class="flex-1 p-6 overflow-y-auto transition-all duration-300"
-                :class="{'lg:ml-[270px]': sidebarOpen}">
+            {{-- Main Content - FLEX TANPA MARGIN --}}
+            <main class="flex-1 p-6 overflow-y-auto">
                 @yield('content')
             </main>
         </div>

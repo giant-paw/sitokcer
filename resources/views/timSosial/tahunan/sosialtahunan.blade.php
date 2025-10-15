@@ -1,6 +1,11 @@
 {{-- resources/views/timSosial/tahunan/sosialtahunan.blade.php --}}
 @extends('layouts.app')
 
+@section('title', 'Sosial Tahunan')
+
+{{-- Judul yang akan tampil di header halaman --}}
+@section('header-title', 'Sosial Tahunan')
+
 @section('content')
     <div class="container-fluid px-0">
 

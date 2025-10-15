@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 {{-- Judul untuk tab browser --}}
-@section('title', 'Dashboard Tim A')
+@section('title', 'Dashboard Tim Produksi')
 
 {{-- Judul yang akan tampil di header halaman --}}
-@section('header-title', 'Dashboard Tim A')
+@section('header-title', 'Dashboard Tim Produksi')
 
 {{-- Konten utama halaman --}}
 @section('content')
