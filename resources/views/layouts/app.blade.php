@@ -110,11 +110,11 @@
 
 <body>
     <div class="page-wrapper">
-        <header class="navbar navbar-expand navbar-light bg-white shadow-sm header-navbar py-2">
+        <header class="navbar navbar-expand navbar-light bg-white shadow-sm header-navbar py-0">
     <div class="container-fluid">
         <div class="d-flex align-items-center">
-            <button class="btn btn-link text-secondary p-0 me-2" type="button" id="sidebar-toggle-button">
-                <i class="bi bi-list" style="font-size: 1.5rem;"></i>
+            <button class="btn btn-link text-secondary p-0 me-3" type="button" id="sidebar-toggle-button">
+                <i class="bi bi-list" style="font-size: 1.9rem;"></i>
             </button>
             <a href="{{ route('home') }}" class="navbar-brand d-flex align-items-center">
                 <img src="{{ asset('logo.png') }}" alt="Logo Sitokcer" style="height: 32px;">
