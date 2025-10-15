@@ -70,8 +70,8 @@
                         </svg>
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('sosial/kegiatan-triwulanan/seruti*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.seruti') }}">Seruti</a>
+                        <li class="{{ request()->is('sosial') ? 'active-link' : '' }}">
+                            <a href="{{ route('sosial.seruti.index') }}">Seruti</a>
                         </li>
                     </ul>
                 </li>
@@ -85,7 +85,7 @@
                     </a>
                     <ul class="submenu">
                         <li class="{{ request()->is('sosial/kegiatan-semesteran/sakernas*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.sakernas') }}">Sakernas</a>
+                            <a href="{{ route('sosial.semesteran.index') }}">Sakernas</a>
                         </li>
                         <li class="{{ request()->is('sosial/kegiatan-semesteran/susenas*') ? 'active-link' : '' }}">
                             <a href="{{ route('sosial.susenas') }}">Susenas</a>
@@ -364,7 +364,7 @@
     </ul>
 </aside>
 
-<!-- <style>
+<style>
     * {
         margin: 0;
         padding: 0;
@@ -377,7 +377,8 @@
         width: 270px;
         background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
         color: white;
-        height: 100%; /* <-- INI PERUBAHAN PENTING */
+        height: 100%;
+        /* <-- INI PERUBAHAN PENTING */
         padding: 0;
         box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
         position: relative;
@@ -404,7 +405,8 @@
     .sidebar-menu {
         list-style: none;
         padding: 15px 12px;
-        flex-grow: 1; /* Memastikan menu mengisi ruang yang tersedia */
+        flex-grow: 1;
+        /* Memastikan menu mengisi ruang yang tersedia */
     }
 
     .sidebar-menu>li {
@@ -507,7 +509,8 @@
     }
 
     .menu-item.has-dropdown.active>.submenu {
-        max-height: 500px; /* Nilai yang cukup besar untuk menampung semua submenu */
+        max-height: 500px;
+        /* Nilai yang cukup besar untuk menampung semua submenu */
         padding: 8px 0;
     }
 
@@ -548,9 +551,9 @@
 
     /* Menghapus bagian responsive karena diatur oleh AlpineJS dan Tailwind di app.blade.php */
     /* Menghapus gaya logo karena sudah pindah */
-</style> -->
+</style>
 
-<!-- <script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
         // --- BAGIAN 1: FUNGSI KLIK YANG DIPERBAIKI ---
         const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
@@ -597,4 +600,4 @@
             }
         }
     });
-</script> -->
+</script>
