@@ -12,6 +12,9 @@
     {{-- CSS Sidebar --}}
     <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
 
+    {{-- 1. DITAMBAHKAN: Link untuk Bootstrap Icons --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     {{-- Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
 
