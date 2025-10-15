@@ -1,12 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SosialTahunanController; // <— tambah ini
+use App\Http\Controllers\sitokcer\SosialTahunanController; 
+use App\Http\Controllers\Sitokcer\DistribusiTahunanController;
 
 Route::get('/', fn() => view('home'))->name('home');
 
 /* DASHBOARD */
-Route::get('/dashboard-distribusi', fn() => view('Dashboard.dashboardDistribusi')) // perbaiki typo Dsitribusi -> Distribusi
+Route::get('/dashboard-distribusi', fn() => view('Dashboard.dashboardDistribusi')) 
     ->name('dashboard.distribusi');
 Route::get('/dashboard-nwa', fn() => view('Dashboard.dashboardNWA'))->name('dashboard.nwa');
 Route::get('/dashboard-produksi', fn() => view('Dashboard.dashboardProduksi'))->name('dashboard.produksi');
@@ -24,8 +25,10 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 });
 
 /* --- TIM DISTRIBUSI --- */
-Route::prefix('distribusi')->name('distribusi.')->group(function () {
-    Route::get('/tahunan', fn() => view('timDistribusi.distribusitahunan'))->name('tahunan');
+Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
+    Route::resource('tahunan', DistribusiTahunanController::class);
+
+
     Route::get('/kegiatan-triwulan/spunp', fn() => view('timDistribusi.SPUNP'))->name('spunp');
     Route::get('/kegiatan-triwulan/shkk', fn() => view('timDistribusi.SHKK'))->name('shkk');
     Route::get('/bulanan/vhts', fn() => view('timDistribusi.VHTS'))->name('vhts');

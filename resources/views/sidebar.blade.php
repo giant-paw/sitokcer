@@ -112,11 +112,11 @@
                 </svg>
             </a>
             <ul class="submenu">
-                <li class="{{ request()->is('distribusi/tahunan*') ? 'active-link' : '' }}">
-                    <a href="{{ route('distribusi.tahunan') }}">Distribusi Tahunan</a>
+                <li class="{{ request()->is('tim-distribusi/tahunan*') ? 'active-link' : '' }}">
+                    <a href="{{route('tim-distribusi.tahunan.index') }}">Distribusi Tahunan</a>
                 </li>
                 <li
-                    class="menu-item has-dropdown {{ request()->is('distribusi/kegiatan-triwulan*') ? 'active' : '' }}">
+                    class="menu-item has-dropdown {{ request()->is('tim-distribusi/kegiatan-triwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
                         <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -125,15 +125,15 @@
                         </svg>
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('distribusi/kegiatan-triwulan/spunp*') ? 'active-link' : '' }}">
-                            <a href="{{ route('distribusi.spunp') }}">SPUNP</a>
+                        <li class="{{ request()->is('tim-distribusi/kegiatan-triwulan/spunp*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.spunp') }}">SPUNP</a>
                         </li>
-                        <li class="{{ request()->is('distribusi/kegiatan-triwulan/shkk*') ? 'active-link' : '' }}">
-                            <a href="{{ route('distribusi.shkk') }}">SHKK</a>
+                        <li class="{{ request()->is('tim-distribusi/kegiatan-triwulan/shkk*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.shkk') }}">SHKK</a>
                         </li>
                     </ul>
                 </li>
-                <li class="menu-item has-dropdown {{ request()->is('distribusi/bulanan*') ? 'active' : '' }}">
+                <li class="menu-item has-dropdown {{ request()->is('tim-distribusi/bulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Distribusi Bulanan</span>
                         <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -142,20 +142,20 @@
                         </svg>
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('distribusi/bulanan/vhts*') ? 'active-link' : '' }}"><a
-                                href="{{ route('distribusi.vhts') }}">VHTS</a></li>
-                        <li class="{{ request()->is('distribusi/bulanan/hkd*') ? 'active-link' : '' }}"><a
-                                href="{{ route('distribusi.hkd') }}">HKD</a></li>
-                        <li class="{{ request()->is('distribusi/bulanan/shpb*') ? 'active-link' : '' }}"><a
-                                href="{{ route('distribusi.shpb') }}">SHPB</a></li>
-                        <li class="{{ request()->is('distribusi/bulanan/shp*') ? 'active-link' : '' }}"><a
-                                href="{{ route('distribusi.shp') }}">SHP</a></li>
-                        <li class="{{ request()->is('distribusi/bulanan/shpj*') ? 'active-link' : '' }}"><a
-                                href="{{ route('distribusi.shpj') }}">SHPJ</a></li>
-                        <li class="{{ request()->is('distribusi/bulanan/shpgb*') ? 'active-link' : '' }}"><a
-                                href="{{ route('distribusi.shpgb') }}">SHPBG</a></li>
-                        <li class="{{ request()->is('distribusi/bulanan/hd*') ? 'active-link' : '' }}"><a
-                                href="{{ route('distribusi.hd') }}">HD</a></li>
+                        <li class="{{ request()->is('tim-distribusi/bulanan/vhts*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-distribusi.vhts') }}">VHTS</a></li>
+                        <li class="{{ request()->is('tim-distribusi/bulanan/hkd*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-distribusi.hkd') }}">HKD</a></li>
+                        <li class="{{ request()->is('tim-distribusi/bulanan/shpb*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-distribusi.shpb') }}">SHPB</a></li>
+                        <li class="{{ request()->is('tim-distribusi/bulanan/shp*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-distribusi.shp') }}">SHP</a></li>
+                        <li class="{{ request()->is('tim-distribusi/bulanan/shpj*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-distribusi.shpj') }}">SHPJ</a></li>
+                        <li class="{{ request()->is('tim-distribusi/bulanan/shpgb*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-distribusi.shpgb') }}">SHPBG</a></li>
+                        <li class="{{ request()->is('tim-distribusi/bulanan/hd*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-distribusi.hd') }}">HD</a></li>
                     </ul>
                 </li>
             </ul>
