@@ -1,78 +1,84 @@
 <?php
 
-use App\Http\Controllers\SerutiController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SosialTahunanController; // <— tambah ini
+use App\Http\Controllers\SosialTahunanController;
+use App\Http\Controllers\SerutiController;
 use App\Http\Controllers\SosialTriwulananController;
 use App\Http\Controllers\SosialSemesteranController;
+use App\Http\Controllers\ProduksiTahunanController;
 
 Route::get('/', fn() => view('home'))->name('home');
 
 /* DASHBOARD */
-Route::get('/dashboard-distribusi', fn() => view('Dashboard.dashboardDistribusi')) // perbaiki typo Dsitribusi -> Distribusi
-    ->name('dashboard.distribusi');
-Route::get('/dashboard-nwa', fn() => view('Dashboard.dashboardNWA'))->name('dashboard.nwa');
-Route::get('/dashboard-produksi', fn() => view('Dashboard.dashboardProduksi'))->name('dashboard.produksi');
-Route::get('/dashboard-sosial', fn() => view('Dashboard.dashboardSosial'))->name('dashboard.sosial');
+Route::get('/dashboard-distribusi', fn() => view('Dashboard.dashboardDistribusi'))->name('dashboard.distribusi');
+Route::get('/dashboard-nwa',        fn() => view('Dashboard.dashboardNWA'))->name('dashboard.nwa');
+Route::get('/dashboard-produksi',   fn() => view('Dashboard.dashboardProduksi'))->name('dashboard.produksi');
+Route::get('/dashboard-sosial',     fn() => view('Dashboard.dashboardSosial'))->name('dashboard.sosial');
 
 /* --- TIM SOSIAL --- */
 Route::prefix('sosial')->name('sosial.')->group(function () {
+    // CRUD Sosial Tahunan (tanpa halaman create karena pakai modal di index)
     Route::resource('tahunan', SosialTahunanController::class);
+
+    // Resource lain (kalau butuh, biarkan default)
     Route::resource('seruti', SerutiController::class);
     Route::resource('semesteran', SosialSemesteranController::class);
-    // Rute lain tetap
+
+    // Halaman statis lain
     Route::get('/kegiatan-semesteran/susenas', fn() => view('timSosial.susenas'))->name('susenas');
 });
 
 /* --- TIM DISTRIBUSI --- */
 Route::prefix('distribusi')->name('distribusi.')->group(function () {
-    Route::get('/tahunan', fn() => view('timDistribusi.distribusitahunan'))->name('tahunan');
-    Route::get('/kegiatan-triwulan/spunp', fn() => view('timDistribusi.SPUNP'))->name('spunp');
-    Route::get('/kegiatan-triwulan/shkk', fn() => view('timDistribusi.SHKK'))->name('shkk');
-    Route::get('/bulanan/vhts', fn() => view('timDistribusi.VHTS'))->name('vhts');
-    Route::get('/bulanan/hkd', fn() => view('timDistribusi.HKD'))->name('hkd');
-    Route::get('/bulanan/shpb', fn() => view('timDistribusi.SHPB'))->name('shpb');
-    Route::get('/bulanan/shp', fn() => view('timDistribusi.SHP'))->name('shp');
-    Route::get('/bulanan/shpj', fn() => view('timDistribusi.SHPJ'))->name('shpj');
-    Route::get('/bulanan/shpgb', fn() => view('timDistribusi.SHPBG'))->name('shpgb');
-    Route::get('/bulanan/hd', fn() => view('timDistribusi.HD'))->name('hd');
+    Route::get('/tahunan', fn() => view('timDistribusi.tahunan.distribusitahunan'))->name('tahunan');
+    Route::get('/kegiatan-triwulan/spunp', fn() => view('timDistribusi.SPUNP.SPUNP'))->name('spunp');
+    Route::get('/kegiatan-triwulan/shkk',  fn() => view('timDistribusi.SHKK.SHKK'))->name('shkk');
+    Route::get('/bulanan/vhts',            fn() => view('timDistribusi.VHTS.VHTS'))->name('vhts');
+    Route::get('/bulanan/hkd',             fn() => view('timDistribusi.HKD.HD'))->name('hkd');
+    Route::get('/bulanan/shpb',            fn() => view('timDistribusi.SHPB.SHPB'))->name('shpb');
+    Route::get('/bulanan/shp',             fn() => view('timDistribusi.SHP.SHP'))->name('shp');
+    Route::get('/bulanan/shpj',            fn() => view('timDistribusi.SHPJ.SHPJ'))->name('shpj');
+    Route::get('/bulanan/shpgb',           fn() => view('timDistribusi.SHPBG.SHPBG'))->name('shpgb');
+    Route::get('/bulanan/hd',              fn() => view('timDistribusi.HD.HD'))->name('hd');
 });
 
 /* --- TIM PRODUKSI --- */
 Route::prefix('produksi')->name('produksi.')->group(function () {
-    Route::get('/tahunan', fn() => view('timProduksi.produksitahunan'))->name('tahunan');
-    Route::get('/kegiatan-caturwulan/ubinan-padi-palawija', fn() => view('timProduksi.ubinanpadipalawija'))->name('ubinanpadipalawija');
-    Route::get('/kegiatan-caturwulan/update-utp-palawija', fn() => view('timProduksi.updateingutppalawija'))->name('updateutppalawija');
-    Route::get('/kegiatan-triwulan/sktr', fn() => view('timProduksi.SKTR'))->name('sktr');
-    Route::get('/kegiatan-triwulan/tpi', fn() => view('timProduksi.TPI'))->name('tpi');
-    Route::get('/kegiatan-triwulan/sphbst', fn() => view('timProduksi.SPHBST'))->name('sphbst');
-    Route::get('/kegiatan-triwulan/sphtbf', fn() => view('timProduksi.SPHTBF'))->name('sphtbf');
-    Route::get('/kegiatan-triwulan/sphth', fn() => view('timProduksi.SPHTH'))->name('sphth');
-    Route::get('/kegiatan-triwulan/air-bersih', fn() => view('timProduksi.airbersih'))->name('airbersih');
-    Route::get('/kegiatan-bulanan/ksapadi', fn() => view('timProduksi.KSAPadi'))->name('ksapadi');
-    Route::get('/kegiatan-bulanan/ksajagung', fn() => view('timProduksi.KSAJagung'))->name('ksajagung');
-    Route::get('/kegiatan-bulanan/lptb', fn() => view('timProduksi.LPTB'))->name('lptb');
-    Route::get('/kegiatan-bulanan/sphsbs', fn() => view('timProduksi.SPHSBS'))->name('sphsbs');
-    Route::get('/kegiatan-bulanan/sppalawija', fn() => view('timProduksi.SPpalawija'))->name('sppalawija');
-    Route::get('/kegiatan-bulanan/perkebunan', fn() => view('timProduksi.perkebunanbulanan'))->name('perkebunanbulanan');
-    Route::get('/kegiatan-bulanan/ibs', fn() => view('timProduksi.IBSbulanan'))->name('ibsbulanan');
+    Route::resource('tahunan', ProduksiTahunanController::class);
+
+    Route::get('/kegiatan-caturwulan/ubinan-padi-palawija', fn() => view('timProduksi.ubinanpadi.ubinanpadipalawija'))->name('ubinanpadipalawija');
+    Route::get('/kegiatan-caturwulan/update-utp-palawija',  fn() => view('timProduksi.update.updateingutppalawija'))->name('updateingutppalawija');
+
+    Route::get('/kegiatan-triwulan/sktr',   fn() => view('timProduksi.SKTR.SKTR'))->name('sktr');
+    Route::get('/kegiatan-triwulan/tpi',    fn() => view('timProduksi.TPI.TPI'))->name('tpi');
+    Route::get('/kegiatan-triwulan/sphbst', fn() => view('timProduksi.SPHBST.SPHBST'))->name('sphbst');
+    Route::get('/kegiatan-triwulan/sphtbf', fn() => view('timProduksi.SPHTBF.SPHTBF'))->name('sphtbf');
+    Route::get('/kegiatan-triwulan/sphth',  fn() => view('timProduksi.SPHTH.SPHTH'))->name('sphth');
+    Route::get('/kegiatan-triwulan/air-bersih', fn() => view('timProduksi.airBersih.airbersih'))->name('airbersih');
+    Route::get('/kegiatan-bulanan/ksapadi',    fn() => view('timProduksi.KSAPadi.KSAPadi'))->name('ksapadi');
+    Route::get('/kegiatan-bulanan/ksajagung',  fn() => view('timProduksi.KSAjagung.KSAjagung'))->name('ksajagung');
+    Route::get('/kegiatan-bulanan/lptb',       fn() => view('timProduksi.LPTB.LPTB'))->name('lptb');
+    Route::get('/kegiatan-bulanan/sphsbs',     fn() => view('timProduksi.SPHSBS.SPHSBS'))->name('sphsbs');
+    Route::get('/kegiatan-bulanan/sppalawija', fn() => view('timProduksi.SPpalawija.SPpalawija'))->name('sppalawija');
+    Route::get('/kegiatan-bulanan/perkebunan', fn() => view('timProduksi.perkebunan.perkebunanbulanan'))->name('perkebunanbulanan');
+    Route::get('/kegiatan-bulanan/ibs',        fn() => view('timProduksi.IBSbulanan.IBSbulanan'))->name('ibsbulanan');
 });
 
 /* --- TIM NWA --- */
 Route::prefix('nwa')->name('nwa.')->group(function () {
-    Route::get('/tahunan', fn() => view('timNWA.NWAtahunan'))->name('tahunan');
-    Route::get('/triwulanan/sklnp', fn() => view('timNWA.SKLNP'))->name('sklnp');
-    Route::get('/triwulanan/snaper', fn() => view('timNWA.snaper'))->name('snaper');
-    Route::get('/triwulanan/sktnp', fn() => view('timNWA.SKTNP'))->name('sktnp');
+    Route::get('/tahunan',           fn() => view('timNWA.tahunan.NWAtahunan'))->name('tahunan');
+    Route::get('/triwulanan/sklnp',  fn() => view('timNWA.SKLNP.SKLNP'))->name('sklnp');
+    Route::get('/triwulanan/snaper', fn() => view('timNWA.snaper.snaper'))->name('snaper');
+    Route::get('/triwulanan/sktnp',  fn() => view('timNWA.SKTNP.SKTNP'))->name('sktnp');
 });
 
 /* --- REKAPITULASI --- */
 Route::prefix('rekapitulasi')->name('rekapitulasi.')->group(function () {
-    Route::get('/pencacah', fn() => view('Rekapitulasi.rekappencacah'))->name('pencacah');
-    Route::get('/pengawas', fn() => view('Rekapitulasi.rekappengawas'))->name('pengawas');
+    Route::get('/pencacah', fn() => view('Rekapitulasi.rekapcacah.rekappencacah'))->name('pencacah');
+    Route::get('/pengawas', fn() => view('Rekapitulasi.rekappengawas.rekappengawas'))->name('pengawas');
 });
 
 /* --- MASTER --- */
-Route::get('/master-petugas', fn() => view('masterpetugas'))->name('master.petugas');
+Route::get('/master-petugas',  fn() => view('masterpetugas'))->name('master.petugas');
 Route::get('/master-kegiatan', fn() => view('masterkegiatan'))->name('master.kegiatan');
-Route::get('/user', fn() => view('user'))->name('user');
+Route::get('/user',            fn() => view('user'))->name('user');

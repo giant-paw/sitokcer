@@ -194,7 +194,7 @@
                         </li>
                         <li
                             class="{{ request()->is('produksi/kegiatan-caturwulan/update-utp-palawija*') ? 'active-link' : '' }}">
-                            <a href="{{ route('produksi.updateutppalawija') }}">Update UTP Palawija</a>
+                            <a href="{{ route('produksi.updateingutppalawija') }}">Update UTP Palawija</a>
                         </li>
                     </ul>
                 </li>
