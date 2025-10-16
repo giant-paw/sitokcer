@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SosialTahunanController;
 use App\Http\Controllers\SosialSemesteranController;
 use App\Http\Controllers\DistribusiTahunanController;
+use App\Http\Controllers\DistribusiTriwulananController;
 use App\Http\Controllers\DashboardDistribusiController;
 use App\Http\Controllers\DashboardNwaController;
 use App\Http\Controllers\DashboardProduksiController;

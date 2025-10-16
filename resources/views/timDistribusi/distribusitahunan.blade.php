@@ -22,7 +22,9 @@
                         class="btn btn-danger"
                         data-bs-toggle="modal" 
                         data-bs-target="#deleteDataModal" 
-                        id="bulkDeleteBtn"><i class="bi bi-trash"></i> Hapus
+                        id="bulkDeleteBtn"
+                        disabled>
+                        <i class="bi bi-trash"></i> Hapus
                     </button>
                 </div>
 
@@ -405,6 +407,27 @@
                 deleteModal.show();
             });
         }
+
+        // Enable/disable bulk delete button
+        function updateBulkDeleteState() {
+            const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+            bulkDeleteBtn.disabled = checkedCount === 0;
+        }
+
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateBulkDeleteState);
+        });
+
+        // Jika select all diubah, update juga
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+                updateBulkDeleteState();
+            });
+        }
+
+        // Inisialisasi awal
+        updateBulkDeleteState();
     });
 </script>
 @endpush

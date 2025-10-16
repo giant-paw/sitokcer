@@ -21,7 +21,9 @@
                         type="button" 
                         class="btn btn-danger"
                         data-bs-target="#deleteDataModal" 
-                        id="bulkDeleteBtn"><i class="bi bi-trash"></i> Hapus Data Yang Dipilih
+                        id="bulkDeleteBtn"
+                        disabled>
+                        <i class="bi bi-trash"></i> Hapus Data Yang Dipilih
                     </button>
                 </div>
 
@@ -92,7 +94,7 @@
                             @forelse ($listData as $item)
                                 <tr>
                                     <td>
-                                        <input type="checkbox" class="form-check-input row-checkbox" value="{{ $item->id_distribusi }}">
+                                        <input type="checkbox" class="form-check-input row-checkbox" value="{{ $item->id_distribusi_triwulanan }}">
                                     </td>
                                     <td>{{ $item->nama_kegiatan }}</td>
                                     <td>{{ $item->BS_Responden }}</td>
@@ -106,7 +108,7 @@
                                         <button class="btn btn-sm btn-warning" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#editDataModal" 
-                                                onclick="editData({{ $item->id_distribusi }})">
+                                                onclick="editData({{ $item->id_distribusi_triwulanan }})">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
 
@@ -114,7 +116,7 @@
                                         <button class="btn btn-sm btn-danger" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#deleteDataModal" 
-                                                onclick="deleteData({{ $item->id_distribusi }})">
+                                                onclick="deleteData({{ $item->id_distribusi_triwulanan }})">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
@@ -379,34 +381,55 @@
             });
         }
         
-        // Event listener untuk tombol Bulk Delete
+        // Enable/disable bulk delete button
         const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-        if (bulkDeleteBtn) {
-            bulkDeleteBtn.addEventListener('click', function() {
-                const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
 
-                if (selectedIds.length === 0) {
-                    alert('Pilih setidaknya satu data untuk dihapus.');
-                    return;
-                }
+        function updateBulkDeleteState() {
+            const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+            bulkDeleteBtn.disabled = checkedCount === 0;
+        }
 
-                const deleteModal = new bootstrap.Modal(document.getElementById('deleteDataModal'));
-                const deleteForm = document.getElementById('deleteForm');
-                
-                deleteForm.action = '{{ route("tim-distribusi.triwulanan.bulkDelete") }}';
-                deleteForm.querySelector('input[name="_method"]').value = 'POST'; 
-                deleteForm.querySelectorAll('input[name="ids[]"]').forEach(input => input.remove());
-                
-                selectedIds.forEach(id => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'ids[]';
-                    input.value = id;
-                    deleteForm.appendChild(input);
-                });
-                deleteModal.show();
+        rowCheckboxes.forEach(cb => {
+            cb.addEventListener('change', updateBulkDeleteState);
+        });
+
+        // Jika select all diubah, update juga
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+                updateBulkDeleteState();
             });
         }
+
+        // Inisialisasi awal
+        updateBulkDeleteState();
+
+        // Event listener untuk tombol Bulk Delete
+        bulkDeleteBtn.addEventListener('click', function() {
+            const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                alert('Pilih setidaknya satu data untuk dihapus.');
+                return;
+            }
+
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteDataModal'));
+            const deleteForm = document.getElementById('deleteForm');
+            
+            deleteForm.action = '{{ route("tim-distribusi.triwulanan.bulkDelete") }}';
+            deleteForm.querySelector('input[name="_method"]').value = 'POST'; 
+            deleteForm.querySelectorAll('input[name="ids[]"]').forEach(input => input.remove());
+            
+            selectedIds.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = id;
+                deleteForm.appendChild(input);
+            });
+            deleteModal.show();
+        });
     });
 </script>
 @endpush
