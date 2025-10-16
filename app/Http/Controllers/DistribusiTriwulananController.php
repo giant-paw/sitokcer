@@ -33,7 +33,14 @@ class DistribusiTriwulananController extends Controller
             });
         }
 
-        $listData = $query->latest()->paginate(20)->withQueryString();
+        $perPage = $request->input('per_page', 20); 
+
+        if ($perPage == 'all') {
+            $total = (clone $query)->count();
+            $perPage = $total > 0 ? $total : 20;
+        }
+
+        $listData = $query->latest()->paginate($perPage)->withQueryString();
 
         $kegiatanCounts = DistribusiTriwulanan::query()
             ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')

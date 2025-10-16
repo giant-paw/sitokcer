@@ -31,8 +31,15 @@ class DistribusiBulananController extends Controller
                   ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
+        
+        $perPage = $request->input('per_page', 20); 
 
-        $listData = $query->latest()->paginate(20)->withQueryString();
+        if ($perPage == 'all') {
+            $total = (clone $query)->count();
+            $perPage = $total > 0 ? $total : 20;
+        }
+
+        $listData = $query->latest()->paginate($perPage)->withQueryString();
 
         $kegiatanCounts = DistribusiBulanan::query()
             ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')

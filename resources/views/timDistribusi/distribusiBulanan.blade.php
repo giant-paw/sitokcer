@@ -11,20 +11,37 @@
                 <h4 class="card-title mb-0">LIST TARGET KEGIATAN Bulanan: {{ strtoupper($jenisKegiatan) }}</h4>
             </div>
             <div class="card-body">
-                <div class="mb-10">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahDataModal">
-                        <i class="bi bi-plus-circle"></i> Tambah baru
-                    </button>
-                    <button type="button" class="btn btn-secondary"><i class="bi bi-upload"></i> Import</button>
-                    <button type="button" class="btn btn-success"><i class="bi bi-download"></i> Ekspor hasil</button>
-                    <button 
-                        type="button" 
-                        class="btn btn-danger"
-                        data-bs-target="#deleteDataModal" 
-                        id="bulkDeleteBtn"
-                        disabled>
-                        <i class="bi bi-trash"></i> Hapus Data Yang Dipilih
-                    </button>
+                <div class="mb-4 d-flex flex-wrap justify-content-between align-items-center">
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahDataModal">
+                            <i class="bi bi-plus-circle"></i> Tambah Baru
+                        </button>
+                        <button type="button" class="btn btn-secondary">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
+                        <button type="button" class="btn btn-success">
+                            <i class="bi bi-download"></i> Ekspor Hasil
+                        </button>
+                        <button 
+                            type="button" 
+                            class="btn btn-danger"
+                            data-bs-target="#deleteDataModal" 
+                            id="bulkDeleteBtn"
+                            disabled>
+                            <i class="bi bi-trash"></i> Hapus Data Terpilih
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <label for="perPageSelect" class="form-label me-2 mb-0">Display:</label>
+                        <select class="form-select form-select-sm" id="perPageSelect" style="width: auto;">
+                            @php $options = [10, 20, 30, 50, 100, 500, 'all']; @endphp
+                            @foreach($options as $option)
+                                <option value="{{ $option }}" {{ (request('per_page', 20) == $option) ? 'selected' : '' }}>
+                                    {{ $option == 'all' ? 'All' : $option }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 @if (session('success'))
@@ -367,7 +384,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        // Inisialisasi Autocomplete untuk semua 4 field
         initAutocomplete('pencacah', 'pencacah-suggestions', 'pencacah');
         initAutocomplete('pengawas', 'pengawas-suggestions', 'pengawas');
         initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', 'pencacah');
@@ -430,6 +446,23 @@
             });
             deleteModal.show();
         });
+
+        // filter tampil banyaknya data per halaman
+        const perPageSelect = document.getElementById('perPageSelect');
+        if (perPageSelect) {
+            perPageSelect.addEventListener('change', function() {
+                const selectedValue = this.value;
+                
+                const currentUrl = new URL(window.location.href);
+                const params = currentUrl.searchParams;
+
+                params.set('per_page', selectedValue);
+                
+                params.set('page', 1);
+
+                window.location.href = currentUrl.pathname + '?' + params.toString();
+            });
+        }
     });
 </script>
 @endpush
