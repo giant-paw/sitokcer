@@ -13,6 +13,8 @@
 
     <link rel="stylesheet" href="{{ asset('css/global.css') }}">
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <style>
         body {
             overflow-y: hidden;
