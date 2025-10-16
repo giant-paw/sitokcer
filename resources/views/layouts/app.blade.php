@@ -27,8 +27,10 @@
         }
 
         .header-navbar {
-            padding: 1rem;
-            flex-shrink: 0;
+            height: 60px;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
         }
 
         .content-body-wrapper {
@@ -111,24 +113,24 @@
 <body>
     <div class="page-wrapper">
         <header class="navbar navbar-expand navbar-light bg-white shadow-sm header-navbar py-0">
-    <div class="container-fluid">
-        <div class="d-flex align-items-center">
-            <button class="btn btn-link text-secondary p-0 me-3" type="button" id="sidebar-toggle-button">
-                <i class="bi bi-list" style="font-size: 1.9rem;"></i>
-            </button>
-            <a href="{{ route('home') }}" class="navbar-brand d-flex align-items-center">
-                <img src="{{ asset('logo.png') }}" alt="Logo Sitokcer" style="height: 32px;">
-                <span class="fw-bold fs-5 ms-2" style="font-family: 'Poppins', sans-serif;">Sitokcer</span>
-            </a>
-        </div>
+            <div class="container-fluid">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link text-secondary p-0 me-3" type="button" id="sidebar-toggle-button">
+                        <i class="bi bi-list" style="font-size: 1.9rem;"></i>
+                    </button>
+                    <a href="{{ route('home') }}" class="navbar-brand d-flex align-items-center">
+                        <img src="{{ asset('logo.png') }}" alt="Logo Sitokcer" style="height: 32px;">
+                        <span class="fw-bold fs-5 ms-2" style="font-family: 'Poppins', sans-serif;">Sitokcer</span>
+                    </a>
+                </div>
 
-        <div class="d-flex align-items-center ms-auto">
-            <div class="h6 fw-semibold text-dark mb-0">
-                @yield('header-title', 'Dashboard')
+                <div class="d-flex align-items-center ms-auto">
+                    <div class="h6 fw-semibold text-dark mb-0">
+                        @yield('header-title', 'Dashboard')
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</header>
+        </header>
 
 
 
