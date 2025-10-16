@@ -172,8 +172,7 @@
                         </li>
                         <li class="{{ request()->is('produksi/kegiatan-triwulan/sphth*') ? 'active-link' : '' }}"><a
                                 href="{{ route('produksi.sphth') }}">SPHTH</a></li>
-                        <li
-                            class="{{ request()->is('produksi/kegiatan-triwulan/air-bersih*') ? 'active-link' : '' }}">
+                        <li class="{{ request()->is('produksi/kegiatan-triwulan/air-bersih*') ? 'active-link' : '' }}">
                             <a href="{{ route('produksi.airbersih') }}">Air Bersih</a>
                         </li>
                     </ul>
@@ -245,10 +244,10 @@
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('rekapitulasi/pencacah*') ? 'active-link' : '' }}">
-                    <a href="{{ route('rekapitulasi.pencacah') }}">Rekap Pencacah</a>
+                    <a href="{{ route('rekapitulasi.pencacah.index') }}">Rekap Pencacah</a>
                 </li>
                 <li class="{{ request()->is('rekapitulasi/pengawas*') ? 'active-link' : '' }}">
-                    <a href="{{ route('rekapitulasi.pengawas') }}">Rekap Pengawas</a>
+                    <a href="{{ route('rekapitulasi.pengawas.index') }}">Rekap Pengawas</a>
                 </li>
             </ul>
         </li>
@@ -486,18 +485,18 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const dropdownToggles = document.querySelectorAll('.sidebar .dropdown-toggle');
 
-        dropdownToggles.forEach(function(toggle) {
-            toggle.addEventListener('click', function(event) {
+        dropdownToggles.forEach(function (toggle) {
+            toggle.addEventListener('click', function (event) {
                 event.preventDefault();
                 const parentMenuItem = this.closest('.menu-item.has-dropdown');
                 const parentLevel = parentMenuItem.parentElement; // ul induk
 
                 // Tutup hanya dropdown lain di level yang sama
                 const siblings = parentLevel.querySelectorAll('.menu-item.has-dropdown.active');
-                siblings.forEach(function(sibling) {
+                siblings.forEach(function (sibling) {
                     if (sibling !== parentMenuItem) {
                         sibling.classList.remove('active');
                     }
