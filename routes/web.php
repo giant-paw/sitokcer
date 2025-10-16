@@ -3,9 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SosialTahunanController;
 use App\Http\Controllers\SosialSemesteranController;
+
+// Distribusi
+use App\Http\Controllers\DashboardDistribusiController;
 use App\Http\Controllers\DistribusiTahunanController;
 use App\Http\Controllers\DistribusiTriwulananController;
-use App\Http\Controllers\DashboardDistribusiController;
+use App\Http\Controllers\DistribusiBulananController;
+
 use App\Http\Controllers\DashboardNwaController;
 use App\Http\Controllers\DashboardProduksiController;
 use App\Http\Controllers\DashboardSosialController;
@@ -58,14 +62,22 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         // Route utama untuk menampilkan data SPUNP atau SHKK
         Route::get('/{jenisKegiatan}', [DistribusiTriwulananController::class, 'index'])->name('index');
     });
-    
-    Route::get('/bulanan/vhts', fn() => view('timDistribusi.VHTS'))->name('vhts');
-    Route::get('/bulanan/hkd', fn() => view('timDistribusi.HKD'))->name('hkd');
-    Route::get('/bulanan/shpb', fn() => view('timDistribusi.SHPB'))->name('shpb');
-    Route::get('/bulanan/shp', fn() => view('timDistribusi.SHP'))->name('shp');
-    Route::get('/bulanan/shpj', fn() => view('timDistribusi.SHPJ'))->name('shpj');
-    Route::get('/bulanan/shpgb', fn() => view('timDistribusi.SHPBG'))->name('shpgb');
-    Route::get('/bulanan/hd', fn() => view('timDistribusi.HD'))->name('hd');
+
+    // --- ROUTE Bulanan ---
+    Route::prefix('bulanan')->name('bulanan.')->group(function () {
+        Route::get('/search-petugas', [DistribusiBulananController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::post('/bulk-delete', [DistribusiBulananController::class, 'bulkDelete'])->name('bulkDelete');
+        
+        // Route untuk proses CRUD
+        Route::post('/', [DistribusiBulananController::class, 'store'])->name('store');
+        // Gunakan snake_case untuk parameter agar konsisten
+        Route::get('/{distribusi_bulanan}/edit', [DistribusiBulananController::class, 'edit'])->name('edit');
+        Route::put('/{distribusi_bulanan}', [DistribusiBulananController::class, 'update'])->name('update');
+        Route::delete('/{distribusi_bulanan}', [DistribusiBulananController::class, 'destroy'])->name('destroy');
+        
+        // Route utama untuk menampilkan data berdasarkan jenis kegiatan
+        Route::get('/{jenisKegiatan}', [DistribusiBulananController::class, 'index'])->name('index');
+    });
 });
 
 /* --- TIM PRODUKSI --- */
