@@ -2,13 +2,15 @@
 
 use App\Http\Controllers\SerutiController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SosialTahunanController; 
+use App\Http\Controllers\SosialTahunanController;
 use App\Http\Controllers\SosialSemesteranController;
 use App\Http\Controllers\DistribusiTahunanController;
 use App\Http\Controllers\DashboardDistribusiController;
 use App\Http\Controllers\DashboardNwaController;
 use App\Http\Controllers\DashboardProduksiController;
 use App\Http\Controllers\DashboardSosialController;
+use App\Http\Controllers\PencacahController;
+use App\Http\Controllers\PengawasController;
 
 Route::get('/', fn() => view('home'))->name('home');
 
@@ -32,7 +34,7 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
     Route::get('tahunan/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('tahunan.searchPetugas');
     Route::post('tahunan/bulk-delete', [DistribusiTahunanController::class, 'bulkDelete'])->name('tahunan.bulkDelete');
     Route::resource('tahunan', DistribusiTahunanController::class);
-    
+
 
 
     Route::get('/kegiatan-triwulan/spunp', fn() => view('timDistribusi.SPUNP'))->name('spunp');
@@ -54,7 +56,7 @@ Route::prefix('produksi')->name('produksi.')->group(function () {
     // Menggunakan path 'ubinanpadi.namafile'
     Route::get('/kegiatan-caturwulan/ubinan-padi-palawija', fn() => view('timProduksi.ubinanpadi.ubinanpadipalawija'))->name('ubinanpadipalawija');
     Route::get('/kegiatan-caturwulan/update-utp-palawija', fn() => view('timProduksi.update.updateingutppalawija'))->name('updateingutppalawija');
-    
+
     // Menyesuaikan path untuk setiap file yang sekarang ada di dalam foldernya sendiri
     Route::get('/kegiatan-triwulan/sktr', fn() => view('timProduksi.SKTR.SKTR'))->name('sktr');
     Route::get('/kegiatan-triwulan/tpi', fn() => view('timProduksi.TPI.TPI'))->name('tpi');
@@ -81,8 +83,14 @@ Route::prefix('nwa')->name('nwa.')->group(function () {
 
 /* --- REKAPITULASI --- */
 Route::prefix('rekapitulasi')->name('rekapitulasi.')->group(function () {
-    Route::get('/pencacah', fn() => view('Rekapitulasi.rekapcacah.rekappencacah'))->name('pencacah');
-    Route::get('/pengawas', fn() => view('Rekapitulasi.rekappengawas.rekappengawas'))->name('pengawas');
+
+    // Route untuk menampilkan halaman rekapitulasi utama
+    Route::get('/pencacah', [PencacahController::class, 'index'])->name('pencacah.index');
+    Route::get('/pencacah/detail/{nama}', [PencacahController::class, 'getDetailKegiatan'])->name('pencacah.detail');
+
+    // Route BARU untuk Pengawas
+    Route::get('/pengawas', [PengawasController::class, 'index'])->name('pengawas.index');
+    Route::get('/pengawas/detail/{nama}', [PengawasController::class, 'getDetailPencacah'])->name('pengawas.detail');
 });
 
 /* --- MASTER --- */
