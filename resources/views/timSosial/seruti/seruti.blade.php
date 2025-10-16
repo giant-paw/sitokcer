@@ -12,7 +12,7 @@
             @foreach ($tabs as $t)
                 <a href="{{ route('sosial.seruti.index', ['tw' => $t, 'q' => request('q')]) }}"
                     class="px-3 py-1.5 rounded-lg border text-sm
-         {{ $tw === $t ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}">
+           {{ $tw === $t ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}">
                     Seruti-{{ $t }}
                 </a>
             @endforeach
@@ -21,10 +21,20 @@
         {{-- Toolbar + Search --}}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
             <div class="flex items-center gap-2">
+                {{-- CSRF untuk fetch --}}
+                <input type="hidden" id="csrf" value="{{ csrf_token() }}">
+
                 <a href="javascript:void(0)" onclick="openSerutiCreate()"
                     class="px-3 py-2 bg-green-600 text-white rounded-lg text-sm shadow hover:opacity-90">
                     Tambah baru
                 </a>
+
+                {{-- Hapus terpilih (bulk delete via destroy per-ID) --}}
+                <button type="button" id="btnBulkDelete"
+                    class="px-3 py-2 bg-rose-600 text-white rounded-lg text-sm shadow hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+                    onclick="bulkDelete()" disabled>
+                    Hapus terpilih
+                </button>
             </div>
 
             <form action="{{ route('sosial.seruti.index') }}" method="GET" class="w-full md:w-auto">
@@ -43,7 +53,9 @@
                 <table class="min-w-full text-sm">
                     <thead class="bg-gray-50 text-gray-700">
                         <tr>
-                            <th class="px-3 py-3 w-10"><input type="checkbox"></th>
+                            <th class="px-3 py-3 w-10 text-center">
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
                             <th class="px-3 py-3">Nama Kegiatan</th>
                             <th class="px-3 py-3">Blok Sensus/Responden</th>
                             <th class="px-3 py-3">Pencacah</th>
@@ -58,7 +70,10 @@
                     <tbody class="divide-y">
                         @forelse ($rows as $row)
                             <tr class="hover:bg-gray-50">
-                                <td class="px-3 py-3"><input type="checkbox"></td>
+                                <td class="px-3 py-3 text-center">
+                                    <input type="checkbox" class="form-check-input row-checkbox"
+                                        data-id="{{ $row->id_sosial_triwulanan }}">
+                                </td>
                                 <td class="px-3 py-3 text-blue-700 font-medium">{{ $row->nama_kegiatan }}</td>
                                 <td class="px-3 py-3">{{ $row->BS_Responden }}</td>
                                 <td class="px-3 py-3">{{ $row->pencacah }}</td>
@@ -76,7 +91,7 @@
                                     @php $done = strtolower($row->flag_progress) === 'selesai'; @endphp
                                     <span
                                         class="px-2 py-1 rounded-full text-xs font-semibold
-                    {{ $done ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
+                               {{ $done ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
                                         {{ $row->flag_progress ?? '-' }}
                                     </span>
                                 </td>
@@ -95,7 +110,7 @@
                                         <a href="{{ route('sosial.seruti.show', $row) }}"
                                             class="px-2 py-1 rounded bg-gray-700 text-white text-xs">Lihat</a>
 
-                                        {{-- tombol Edit -> buka modal edit + populate data --}}
+                                        {{-- Edit -> modal --}}
                                         <button type="button" class="px-2 py-1 rounded bg-lime-600 text-white text-xs"
                                             onclick="openSerutiEdit(this)" data-id="{{ $row->id_sosial_triwulanan }}"
                                             data-nama="{{ $row->nama_kegiatan }}" data-bs="{{ $row->BS_Responden }}"
@@ -106,6 +121,7 @@
                                             Edit
                                         </button>
 
+                                        {{-- Hapus single --}}
                                         <form action="{{ route('sosial.seruti.destroy', $row) }}" method="post"
                                             onsubmit="return confirm('Hapus data ini?')">
                                             @csrf
@@ -115,7 +131,6 @@
                                     </div>
                                 </td>
                             </tr>
-
                         @empty
                             <tr>
                                 <td colspan="9" class="px-3 py-6 text-center text-gray-500">
@@ -297,8 +312,7 @@
                         <select id="edit_flag" name="flag_progress" class="w-full border rounded-lg px-3 py-2" required>
                             @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt)
                                 <option value="{{ $opt }}" {{ $oldFlagE === $opt ? 'selected' : '' }}>
-                                    {{ $opt }}
-                                </option>
+                                    {{ $opt }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -323,24 +337,24 @@
 
     {{-- Scripts --}}
     <script>
-        // URL template untuk update: diganti __ID__ dengan id baris
+        // URL template
         const updateUrlTemplate = "{{ route('sosial.seruti.update', ['seruti' => '__ID__']) }}";
+        const destroyUrlTemplate = "{{ route('sosial.seruti.destroy', ['seruti' => '__ID__']) }}";
 
         const dlgCreate = document.getElementById('dlgSerutiCreate');
         const dlgEdit = document.getElementById('dlgSerutiEdit');
 
         function openSerutiCreate() {
-            if (dlgCreate && typeof dlgCreate.showModal === 'function') dlgCreate.showModal();
-            else if (dlgCreate) dlgCreate.setAttribute('open', 'open');
+            if (dlgCreate?.showModal) dlgCreate.showModal();
+            else dlgCreate?.setAttribute('open', 'open');
         }
 
         function closeSerutiCreate() {
-            if (dlgCreate && typeof dlgCreate.close === 'function') dlgCreate.close();
-            else if (dlgCreate) dlgCreate.removeAttribute('open');
+            if (dlgCreate?.close) dlgCreate.close();
+            else dlgCreate?.removeAttribute('open');
         }
 
         function openSerutiEdit(btn) {
-            // Ambil data-* dari tombol edit
             const id = btn.dataset.id;
             const nama = btn.dataset.nama || '';
             const bs = btn.dataset.bs || '';
@@ -350,11 +364,9 @@
             const flag = btn.dataset.flag || 'Belum Mulai';
             const kumpul = btn.dataset.kumpul || '';
 
-            // Set action form
             const form = document.getElementById('formSerutiEdit');
             form.action = updateUrlTemplate.replace('__ID__', id);
 
-            // Isi fields
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_nama_kegiatan').value = nama;
             document.getElementById('edit_bs').value = bs;
@@ -364,31 +376,100 @@
             document.getElementById('edit_flag').value = flag;
             document.getElementById('edit_kumpul').value = kumpul;
 
-            if (dlgEdit && typeof dlgEdit.showModal === 'function') dlgEdit.showModal();
-            else if (dlgEdit) dlgEdit.setAttribute('open', 'open');
+            if (dlgEdit?.showModal) dlgEdit.showModal();
+            else dlgEdit?.setAttribute('open', 'open');
         }
 
         function closeSerutiEdit() {
-            if (dlgEdit && typeof dlgEdit.close === 'function') dlgEdit.close();
-            else if (dlgEdit) dlgEdit.removeAttribute('open');
+            if (dlgEdit?.close) dlgEdit.close();
+            else dlgEdit?.removeAttribute('open');
         }
 
-        // Auto-open modal sesuai validation error (create / edit)
+        // Select all + enable/disable tombol bulk delete
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAll = document.getElementById('selectAll');
+            const btnBulk = document.getElementById('btnBulkDelete');
+
+            function updateBulkState() {
+                const checks = document.querySelectorAll('.row-checkbox');
+                const anyChecked = Array.from(checks).some(cb => cb.checked);
+                if (btnBulk) btnBulk.disabled = !anyChecked;
+
+                const allChecked = checks.length > 0 && Array.from(checks).every(cb => cb.checked);
+                if (selectAll) selectAll.checked = allChecked;
+            }
+
+            if (selectAll) {
+                selectAll.addEventListener('change', function() {
+                    document.querySelectorAll('.row-checkbox').forEach(cb => {
+                        cb.checked = selectAll.checked;
+                    });
+                    updateBulkState();
+                });
+            }
+
+            document.addEventListener('change', function(e) {
+                if (e.target && e.target.classList?.contains('row-checkbox')) updateBulkState();
+            });
+
+            updateBulkState();
+        });
+
+        // Bulk delete: panggil route destroy untuk tiap ID
+        async function bulkDelete() {
+            const ids = Array.from(document.querySelectorAll('.row-checkbox:checked'))
+                .map(cb => cb.dataset.id);
+            if (!ids.length) return;
+            if (!confirm('Hapus baris yang dipilih?')) return;
+
+            const token = document.getElementById('csrf')?.value ||
+                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            try {
+                for (const id of ids) {
+                    const url = destroyUrlTemplate.replace('__ID__', id);
+                    const body = new URLSearchParams();
+                    body.append('_method', 'DELETE');
+
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': token,
+                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body
+                    });
+
+                    if (!res.ok) {
+                        alert('Gagal menghapus ID: ' + id);
+                        return;
+                    }
+                }
+                // refresh ke tab sekarang
+                window.location.href = "{{ route('sosial.seruti.index', ['tw' => $tw, 'q' => $q]) }}";
+            } catch (err) {
+                console.error(err);
+                alert('Terjadi kesalahan saat menghapus data.');
+            }
+        }
+
+        // Auto open dialog jika validasi gagal
         @if ($errors->any())
             @if (old('_mode') === 'create')
                 openSerutiCreate();
             @elseif (old('_mode') === 'edit')
-                // saat error edit, kita sudah punya old('_id') untuk set action
                 (function() {
                     const id = "{{ old('_id') }}";
                     if (id) {
                         const form = document.getElementById('formSerutiEdit');
                         form.action = updateUrlTemplate.replace('__ID__', id);
                     }
-                    if (dlgEdit && typeof dlgEdit.showModal === 'function') dlgEdit.showModal();
-                    else if (dlgEdit) dlgEdit.setAttribute('open', 'open');
+                    if (dlgEdit?.showModal) dlgEdit.showModal();
+                    else dlgEdit?.setAttribute('open', 'open');
                 })();
             @endif
         @endif
     </script>
 @endsection
+    

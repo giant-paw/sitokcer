@@ -176,7 +176,7 @@
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('produksi/tahunan*') ? 'active-link' : '' }}">
-                    <a href="{{ route('produksi.tahunan') }}">Produksi Tahunan</a>
+                    <a href="{{ route('produksi.tahunan.index') }}">Produksi Tahunan</a>
                 </li>
                 <li
                     class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-caturwulan*') ? 'active' : '' }}">

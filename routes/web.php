@@ -22,6 +22,7 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 
     // Resource lain (kalau butuh, biarkan default)
     Route::resource('seruti', SerutiController::class);
+
     Route::resource('semesteran', SosialSemesteranController::class);
 
     // Halaman statis lain
