@@ -1,59 +1,65 @@
 @extends('layouts.app')
+
 @section('title', 'Detail Seruti')
 @section('header-title', 'Seruti - Detail')
 
 @section('content')
-    <div class="p-4 md:p-6">
-        <div class="bg-white shadow rounded-xl p-5">
-            <dl class="grid md:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                <div>
-                    <dt class="text-gray-500">Nama Kegiatan</dt>
-                    <dd class="font-medium">{{ $seruti->nama_kegiatan }}</dd>
+    <div class="container-fluid px-0">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-4">Detail Data</h5>
+                
+                {{-- Data details --}}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted">Nama Kegiatan</div>
+                        <div>{{ $seruti->nama_kegiatan }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted">Blok Sensus/Responden</div>
+                        <div>{{ $seruti->BS_Responden ?: '-' }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted">Pencacah</div>
+                        <div>{{ $seruti->pencacah }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted">Pengawas</div>
+                        <div>{{ $seruti->pengawas }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted">Target Penyelesaian</div>
+                        <div>
+                            {{ $seruti->target_penyelesaian ? \Carbon\Carbon::parse($seruti->target_penyelesaian)->format('d/m/Y') : '-' }}
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted">Flag Progress</div>
+                        <div>{{ $seruti->flag_progress }}</div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <div class="text-muted">Tanggal Pengumpulan</div>
+                        <div>
+                            {{ $seruti->tanggal_pengumpulan ? \Carbon\Carbon::parse($seruti->tanggal_pengumpulan)->format('Y-m-d H:i') : '-' }}
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <dt class="text-gray-500">Blok Sensus/Responden</dt>
-                    <dd class="font-medium">{{ $seruti->BS_Responden ?: '-' }}</dd>
-                </div>
-                <div>
-                    <dt class="text-gray-500">Pencacah</dt>
-                    <dd class="font-medium">{{ $seruti->pencacah }}</dd>
-                </div>
-                <div>
-                    <dt class="text-gray-500">Pengawas</dt>
-                    <dd class="font-medium">{{ $seruti->pengawas }}</dd>
-                </div>
-                <div>
-                    <dt class="text-gray-500">Target Penyelesaian</dt>
-                    <dd class="font-medium">
-                        {{ $seruti->target_penyelesaian ? \Carbon\Carbon::parse($seruti->target_penyelesaian)->format('d/m/Y') : '-' }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-gray-500">Flag Progress</dt>
-                    <dd class="font-medium">{{ $seruti->flag_progress }}</dd>
-                </div>
-                <div class="md:col-span-2">
-                    <dt class="text-gray-500">Tanggal Pengumpulan</dt>
-                    <dd class="font-medium">
-                        {{ $seruti->tanggal_pengumpulan ? \Carbon\Carbon::parse($seruti->tanggal_pengumpulan)->format('Y-m-d H:i') : '-' }}
-                    </dd>
-                </div>
-            </dl>
 
-            <div class="mt-5 flex gap-2">
-                <a class="px-4 py-2 rounded bg-blue-600 text-white"
-                    href="{{ route('sosial.seruti.edit', $seruti) }}">Edit</a>
+                {{-- Action buttons --}}
+                <div class="mt-3 pt-3 border-top d-flex gap-2">
+                    <a href="{{ route('sosial.seruti.edit', $seruti) }}" class="btn btn-sm btn-outline-primary">Edit</a>
 
-                <form action="{{ route('sosial.seruti.destroy', $seruti) }}" method="post"
-                    onsubmit="return confirm('Hapus data ini?')">
-                    @csrf @method('DELETE')
-                    <button class="px-4 py-2 rounded border border-rose-600 text-rose-600">Delete</button>
-                </form>
+                    <form action="{{ route('sosial.seruti.destroy', $seruti) }}" method="post"
+                        onsubmit="return confirm('Hapus data ini?')">
+                        @csrf @method('DELETE')
+                        <button class="btn btn-sm btn-outline-danger">Hapus</button>
+                    </form>
 
-                <a class="px-4 py-2 rounded border ms-auto"
-                    href="{{ route('sosial.seruti.index', ['tw' => preg_match('/Seruti\-(TW[1-4])/', $seruti->nama_kegiatan, $m) ? $m[1] : 'TW1']) }}">
-                    Kembali
-                </a>
+                    <a href="{{ route('sosial.seruti.index', ['tw' => preg_match('/Seruti\-(TW[1-4])/', $seruti->nama_kegiatan, $m) ? $m[1] : 'TW1']) }}"
+                        class="btn btn-sm btn-outline-secondary ms-auto">
+                        Kembali
+                    </a>
+                </div>
             </div>
         </div>
     </div>

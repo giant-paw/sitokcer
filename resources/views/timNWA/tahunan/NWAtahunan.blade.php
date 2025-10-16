@@ -4,95 +4,83 @@
 @section('header-title', 'List Target Kegiatan Tahunan Tim NWA')
 
 @section('content')
-    <div class="p-4 md:p-6">
+    <div class="container-fluid px-0">
 
-        {{-- Toolbar atas: Tambah + (opsional ekspor/import nanti) --}}
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-            <div class="flex items-center gap-2">
-                <a href="javascript:void(0)" onclick="openCreate()"
-                    class="px-3 py-2 bg-green-600 text-white rounded-lg text-sm shadow hover:opacity-90">
-                    Tambah baru
-                </a>
-            </div>
-
-            {{-- Search --}}
-            <form method="get" action="{{ route('nwa.tahunan.index') }}" class="w-full md:w-auto">
+        {{-- Toolbar + Search --}}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <form method="get" action="{{ route('nwa.tahunan.index') }}">
                 <input type="hidden" name="kategori" value="{{ $kategori }}">
-                <div class="relative">
-                    <input type="text" name="q" value="{{ $q }}" placeholder="search"
-                        class="w-full md:w-72 pl-3 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button class="absolute right-0 top-0 h-full px-3" aria-label="Cari">🔍</button>
+                <div class="input-group" style="max-width: 360px">
+                    <input type="text" name="q" value="{{ $q }}" placeholder="Search" class="form-control">
+                    <button class="btn btn-outline-secondary">Cari</button>
                 </div>
             </form>
+
+            <button class="btn btn-primary" onclick="openCreate()">
+                Tambah baru
+            </button>
         </div>
 
-        {{-- Pills kategori --}}
-        <div class="flex flex-wrap items-center gap-2 mb-3">
-            <a href="{{ route('nwa.tahunan.index') }}"
-                class="px-3 py-1.5 rounded-lg border text-sm {{ $kategori === '' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}">
-                Semua
-            </a>
-            @foreach ($kategoris as $k)
-                <a href="{{ route('nwa.tahunan.index', ['kategori' => $k['label'], 'q' => $q]) }}"
-                    class="px-3 py-1.5 rounded-lg border text-sm {{ $kategori === $k['label'] ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}">
-                    {{ $k['label'] }} ({{ $k['count'] }})
+        {{-- Category Tabs --}}
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link {{ $kategori === '' ? 'active' : '' }}" href="{{ route('nwa.tahunan.index') }}">
+                    Semua
                 </a>
+            </li>
+            @foreach ($kategoris as $k)
+                <li class="nav-item">
+                    <a class="nav-link {{ $kategori === $k['label'] ? 'active' : '' }}"
+                        href="{{ route('nwa.tahunan.index', ['kategori' => $k['label'], 'q' => $q]) }}">
+                        {{ $k['label'] }} ({{ $k['count'] }})
+                    </a>
+                </li>
             @endforeach
-        </div>
+        </ul>
 
-        {{-- Tabel --}}
-        <div class="bg-white shadow rounded-xl overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-gray-50 text-gray-700">
-                        <tr class="text-left">
-                            <th class="px-3 py-3 w-10">#</th>
-                            <th class="px-3 py-3">Nama Kegiatan</th>
-                            <th class="px-3 py-3">Blok Sensus/Responden</th>
-                            <th class="px-3 py-3">Pencacah</th>
-                            <th class="px-3 py-3">Pengawas</th>
-                            <th class="px-3 py-3">Target Penyelesaian</th>
-                            <th class="px-3 py-3">Flag Progress</th>
-                            <th class="px-3 py-3">Tanggal Pengumpulan</th>
-                            <th class="px-3 py-3 w-44 text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y">
-                        @forelse ($rows as $i => $row)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-3 py-3">{{ $rows->firstItem() + $i }}</td>
-                                <td class="px-3 py-3 font-medium">{{ $row->nama_kegiatan }}</td>
-                                <td class="px-3 py-3">{{ $row->BS_Responden }}</td>
-                                <td class="px-3 py-3">{{ $row->pencacah }}</td>
-                                <td class="px-3 py-3">{{ $row->pengawas }}</td>
-                                <td class="px-3 py-3">
-                                    @if ($row->target_penyelesaian)
-                                        {{ \Carbon\Carbon::parse($row->target_penyelesaian)->format('d/m/Y') }}
-                                    @else
-                                        <span class="text-gray-400">-</span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-3">
-                                    @php $done = strtolower($row->flag_progress) === 'selesai'; @endphp
-                                    <span
-                                        class="px-2 py-1 rounded-full text-xs font-semibold {{ $done ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
-                                        {{ $row->flag_progress ?? '-' }}
-                                    </span>
-                                </td>
-                                <td class="px-3 py-3">
-                                    @if ($row->tanggal_pengumpulan)
-                                        {{ \Carbon\Carbon::parse($row->tanggal_pengumpulan)->format('d/m/Y') }}
-                                    @else
-                                        <span class="text-gray-400">-</span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-3">
-                                    <div class="flex items-center gap-2 justify-center">
-                                        {{-- Lihat (opsional, jika punya halaman show) --}}
-                                        {{-- <a href="{{ route('nwa.tahunan.show', $row) }}" class="px-2 py-1 rounded bg-gray-700 text-white text-xs">Lihat</a> --}}
-
-                                        {{-- Edit (modal) --}}
-                                        <button type="button" class="px-2 py-1 rounded bg-lime-600 text-white text-xs"
+        {{-- Table --}}
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover table-bordered mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 50px;">#</th>
+                                <th>Nama Kegiatan</th>
+                                <th>Blok Sensus/Responden</th>
+                                <th>Pencacah</th>
+                                <th>Pengawas</th>
+                                <th>Target Penyelesaian</th>
+                                <th class="text-center">Flag Progress</th>
+                                <th>Tanggal Pengumpulan</th>
+                                <th class="text-center" style="width: 140px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($rows as $i => $row)
+                                <tr>
+                                    <td class="text-center">{{ $rows->firstItem() + $i }}</td>
+                                    <td>{{ $row->nama_kegiatan }}</td>
+                                    <td>{{ $row->BS_Responden }}</td>
+                                    <td>{{ $row->pencacah }}</td>
+                                    <td>{{ $row->pengawas }}</td>
+                                    <td class="text-nowrap">
+                                        {{ $row->target_penyelesaian ? \Carbon\Carbon::parse($row->target_penyelesaian)->format('d/m/Y') : '-' }}
+                                    </td>
+                                    <td class="text-center">
+                                        @php
+                                            $flag = $row->flag_progress;
+                                            $badgeClass = 'bg-secondary';
+                                            if ($flag === 'Selesai') $badgeClass = 'bg-success';
+                                            elseif ($flag === 'Proses') $badgeClass = 'bg-warning text-dark';
+                                        @endphp
+                                        <span class="badge {{ $badgeClass }}">{{ $flag ?? '-' }}</span>
+                                    </td>
+                                    <td class="text-nowrap">
+                                        {{ $row->tanggal_pengumpulan ? \Carbon\Carbon::parse($row->tanggal_pengumpulan)->format('d/m/Y') : '-' }}
+                                    </td>
+                                    <td class="text-nowrap text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
                                             onclick="openEdit(this)" data-id="{{ $row->id_nwa }}"
                                             data-nama="{{ $row->nama_kegiatan }}" data-bs="{{ $row->BS_Responden }}"
                                             data-pencacah="{{ $row->pencacah }}" data-pengawas="{{ $row->pengawas }}"
@@ -101,279 +89,221 @@
                                             data-kumpul="{{ $row->tanggal_pengumpulan ? \Carbon\Carbon::parse($row->tanggal_pengumpulan)->format('Y-m-d') : '' }}">
                                             Edit
                                         </button>
-
-                                        {{-- Delete per-baris --}}
                                         <form action="{{ route('nwa.tahunan.destroy', $row) }}" method="post"
-                                            onsubmit="return confirm('Hapus data ini?')">
+                                            class="d-inline" onsubmit="return confirm('Hapus data ini?')">
                                             @csrf @method('DELETE')
-                                            <button class="px-2 py-1 rounded bg-rose-600 text-white text-xs">Delete</button>
+                                            <button class="btn btn-sm btn-outline-danger">Hapus</button>
                                         </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="9" class="px-3 py-6 text-center text-gray-500">Belum ada data.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            {{-- Pagination --}}
-            <div class="px-4 py-3 border-t bg-gray-50 flex items-center justify-between text-sm text-gray-600">
-                <div>
-                    Menampilkan
-                    <span class="font-medium">{{ $rows->firstItem() ?? 0 }}</span>
-                    –
-                    <span class="font-medium">{{ $rows->lastItem() ?? 0 }}</span>
-                    dari
-                    <span class="font-medium">{{ $rows->total() }}</span>
-                </div>
-                <div class="flex gap-1">
-                    {{ $rows->onEachSide(1)->links() }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-4">Belum ada data.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
+            @if ($rows->hasPages())
+                <div class="card-footer">
+                    {{ $rows->links() }}
+                </div>
+            @endif
         </div>
     </div>
 
     {{-- ============== MODAL CREATE ============== --}}
-    <dialog id="dlgCreate" class="rounded-xl w-[95vw] max-w-3xl p-0">
-        <form method="post" action="{{ route('nwa.tahunan.store') }}">
-            @csrf
-            <input type="hidden" name="_mode" value="create">
+    <div class="modal fade" id="modalCreate" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <form method="post" action="{{ route('nwa.tahunan.store') }}">
+                    @csrf
+                    <input type="hidden" name="_mode" value="create">
 
-            <div class="p-4 border-b flex items-center justify-between">
-                <h3 class="text-lg font-semibold">Tambah Data NWA Tahunan</h3>
-                <button type="button" onclick="closeCreate()" class="px-2 py-1 rounded border">Tutup</button>
+                    <div class="modal-header">
+                        <h5 class="modal-title">Tambah Data NWA Tahunan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        @if ($errors->any() && old('_mode') === 'create')
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach ($errors->all() as $e)
+                                        <li>{{ $e }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <div class="mb-3">
+                            <label class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
+                            <input type="text" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" class="form-control" required>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Blok Sensus/Responden</label>
+                                <input type="text" name="BS_Responden" value="{{ old('BS_Responden') }}" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Pencacah <span class="text-danger">*</span></label>
+                                <input type="text" name="pencacah" value="{{ old('pencacah') }}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Pengawas <span class="text-danger">*</span></label>
+                                <input type="text" name="pengawas" value="{{ old('pengawas') }}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Target Penyelesaian</label>
+                                <input type="date" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Flag Progress <span class="text-danger">*</span></label>
+                                @php $oldFlag = old('flag_progress', 'Belum Mulai'); @endphp
+                                <select name="flag_progress" class="form-select" required>
+                                    @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt)
+                                        <option value="{{ $opt }}" @selected($oldFlag === $opt)>
+                                            {{ $opt }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tanggal Pengumpulan</label>
+                                <input type="date" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                        <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
             </div>
-
-            <div class="p-4">
-                @if ($errors->any() && old('_mode') === 'create')
-                    <div class="mb-3 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
-                        <ul class="list-disc ms-5">
-                            @foreach ($errors->all() as $e)
-                                <li>{{ $e }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium mb-1">Nama Kegiatan <span
-                                class="text-red-500">*</span></label>
-                        <input type="text" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
-                            class="w-full border rounded-lg px-3 py-2" required>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Blok Sensus/Responden</label>
-                        <input type="text" name="BS_Responden" value="{{ old('BS_Responden') }}"
-                            class="w-full border rounded-lg px-3 py-2">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Pencacah <span class="text-red-500">*</span></label>
-                        <input type="text" name="pencacah" value="{{ old('pencacah') }}"
-                            class="w-full border rounded-lg px-3 py-2" required>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Pengawas <span class="text-red-500">*</span></label>
-                        <input type="text" name="pengawas" value="{{ old('pengawas') }}"
-                            class="w-full border rounded-lg px-3 py-2" required>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Target Penyelesaian</label>
-                        <input type="date" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}"
-                            class="w-full border rounded-lg px-3 py-2">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Flag Progress <span
-                                class="text-red-500">*</span></label>
-                        @php $oldFlag = old('flag_progress', 'Belum Mulai'); @endphp
-                        <select name="flag_progress" class="w-full border rounded-lg px-3 py-2" required>
-                            @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt)
-                                <option value="{{ $opt }}" {{ $oldFlag === $opt ? 'selected' : '' }}>
-                                    {{ $opt }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium mb-1">Tanggal Pengumpulan</label>
-                        <input type="date" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}"
-                            class="w-full border rounded-lg px-3 py-2">
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-4 border-t flex items-center gap-2">
-                <button class="px-4 py-2 rounded-lg bg-blue-600 text-white">Simpan</button>
-                <button type="reset" class="px-4 py-2 rounded-lg border">Reset</button>
-                <button type="button" onclick="closeCreate()" class="px-4 py-2 rounded-lg border ms-auto">Batal</button>
-            </div>
-        </form>
-    </dialog>
+        </div>
+    </div>
 
     {{-- ============== MODAL EDIT ============== --}}
-    <dialog id="dlgEdit" class="rounded-xl w-[95vw] max-w-3xl p-0">
-        <form id="formEdit" method="post" action="#">
-            @csrf
-            @method('PUT')
-            <input type="hidden" name="_mode" value="edit">
-            <input type="hidden" name="_id" id="edit_id">
+    <div class="modal fade" id="modalEdit" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="formEdit" method="post" action="#">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="_mode" value="edit">
+                    <input type="hidden" name="_id" id="edit_id">
 
-            <div class="p-4 border-b flex items-center justify-between">
-                <h3 class="text-lg font-semibold">Edit Data NWA Tahunan</h3>
-                <button type="button" onclick="closeEdit()" class="px-2 py-1 rounded border">Tutup</button>
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Data NWA Tahunan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        @if ($errors->any() && old('_mode') === 'edit')
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach ($errors->all() as $e)
+                                        <li>{{ $e }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <div class="mb-3">
+                            <label class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
+                            <input type="text" id="edit_nama" name="nama_kegiatan" value="{{ old('_mode') === 'edit' ? old('nama_kegiatan') : '' }}" class="form-control" required>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Blok Sensus/Responden</label>
+                                <input type="text" id="edit_bs" name="BS_Responden" value="{{ old('_mode') === 'edit' ? old('BS_Responden') : '' }}" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Pencacah <span class="text-danger">*</span></label>
+                                <input type="text" id="edit_pencacah" name="pencacah" value="{{ old('_mode') === 'edit' ? old('pencacah') : '' }}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Pengawas <span class="text-danger">*</span></label>
+                                <input type="text" id="edit_pengawas" name="pengawas" value="{{ old('_mode') === 'edit' ? old('pengawas') : '' }}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Target Penyelesaian</label>
+                                <input type="date" id="edit_target" name="target_penyelesaian" value="{{ old('_mode') === 'edit' ? old('target_penyelesaian') : '' }}" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Flag Progress <span class="text-danger">*</span></label>
+                                @php $oldFlagE = old('_mode') === 'edit' ? old('flag_progress') : null; @endphp
+                                <select id="edit_flag" name="flag_progress" class="form-select" required>
+                                    @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt)
+                                        <option value="{{ $opt }}" @selected($oldFlagE === $opt)>
+                                            {{ $opt }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tanggal Pengumpulan</label>
+                                <input type="date" id="edit_kumpul" name="tanggal_pengumpulan" value="{{ old('_mode') === 'edit' ? old('tanggal_pengumpulan') : '' }}" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
             </div>
+        </div>
+    </div>
+@endsection
 
-            <div class="p-4">
-                @if ($errors->any() && old('_mode') === 'edit')
-                    <div class="mb-3 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
-                        <ul class="list-disc ms-5">
-                            @foreach ($errors->all() as $e)
-                                <li>{{ $e }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium mb-1">Nama Kegiatan <span
-                                class="text-red-500">*</span></label>
-                        <input type="text" id="edit_nama" name="nama_kegiatan"
-                            value="{{ old('_mode') === 'edit' ? old('nama_kegiatan') : '' }}"
-                            class="w-full border rounded-lg px-3 py-2" required>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Blok Sensus/Responden</label>
-                        <input type="text" id="edit_bs" name="BS_Responden"
-                            value="{{ old('_mode') === 'edit' ? old('BS_Responden') : '' }}"
-                            class="w-full border rounded-lg px-3 py-2">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Pencacah <span class="text-red-500">*</span></label>
-                        <input type="text" id="edit_pencacah" name="pencacah"
-                            value="{{ old('_mode') === 'edit' ? old('pencacah') : '' }}"
-                            class="w-full border rounded-lg px-3 py-2" required>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Pengawas <span class="text-red-500">*</span></label>
-                        <input type="text" id="edit_pengawas" name="pengawas"
-                            value="{{ old('_mode') === 'edit' ? old('pengawas') : '' }}"
-                            class="w-full border rounded-lg px-3 py-2" required>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Target Penyelesaian</label>
-                        <input type="date" id="edit_target" name="target_penyelesaian"
-                            value="{{ old('_mode') === 'edit' ? old('target_penyelesaian') : '' }}"
-                            class="w-full border rounded-lg px-3 py-2">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Flag Progress <span
-                                class="text-red-500">*</span></label>
-                        @php $oldFlagE = old('_mode')==='edit' ? old('flag_progress') : null; @endphp
-                        <select id="edit_flag" name="flag_progress" class="w-full border rounded-lg px-3 py-2" required>
-                            @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt)
-                                <option value="{{ $opt }}" {{ $oldFlagE === $opt ? 'selected' : '' }}>
-                                    {{ $opt }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium mb-1">Tanggal Pengumpulan</label>
-                        <input type="date" id="edit_kumpul" name="tanggal_pengumpulan"
-                            value="{{ old('_mode') === 'edit' ? old('tanggal_pengumpulan') : '' }}"
-                            class="w-full border rounded-lg px-3 py-2">
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-4 border-t flex items-center gap-2">
-                <button class="px-4 py-2 rounded-lg bg-blue-600 text-white">Simpan</button>
-                <button type="button" onclick="closeEdit()" class="px-4 py-2 rounded-lg border ms-auto">Batal</button>
-            </div>
-        </form>
-    </dialog>
-
-    {{-- Scripts modal --}}
+@push('scripts')
     <script>
-        const dlgCreate = document.getElementById('dlgCreate');
-        const dlgEdit = document.getElementById('dlgEdit');
+        let modalCreate, modalEdit;
         const updateUrlTemplate = "{{ route('nwa.tahunan.update', ['tahunan' => '__ID__']) }}";
 
-        function openCreate() {
-            if (dlgCreate && typeof dlgCreate.showModal === 'function') dlgCreate.showModal();
-            else if (dlgCreate) dlgCreate.setAttribute('open', 'open');
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            modalCreate = new bootstrap.Modal(document.getElementById('modalCreate'));
+            modalEdit = new bootstrap.Modal(document.getElementById('modalEdit'));
 
-        function closeCreate() {
-            if (dlgCreate && typeof dlgCreate.close === 'function') dlgCreate.close();
-            else if (dlgCreate) dlgCreate.removeAttribute('open');
+            // Auto-open modal on validation failure
+            @if ($errors->any())
+                @if (old('_mode') === 'create')
+                    modalCreate.show();
+                @elseif (old('_mode') === 'edit')
+                    (function() {
+                        const id = "{{ old('_id') }}";
+                        const form = document.getElementById('formEdit');
+                        if (id) {
+                            form.action = updateUrlTemplate.replace('__ID__', id);
+                        }
+                        modalEdit.show();
+                    })();
+                @endif
+            @endif
+        });
+
+        function openCreate() {
+            modalCreate.show();
         }
 
         function openEdit(btn) {
             const id = btn.dataset.id;
-            const nama = btn.dataset.nama || '';
-            const bs = btn.dataset.bs || '';
-            const penc = btn.dataset.pencacah || '';
-            const peng = btn.dataset.pengawas || '';
-            const target = btn.dataset.target || '';
-            const flag = btn.dataset.flag || 'Belum Mulai';
-            const kumpul = btn.dataset.kumpul || '';
-
             const form = document.getElementById('formEdit');
             form.action = updateUrlTemplate.replace('__ID__', id);
 
             document.getElementById('edit_id').value = id;
-            document.getElementById('edit_nama').value = nama;
-            document.getElementById('edit_bs').value = bs;
-            document.getElementById('edit_pencacah').value = penc;
-            document.getElementById('edit_pengawas').value = peng;
-            document.getElementById('edit_target').value = target;
-            document.getElementById('edit_flag').value = flag;
-            document.getElementById('edit_kumpul').value = kumpul;
+            document.getElementById('edit_nama').value = btn.dataset.nama || '';
+            document.getElementById('edit_bs').value = btn.dataset.bs || '';
+            document.getElementById('edit_pencacah').value = btn.dataset.pencacah || '';
+            document.getElementById('edit_pengawas').value = btn.dataset.pengawas || '';
+            document.getElementById('edit_target').value = btn.dataset.target || '';
+            document.getElementById('edit_flag').value = btn.dataset.flag || 'Belum Mulai';
+            document.getElementById('edit_kumpul').value = btn.dataset.kumpul || '';
 
-            if (dlgEdit && typeof dlgEdit.showModal === 'function') dlgEdit.showModal();
-            else if (dlgEdit) dlgEdit.setAttribute('open', 'open');
+            modalEdit.show();
         }
-
-        function closeEdit() {
-            if (dlgEdit && typeof dlgEdit.close === 'function') dlgEdit.close();
-            else if (dlgEdit) dlgEdit.removeAttribute('open');
-        }
-
-        // Auto open modal saat validasi gagal
-        @if ($errors->any())
-            @if (old('_mode') === 'create')
-                openCreate();
-            @elseif (old('_mode') === 'edit')
-                (function() {
-                    const id = "{{ old('_id') }}";
-                    if (id) {
-                        const form = document.getElementById('formEdit');
-                        form.action = updateUrlTemplate.replace('__ID__', id);
-                    }
-                    openEdit({
-                        dataset: {
-                            id: "{{ old('_id') }}",
-                            nama: "{{ old('nama_kegiatan') }}"
-                        }
-                    });
-                })();
-            @endif
-        @endif
     </script>
-@endsection
+@endpush
