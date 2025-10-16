@@ -3,18 +3,20 @@
 use App\Http\Controllers\SerutiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SosialTahunanController; 
-use App\Http\Controllers\SosialTriwulananController;
 use App\Http\Controllers\SosialSemesteranController;
 use App\Http\Controllers\DistribusiTahunanController;
+use App\Http\Controllers\DashboardDistribusiController;
+use App\Http\Controllers\DashboardNwaController;
+use App\Http\Controllers\DashboardProduksiController;
+use App\Http\Controllers\DashboardSosialController;
 
 Route::get('/', fn() => view('home'))->name('home');
 
 /* DASHBOARD */
-Route::get('/dashboard-distribusi', fn() => view('Dashboard.dashboardDistribusi')) 
-    ->name('dashboard.distribusi');
-Route::get('/dashboard-nwa', fn() => view('Dashboard.dashboardNWA'))->name('dashboard.nwa');
-Route::get('/dashboard-produksi', fn() => view('Dashboard.dashboardProduksi'))->name('dashboard.produksi');
-Route::get('/dashboard-sosial', fn() => view('Dashboard.dashboardSosial'))->name('dashboard.sosial');
+Route::get('/dashboard-distribusi', [DashboardDistribusiController::class, 'index'])->name('dashboard.distribusi');
+Route::get('/dashboard-nwa', [DashboardNwaController::class, 'index'])->name('dashboard.nwa');
+Route::get('/dashboard-produksi', [DashboardProduksiController::class, 'index'])->name('dashboard.produksi');
+Route::get('/dashboard-sosial', [DashboardSosialController::class, 'index'])->name('dashboard.sosial');
 
 /* --- TIM SOSIAL --- */
 Route::prefix('sosial')->name('sosial.')->group(function () {
