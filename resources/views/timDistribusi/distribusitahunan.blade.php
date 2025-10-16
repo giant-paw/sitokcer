@@ -74,7 +74,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th scope="col">
-                                    <input type="checkbox row-checkbox" class="form-check-input" id="selectAll">
+                                    <input type="checkbox" class="form-check-input" id="selectAll">
                                 </th>
                                 <th scope="col">Nama Kegiatan</th>
                                 <th scope="col">Blok Sensus/Responden</th>
