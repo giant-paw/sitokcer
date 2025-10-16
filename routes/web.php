@@ -23,7 +23,7 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
     Route::resource('tahunan', SosialTahunanController::class);
 
     // Resource lain (kalau butuh, biarkan default)
-    Route::resource('sseruti', SerutiController::class);
+    Route::resource('seruti', SerutiController::class);
 
     Route::resource('semesteran', SosialSemesteranController::class);
 

@@ -27,7 +27,7 @@ class DistribusiTahunanController extends Controller
             });
         }
 
-        $listData = $query->latest()->paginate(20)->withQueryString();
+        $listData = $query->latest()->paginate(10)->withQueryString();
 
         $kegiatanCounts = DistribusiTahunan::query()
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
