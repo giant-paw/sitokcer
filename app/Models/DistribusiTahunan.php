@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class DistribusiTahunan extends Model
 {
-    protected $table = 'sitokcer_distribusi_tahunan'; // Specify your table name
+    protected $table = 'distribusi_tahunan'; // Specify your table name
     protected $primaryKey = 'id_distribusi'; // Set primary key to 'id_distribusi'
     public $timestamps = true; // Enable timestamps (created_at and updated_at)
 

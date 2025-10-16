@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('sitokcer_distribusi_tahunan', function (Blueprint $table) {
+        Schema::table('distribusi_tahunan', function (Blueprint $table) {
             // Menambahkan kolom tahun setelah kolom target_penyelesaian
             $table->year('tahun_kegiatan')->nullable()->after('target_penyelesaian');
 
@@ -19,7 +19,7 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::table('sitokcer_distribusi_tahunan', function (Blueprint $table) {
+        Schema::table('distribusi_tahunan', function (Blueprint $table) {
             $table->dropColumn('tahun_kegiatan');
             $table->dropTimestamps();
         });
