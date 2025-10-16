@@ -4,8 +4,6 @@
 
 @section('header-title', 'List Target Kegiatan Tahunan Tim Distribusi')
 
-
-
 @section('content')
     <div class="container-fluid">
         <div class="card">
@@ -13,7 +11,7 @@
                 <h4 class="card-title mb-0">LIST TARGET KEGIATAN TAHUNAN TIM DISTRIBUSI</h4>
             </div>
             <div class="card-body">
-                <div class="mb-6">
+                <div class="mb-10">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahDataModal">
                         <i class="bi bi-plus-circle"></i> Tambah baru
                     </button>
@@ -41,7 +39,7 @@
                     </div>
                 @endif
 
-                <ul class="nav nav-pills mb-3 d-flex flex-wrap gap-3" >
+                <ul class="nav nav-pills mb-3 d-flex flex-wrap gap-8" >
                     <li class="nav-item"> 
                         <a class="nav-link {{ request('kegiatan') == '' ? 'active' : '' }}" href="{{ route('tim-distribusi.tahunan.index') }}">All data</a>
                     </li>
