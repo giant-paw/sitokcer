@@ -11,13 +11,11 @@ class PencacahController extends Controller
     {
         $q = $request->input('q');
 
-        // Daftar tabel yang akan digabungkan
         $tables = [
             'distribusi_bulanan', 'produksi_bulanan', 'produksi_tahunan',
             'produksi_triwulanan', 'sosial_semesteran', 'sosial_tahunan', 'sosial_triwulanan'
         ];
 
-        // Membangun query UNION hanya untuk kolom 'pencacah'
         $firstTable = array_shift($tables);
         $unionQuery = DB::table($firstTable)->select('pencacah');
 
@@ -25,7 +23,6 @@ class PencacahController extends Controller
             $unionQuery->unionAll(DB::table($table)->select('pencacah'));
         }
 
-        // Query utama yang menggunakan subquery dari UNION di atas
         $query = DB::query()->fromSub($unionQuery, 'data_gabungan')
             ->select(
                 'pencacah as nama_pencacah',
@@ -34,29 +31,85 @@ class PencacahController extends Controller
             ->whereNotNull('pencacah')
             ->where('pencacah', '!=', '');
 
-        // Terapkan filter pencarian jika ada
         if ($q) {
-            // LOGIKA BARU: Mencari nama pencacah yang berawalan dengan huruf yang diinput
             $query->where('pencacah', 'like', "{$q}%");
         }
         
-        // Grouping, ordering, dan pagination
         $rekapPencacah = $query->groupBy('pencacah')
             ->orderBy('nama_pencacah', 'asc')
-            ->paginate(10) // Menampilkan 10 item per halaman
-            ->withQueryString(); // Agar parameter search terbawa saat pindah halaman
+            ->paginate(10)
+            ->withQueryString();
 
         return view('Rekapitulasi.pencacah.index', [
             'rekapPencacah' => $rekapPencacah,
-            'q' => $q // Kirim variabel search ke view
+            'q' => $q
         ]);
+    }
+
+    public function printAll(Request $request)
+    {
+        $q = $request->input('q');
+        $tables = ['distribusi_bulanan', 'produksi_bulanan', 'produksi_tahunan', 'produksi_triwulanan', 'sosial_semesteran', 'sosial_tahunan', 'sosial_triwulanan'];
+        
+        $firstTable = array_shift($tables);
+        $unionQuery = DB::table($firstTable)->select('pencacah');
+        foreach ($tables as $table) {
+            $unionQuery->unionAll(DB::table($table)->select('pencacah'));
+        }
+
+        $query = DB::query()->fromSub($unionQuery, 'data_gabungan')
+            ->select('pencacah as nama_pencacah', DB::raw('COUNT(*) as total_responden'))
+            ->whereNotNull('pencacah')->where('pencacah', '!=', '');
+        
+        if ($q) {
+            $query->where('pencacah', 'like', "{$q}%");
+        }
+        
+        $rekapPencacah = $query->groupBy('pencacah')->orderBy('nama_pencacah', 'asc')->get();
+
+        // [ PERBAIKAN DI SINI ]
+        // Simpan kembali hasil dari .map() ke variabel $rekapPencacah
+        $rekapPencacah = $rekapPencacah->map(function ($pencacah) {
+            // Memanggil method getDetailKegiatan dan mengambil data aslinya (array)
+            $kegiatanData = $this->getDetailKegiatan($pencacah->nama_pencacah)->original;
+            
+            // Menambahkan properti 'kegiatan' ke objek $pencacah
+            $pencacah->kegiatan = $kegiatanData;
+            
+            return $pencacah;
+        });
+
+        return view('Rekapitulasi.pencacah.print', [
+            'rekapPencacah' => $rekapPencacah,
+            'q' => $q
+        ]);
+    }
+
+    public function printSelectedData(Request $request)
+    {
+        $pencacahNames = $request->input('pencacah', []);
+        if (empty($pencacahNames)) {
+            return response()->json([]);
+        }
+
+        $data = collect($pencacahNames)->map(function ($nama) {
+            $detailKegiatan = $this->getDetailKegiatan($nama)->original;
+            $totalResponden = collect($detailKegiatan)->sum('jumlah_responden');
+
+            return [
+                'nama_pencacah' => $nama,
+                'total_responden' => $totalResponden,
+                'kegiatan' => $detailKegiatan,
+            ];
+        });
+
+        return response()->json($data);
     }
 
     public function getDetailKegiatan($nama)
     {
         $namaPencacah = urldecode($nama);
-
-        // Query ini sudah benar, tidak perlu diubah.
+        
         $sqlDetail = "SELECT nama_kegiatan, COUNT(BS_Responden) as jumlah_responden FROM (
                             SELECT nama_kegiatan, BS_Responden FROM distribusi_bulanan WHERE pencacah = ?
                             UNION ALL

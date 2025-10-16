@@ -88,9 +88,17 @@ Route::prefix('rekapitulasi')->name('rekapitulasi.')->group(function () {
     Route::get('/pencacah', [PencacahController::class, 'index'])->name('pencacah.index');
     Route::get('/pencacah/detail/{nama}', [PencacahController::class, 'getDetailKegiatan'])->name('pencacah.detail');
 
-    // Route BARU untuk Pengawas
+    // [ PERBAIKAN ] Hapus prefix 'rekapitulasi' dari URL dan nama route
+    Route::get('/pencacah/print-all', [PencacahController::class, 'printAll'])->name('pencacah.printAll');
+    Route::post('/pencacah/print-selected', [PencacahController::class, 'printSelectedData'])->name('pencacah.printSelected');
+
+    // Route untuk Pengawas
     Route::get('/pengawas', [PengawasController::class, 'index'])->name('pengawas.index');
     Route::get('/pengawas/detail/{nama}', [PengawasController::class, 'getDetailPencacah'])->name('pengawas.detail');
+
+    // [ BARU ] Route untuk fungsi cetak pengawas
+    Route::get('/pengawas/print-all', [PengawasController::class, 'printAll'])->name('pengawas.printAll');
+    Route::post('/pengawas/print-selected', [PengawasController::class, 'printSelectedData'])->name('pengawas.printSelected');
 });
 
 /* --- MASTER --- */
