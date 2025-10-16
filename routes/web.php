@@ -2,18 +2,20 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SosialTahunanController;
-use App\Http\Controllers\SerutiController;
 use App\Http\Controllers\SosialTriwulananController;
 use App\Http\Controllers\SosialSemesteranController;
+use App\Http\Controllers\DistribusiTahunanController;
 use App\Http\Controllers\ProduksiTahunanController;
+use App\Http\Controllers\SerutiController;
 
 Route::get('/', fn() => view('home'))->name('home');
 
 /* DASHBOARD */
-Route::get('/dashboard-distribusi', fn() => view('Dashboard.dashboardDistribusi'))->name('dashboard.distribusi');
-Route::get('/dashboard-nwa',        fn() => view('Dashboard.dashboardNWA'))->name('dashboard.nwa');
-Route::get('/dashboard-produksi',   fn() => view('Dashboard.dashboardProduksi'))->name('dashboard.produksi');
-Route::get('/dashboard-sosial',     fn() => view('Dashboard.dashboardSosial'))->name('dashboard.sosial');
+Route::get('/dashboard-distribusi', fn() => view('Dashboard.dashboardDistribusi'))
+    ->name('dashboard.distribusi');
+Route::get('/dashboard-nwa', fn() => view('Dashboard.dashboardNWA'))->name('dashboard.nwa');
+Route::get('/dashboard-produksi', fn() => view('Dashboard.dashboardProduksi'))->name('dashboard.produksi');
+Route::get('/dashboard-sosial', fn() => view('Dashboard.dashboardSosial'))->name('dashboard.sosial');
 
 /* --- TIM SOSIAL --- */
 Route::prefix('sosial')->name('sosial.')->group(function () {
@@ -21,7 +23,7 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
     Route::resource('tahunan', SosialTahunanController::class);
 
     // Resource lain (kalau butuh, biarkan default)
-    Route::resource('seruti', SerutiController::class);
+    Route::resource('sseruti', SerutiController::class);
 
     Route::resource('semesteran', SosialSemesteranController::class);
 
@@ -30,17 +32,22 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 });
 
 /* --- TIM DISTRIBUSI --- */
-Route::prefix('distribusi')->name('distribusi.')->group(function () {
-    Route::get('/tahunan', fn() => view('timDistribusi.tahunan.distribusitahunan'))->name('tahunan');
-    Route::get('/kegiatan-triwulan/spunp', fn() => view('timDistribusi.SPUNP.SPUNP'))->name('spunp');
-    Route::get('/kegiatan-triwulan/shkk',  fn() => view('timDistribusi.SHKK.SHKK'))->name('shkk');
-    Route::get('/bulanan/vhts',            fn() => view('timDistribusi.VHTS.VHTS'))->name('vhts');
-    Route::get('/bulanan/hkd',             fn() => view('timDistribusi.HKD.HD'))->name('hkd');
-    Route::get('/bulanan/shpb',            fn() => view('timDistribusi.SHPB.SHPB'))->name('shpb');
-    Route::get('/bulanan/shp',             fn() => view('timDistribusi.SHP.SHP'))->name('shp');
-    Route::get('/bulanan/shpj',            fn() => view('timDistribusi.SHPJ.SHPJ'))->name('shpj');
-    Route::get('/bulanan/shpgb',           fn() => view('timDistribusi.SHPBG.SHPBG'))->name('shpgb');
-    Route::get('/bulanan/hd',              fn() => view('timDistribusi.HD.HD'))->name('hd');
+Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
+    Route::get('tahunan/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('tahunan.searchPetugas');
+    Route::post('tahunan/bulk-delete', [DistribusiTahunanController::class, 'bulkDelete'])->name('tahunan.bulkDelete');
+    Route::resource('tahunan', DistribusiTahunanController::class);
+
+
+
+    Route::get('/kegiatan-triwulan/spunp', fn() => view('timDistribusi.SPUNP'))->name('spunp');
+    Route::get('/kegiatan-triwulan/shkk', fn() => view('timDistribusi.SHKK'))->name('shkk');
+    Route::get('/bulanan/vhts', fn() => view('timDistribusi.VHTS'))->name('vhts');
+    Route::get('/bulanan/hkd', fn() => view('timDistribusi.HKD'))->name('hkd');
+    Route::get('/bulanan/shpb', fn() => view('timDistribusi.SHPB'))->name('shpb');
+    Route::get('/bulanan/shp', fn() => view('timDistribusi.SHP'))->name('shp');
+    Route::get('/bulanan/shpj', fn() => view('timDistribusi.SHPJ'))->name('shpj');
+    Route::get('/bulanan/shpgb', fn() => view('timDistribusi.SHPBG'))->name('shpgb');
+    Route::get('/bulanan/hd', fn() => view('timDistribusi.HD'))->name('hd');
 });
 
 /* --- TIM PRODUKSI --- */

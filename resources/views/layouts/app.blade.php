@@ -6,118 +6,159 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Sitokcer')</title>
 
-    {{-- CSS Global Anda --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     <link rel="stylesheet" href="{{ asset('css/global.css') }}">
 
-    {{-- CSS Sidebar --}}
-    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
+    <style>
+        body {
+            overflow-y: hidden;
+            background-color: #f8f9fa;
+            font-family: sans-serif;
+        }
 
-    {{-- Tailwind CSS --}}
-    <script src="https://cdn.tailwindcss.com"></script>
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+        .header-navbar {
+            padding: 1rem;
+            flex-shrink: 0;
+        }
 
-    {{-- Alpine.js --}}
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        .content-body-wrapper {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        #sidebar-wrapper {
+            min-width: 270px;
+            max-width: 270px;
+            transition: margin 0.3s ease-in-out;
+            background-color: white;
+        }
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        .content-body-wrapper.sidebar-collapsed #sidebar-wrapper {
+            margin-left: -270px;
+        }
 
+        #content-wrapper {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        @media (max-width: 991.98px) {
+            #sidebar-wrapper {
+                margin-left: -270px;
+                position: fixed;
+                height: 100%;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 1045;
+            }
+
+            .content-body-wrapper.sidebar-collapsed #sidebar-wrapper {
+                margin-left: 0;
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 1040;
+                display: none;
+                opacity: 0;
+                transition: opacity 0.3s ease-linear;
+            }
+
+            .content-body-wrapper.sidebar-collapsed .sidebar-overlay {
+                display: block;
+                opacity: 1;
+            }
+
+            .header-navbar {
+                padding-top: 0.5rem !important;
+                padding-bottom: 0.5rem !important;
+                height: 60px;
+            }
+
+            .navbar-brand img {
+                height: 32px;
+            }
+
+            .navbar-brand span {
+                font-size: 1.1rem;
+            }
+
+        }
+    </style>
+
+    @stack('styles')
 </head>
 
-<body class="bg-gray-100 font-sans">
+<body>
+    <div class="page-wrapper">
+        <header class="navbar navbar-expand navbar-light bg-white shadow-sm header-navbar py-0">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-link text-secondary p-0 me-3" type="button" id="sidebar-toggle-button">
+                <i class="bi bi-list" style="font-size: 1.9rem;"></i>
+            </button>
+            <a href="{{ route('home') }}" class="navbar-brand d-flex align-items-center">
+                <img src="{{ asset('logo.png') }}" alt="Logo Sitokcer" style="height: 32px;">
+                <span class="fw-bold fs-5 ms-2" style="font-family: 'Poppins', sans-serif;">Sitokcer</span>
+            </a>
+        </div>
 
-    <div x-data="{ sidebarOpen: true }" class="flex flex-col h-screen">
-
-        {{-- Header --}}
-        <header class="bg-white shadow-md w-full p-4 flex justify-between items-center z-20 flex-shrink-0">
-            <div class="flex items-center space-x-4">
-                <button @click="sidebarOpen = !sidebarOpen" class="text-gray-800 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-                <a href="{{ route('home') }}" class="flex items-center gap-3 text-gray-800">
-                    <img src="{{ asset('logo.png') }}" alt="Logo Sitokcer" class="h-10 w-10 object-contain">
-                    <h1 class="text-2xl font-bold font-['Poppins',_sans-serif] tracking-wide hidden sm:block">
-                        Sitokcer
-                    </h1>
-                </a>
+        <div class="d-flex align-items-center ms-auto">
+            <div class="h6 fw-semibold text-dark mb-0">
+                @yield('header-title', 'Dashboard')
             </div>
-            <div class="flex items-center space-x-4">
-                <h1 class="text-xl font-semibold text-gray-800 hidden md:block mr-auto">
-                    @yield('header-title', 'Dashboard')
-                </h1>
-                <div class="relative">
-                    <button id="user-menu-button" class="flex items-center space-x-2 focus:outline-none">
-                        <span class="text-gray-800 font-medium hidden lg:block">Nama User</span>
-                        <div
-                            class="w-8 h-8 rounded-full bg-[#2c3e50] flex items-center justify-center text-white font-bold">
-                            U
-                        </div>
-                    </button>
-                    <div id="user-menu-dropdown"
-                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-200 hidden">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profil</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Pengaturan</a>
-                        <div class="border-t border-gray-100"></div>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
-                    </div>
-                </div>
-            </div>
-        </header>
+        </div>
+    </div>
+</header>
 
-        {{-- Container Flex untuk Sidebar dan Content --}}
-        <div class="flex flex-1 overflow-hidden">
 
-            {{-- Overlay untuk mobile --}}
-            <div x-show="sidebarOpen" @click="sidebarOpen = false"
-                x-transition:enter="transition-opacity ease-linear duration-300"
-                x-transition:leave="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0"
-                x-transition:leave-start="opacity-100" class="fixed inset-0 bg-gray-900/50 z-30 lg:hidden"
-                aria-hidden="true">
-            </div>
 
-            {{-- Sidebar dengan lebar tetap --}}
-            <aside x-show="sidebarOpen" x-transition:enter="transition ease-in-out duration-300"
-                x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
-                x-transition:leave="transition ease-in-out duration-300" x-transition:leave-start="translate-x-0"
-                x-transition:leave-end="-translate-x-full"
-                class="w-[270px] flex-shrink-0 border-r border-white/20 fixed lg:relative inset-y-0 left-0 z-40 lg:z-0">
+        <div class="content-body-wrapper">
+            <aside id="sidebar-wrapper">
                 @include('sidebar')
             </aside>
-
-            {{-- Main Content - FLEX TANPA MARGIN --}}
-            <main class="flex-1 p-6 overflow-y-auto">
+            <div class="sidebar-overlay" id="sidebar-overlay"></div>
+            <main id="content-wrapper">
                 @yield('content')
             </main>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
+        </script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuButton = document.getElementById('user-menu-button');
-            const dropdown = document.getElementById('user-menu-dropdown');
-
-            if (menuButton) {
-                menuButton.addEventListener('click', function() {
-                    dropdown.classList.toggle('hidden');
-                });
-            }
-
-            window.addEventListener('click', function(e) {
-                if (menuButton && !menuButton.contains(e.target) && dropdown && !dropdown.contains(e
-                        .target)) {
-                    dropdown.classList.add('hidden');
-                }
-            });
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleButton = document.getElementById('sidebar-toggle-button');
+            const wrapper = document.querySelector('.content-body-wrapper');
+            const overlay = document.getElementById('sidebar-overlay');
+            const toggleSidebar = () => wrapper.classList.toggle('sidebar-collapsed');
+            if (toggleButton) toggleButton.addEventListener('click', toggleSidebar);
+            if (overlay) overlay.addEventListener('click', toggleSidebar);
         });
     </script>
-
     <script src="{{ asset('js/sidebar.js') }}"></script>
+
+    @stack('scripts')
 </body>
 
 </html>
