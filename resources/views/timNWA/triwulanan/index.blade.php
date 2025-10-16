@@ -1,12 +1,24 @@
 @extends('layouts.app')
 
-@section('title', 'NWA Tahunan')
-@section('header-title', 'List Target Kegiatan Tahunan Tim NWA')
+@section('title', $prefix . ' (NWA Triwulanan)')
+@section('header-title', 'List Target ' . $prefix . ' (NWA Triwulanan)')
 
 @section('content')
     <div class="p-4 md:p-6">
 
-        {{-- Toolbar atas: Tambah + (opsional ekspor/import nanti) --}}
+        {{-- Tabs TW1..TW4 --}}
+        @php $tabs = ['TW1','TW2','TW3','TW4']; @endphp
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+            @foreach ($tabs as $t)
+                <a href="{{ route('nwa.triwulanan.index', [$jenis, 'tw' => $t, 'q' => request('q')]) }}"
+                    class="px-3 py-1.5 rounded-lg border text-sm
+               {{ $tw === $t ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}">
+                    {{ $prefix }}-{{ $t }}
+                </a>
+            @endforeach
+        </div>
+
+        {{-- Toolbar + Search --}}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
             <div class="flex items-center gap-2">
                 <a href="javascript:void(0)" onclick="openCreate()"
@@ -15,9 +27,8 @@
                 </a>
             </div>
 
-            {{-- Search --}}
-            <form method="get" action="{{ route('nwa.tahunan.index') }}" class="w-full md:w-auto">
-                <input type="hidden" name="kategori" value="{{ $kategori }}">
+            <form method="get" class="w-full md:w-auto" action="{{ route('nwa.triwulanan.index', $jenis) }}">
+                <input type="hidden" name="tw" value="{{ $tw }}">
                 <div class="relative">
                     <input type="text" name="q" value="{{ $q }}" placeholder="search"
                         class="w-full md:w-72 pl-3 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -26,26 +37,12 @@
             </form>
         </div>
 
-        {{-- Pills kategori --}}
-        <div class="flex flex-wrap items-center gap-2 mb-3">
-            <a href="{{ route('nwa.tahunan.index') }}"
-                class="px-3 py-1.5 rounded-lg border text-sm {{ $kategori === '' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}">
-                Semua
-            </a>
-            @foreach ($kategoris as $k)
-                <a href="{{ route('nwa.tahunan.index', ['kategori' => $k['label'], 'q' => $q]) }}"
-                    class="px-3 py-1.5 rounded-lg border text-sm {{ $kategori === $k['label'] ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}">
-                    {{ $k['label'] }} ({{ $k['count'] }})
-                </a>
-            @endforeach
-        </div>
-
         {{-- Tabel --}}
         <div class="bg-white shadow rounded-xl overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead class="bg-gray-50 text-gray-700">
-                        <tr class="text-left">
+                        <tr>
                             <th class="px-3 py-3 w-10">#</th>
                             <th class="px-3 py-3">Nama Kegiatan</th>
                             <th class="px-3 py-3">Blok Sensus/Responden</th>
@@ -75,7 +72,8 @@
                                 <td class="px-3 py-3">
                                     @php $done = strtolower($row->flag_progress) === 'selesai'; @endphp
                                     <span
-                                        class="px-2 py-1 rounded-full text-xs font-semibold {{ $done ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
+                                        class="px-2 py-1 rounded-full text-xs font-semibold
+                                    {{ $done ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
                                         {{ $row->flag_progress ?? '-' }}
                                     </span>
                                 </td>
@@ -88,12 +86,8 @@
                                 </td>
                                 <td class="px-3 py-3">
                                     <div class="flex items-center gap-2 justify-center">
-                                        {{-- Lihat (opsional, jika punya halaman show) --}}
-                                        {{-- <a href="{{ route('nwa.tahunan.show', $row) }}" class="px-2 py-1 rounded bg-gray-700 text-white text-xs">Lihat</a> --}}
-
-                                        {{-- Edit (modal) --}}
                                         <button type="button" class="px-2 py-1 rounded bg-lime-600 text-white text-xs"
-                                            onclick="openEdit(this)" data-id="{{ $row->id_nwa }}"
+                                            onclick="openEdit(this)" data-id="{{ $row->id_nwa_triwulanan }}"
                                             data-nama="{{ $row->nama_kegiatan }}" data-bs="{{ $row->BS_Responden }}"
                                             data-pencacah="{{ $row->pencacah }}" data-pengawas="{{ $row->pengawas }}"
                                             data-target="{{ $row->target_penyelesaian ? \Carbon\Carbon::parse($row->target_penyelesaian)->format('Y-m-d') : '' }}"
@@ -102,8 +96,7 @@
                                             Edit
                                         </button>
 
-                                        {{-- Delete per-baris --}}
-                                        <form action="{{ route('nwa.tahunan.destroy', $row) }}" method="post"
+                                        <form action="{{ route('nwa.triwulanan.destroy', [$jenis, $row]) }}" method="post"
                                             onsubmit="return confirm('Hapus data ini?')">
                                             @csrf @method('DELETE')
                                             <button class="px-2 py-1 rounded bg-rose-600 text-white text-xs">Delete</button>
@@ -139,12 +132,12 @@
 
     {{-- ============== MODAL CREATE ============== --}}
     <dialog id="dlgCreate" class="rounded-xl w-[95vw] max-w-3xl p-0">
-        <form method="post" action="{{ route('nwa.tahunan.store') }}">
+        <form method="post" action="{{ route('nwa.triwulanan.store', $jenis) }}">
             @csrf
             <input type="hidden" name="_mode" value="create">
 
             <div class="p-4 border-b flex items-center justify-between">
-                <h3 class="text-lg font-semibold">Tambah Data NWA Tahunan</h3>
+                <h3 class="text-lg font-semibold">Tambah Data {{ $prefix }} ({{ $tw }})</h3>
                 <button type="button" onclick="closeCreate()" class="px-2 py-1 rounded border">Tutup</button>
             </div>
 
@@ -163,8 +156,9 @@
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium mb-1">Nama Kegiatan <span
                                 class="text-red-500">*</span></label>
-                        <input type="text" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
+                        <input type="text" name="nama_kegiatan" value="{{ old('nama_kegiatan', $prefix . '-' . $tw) }}"
                             class="w-full border rounded-lg px-3 py-2" required>
+                        <p class="text-xs text-gray-500 mt-1">Contoh: {{ $prefix }}-{{ $tw }}</p>
                     </div>
 
                     <div>
@@ -228,7 +222,7 @@
             <input type="hidden" name="_id" id="edit_id">
 
             <div class="p-4 border-b flex items-center justify-between">
-                <h3 class="text-lg font-semibold">Edit Data NWA Tahunan</h3>
+                <h3 class="text-lg font-semibold">Edit Data {{ $prefix }}</h3>
                 <button type="button" onclick="closeEdit()" class="px-2 py-1 rounded border">Tutup</button>
             </div>
 
@@ -308,20 +302,20 @@
         </form>
     </dialog>
 
-    {{-- Scripts modal --}}
+    {{-- Scripts --}}
     <script>
         const dlgCreate = document.getElementById('dlgCreate');
         const dlgEdit = document.getElementById('dlgEdit');
-        const updateUrlTemplate = "{{ route('nwa.tahunan.update', ['tahunan' => '__ID__']) }}";
+        const updateUrlTemplate = "{{ route('nwa.triwulanan.update', [$jenis, '__ID__']) }}";
 
         function openCreate() {
-            if (dlgCreate && typeof dlgCreate.showModal === 'function') dlgCreate.showModal();
-            else if (dlgCreate) dlgCreate.setAttribute('open', 'open');
+            if (dlgCreate?.showModal) dlgCreate.showModal();
+            else dlgCreate?.setAttribute('open', 'open');
         }
 
         function closeCreate() {
-            if (dlgCreate && typeof dlgCreate.close === 'function') dlgCreate.close();
-            else if (dlgCreate) dlgCreate.removeAttribute('open');
+            if (dlgCreate?.close) dlgCreate.close();
+            else dlgCreate?.removeAttribute('open');
         }
 
         function openEdit(btn) {
@@ -346,16 +340,16 @@
             document.getElementById('edit_flag').value = flag;
             document.getElementById('edit_kumpul').value = kumpul;
 
-            if (dlgEdit && typeof dlgEdit.showModal === 'function') dlgEdit.showModal();
-            else if (dlgEdit) dlgEdit.setAttribute('open', 'open');
+            if (dlgEdit?.showModal) dlgEdit.showModal();
+            else dlgEdit?.setAttribute('open', 'open');
         }
 
         function closeEdit() {
-            if (dlgEdit && typeof dlgEdit.close === 'function') dlgEdit.close();
-            else if (dlgEdit) dlgEdit.removeAttribute('open');
+            if (dlgEdit?.close) dlgEdit.close();
+            else dlgEdit?.removeAttribute('open');
         }
 
-        // Auto open modal saat validasi gagal
+        // Auto open modal saat validasi error
         @if ($errors->any())
             @if (old('_mode') === 'create')
                 openCreate();
@@ -366,12 +360,8 @@
                         const form = document.getElementById('formEdit');
                         form.action = updateUrlTemplate.replace('__ID__', id);
                     }
-                    openEdit({
-                        dataset: {
-                            id: "{{ old('_id') }}",
-                            nama: "{{ old('nama_kegiatan') }}"
-                        }
-                    });
+                    if (dlgEdit?.showModal) dlgEdit.showModal();
+                    else dlgEdit?.setAttribute('open', 'open');
                 })();
             @endif
         @endif

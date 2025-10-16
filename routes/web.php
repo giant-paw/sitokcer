@@ -7,6 +7,8 @@ use App\Http\Controllers\SosialSemesteranController;
 use App\Http\Controllers\DistribusiTahunanController;
 use App\Http\Controllers\ProduksiTahunanController;
 use App\Http\Controllers\SerutiController;
+use App\Http\Controllers\NwaTahunanController;
+use App\Http\Controllers\NwaTriwulananController;
 
 Route::get('/', fn() => view('home'))->name('home');
 
@@ -74,10 +76,16 @@ Route::prefix('produksi')->name('produksi.')->group(function () {
 
 /* --- TIM NWA --- */
 Route::prefix('nwa')->name('nwa.')->group(function () {
-    Route::get('/tahunan',           fn() => view('timNWA.tahunan.NWAtahunan'))->name('tahunan');
-    Route::get('/triwulanan/sklnp',  fn() => view('timNWA.SKLNP.SKLNP'))->name('sklnp');
-    Route::get('/triwulanan/snaper', fn() => view('timNWA.snaper.snaper'))->name('snaper');
-    Route::get('/triwulanan/sktnp',  fn() => view('timNWA.SKTNP.SKTNP'))->name('sktnp');
+    Route::resource('tahunan', NwaTahunanController::class);
+    Route::prefix('triwulanan/{jenis}')
+        ->name('triwulanan.')
+        ->whereIn('jenis', ['sklnp', 'snaper', 'sktnp'])
+        ->group(function () {
+            Route::get('/',        [NwaTriwulananController::class, 'index'])->name('index');
+            Route::post('/',       [NwaTriwulananController::class, 'store'])->name('store');
+            Route::put('/{triwulanan}',   [NwaTriwulananController::class, 'update'])->name('update');
+            Route::delete('/{triwulanan}', [NwaTriwulananController::class, 'destroy'])->name('destroy');
+        });
 });
 
 /* --- REKAPITULASI --- */
