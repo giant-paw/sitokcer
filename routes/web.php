@@ -5,6 +5,7 @@ use App\Http\Controllers\SosialTahunanController;
 use App\Http\Controllers\SosialTriwulananController;
 use App\Http\Controllers\SosialSemesteranController;
 use App\Http\Controllers\DistribusiTahunanController;
+use App\Http\Controllers\DistribusiTriwulananController;
 use App\Http\Controllers\ProduksiTahunanController;
 use App\Http\Controllers\SerutiController;
 
@@ -33,14 +34,29 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 
 /* --- TIM DISTRIBUSI --- */
 Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
-    Route::get('tahunan/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('tahunan.searchPetugas');
-    Route::post('tahunan/bulk-delete', [DistribusiTahunanController::class, 'bulkDelete'])->name('tahunan.bulkDelete');
-    Route::resource('tahunan', DistribusiTahunanController::class);
+    
+    // --- ROUTE TAHUNAN ---
+    Route::prefix('tahunan')->name('tahunan.')->group(function () {
+        Route::get('/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::post('/bulk-delete', [DistribusiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::resource('/', DistribusiTahunanController::class)->parameters(['' => 'tahunan']);
+    });
 
-
-
-    Route::get('/kegiatan-triwulan/spunp', fn() => view('timDistribusi.SPUNP'))->name('spunp');
-    Route::get('/kegiatan-triwulan/shkk', fn() => view('timDistribusi.SHKK'))->name('shkk');
+    // --- ROUTE TRIWULANAN ---
+    Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
+        Route::get('/search-petugas', [DistribusiTriwulananController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::post('/bulk-delete', [DistribusiTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
+        
+        // Route untuk proses CRUD
+        Route::post('/', [DistribusiTriwulananController::class, 'store'])->name('store');
+        Route::get('/{distribusi_triwulanan}/edit', [DistribusiTriwulananController::class, 'edit'])->name('edit');
+        Route::put('/{distribusi_triwulanan}', [DistribusiTriwulananController::class, 'update'])->name('update');
+        Route::delete('/{distribusi_triwulanan}', [DistribusiTriwulananController::class, 'destroy'])->name('destroy');
+        
+        // Route utama untuk menampilkan data SPUNP atau SHKK
+        Route::get('/{jenisKegiatan}', [DistribusiTriwulananController::class, 'index'])->name('index');
+    });
+    
     Route::get('/bulanan/vhts', fn() => view('timDistribusi.VHTS'))->name('vhts');
     Route::get('/bulanan/hkd', fn() => view('timDistribusi.HKD'))->name('hkd');
     Route::get('/bulanan/shpb', fn() => view('timDistribusi.SHPB'))->name('shpb');

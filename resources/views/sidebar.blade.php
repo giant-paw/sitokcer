@@ -88,15 +88,19 @@
                         <span>Kegiatan Triwulan</span>
 
                     </a>
+
                     <ul class="submenu">
-                        <li
-                            class="{{ request()->is('tim-distribusi/kegiatan-triwulan/spunp*') ? 'active-link' : '' }}">
-                            <a href="{{ route('tim-distribusi.spunp') }}">SPUNP</a>
+                        {{-- Link SPUNP --}}
+                        <li class="{{ request()->is('tim-distribusi/triwulanan/spunp*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => 'spunp']) }}">SPUNP</a>
                         </li>
-                        <li class="{{ request()->is('tim-distribusi/kegiatan-triwulan/shkk*') ? 'active-link' : '' }}">
-                            <a href="{{ route('tim-distribusi.shkk') }}">SHKK</a>
+
+                        {{-- Link SHKK --}}
+                        <li class="{{ request()->is('tim-distribusi/triwulanan/shkk*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => 'shkk']) }}">SHKK</a>
                         </li>
                     </ul>
+                    
                 </li>
                 <li class="menu-item has-dropdown {{ request()->is('tim-distribusi/bulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
