@@ -238,10 +238,10 @@
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('rekapitulasi/pencacah*') ? 'active-link' : '' }}">
-                    <a href="{{ route('rekapitulasi.pencacah.index') }}">Rekap Pencacah</a>
+                    <a href="{{ route('rekapitulasi.pencacah') }}">Rekap Pencacah</a>
                 </li>
                 <li class="{{ request()->is('rekapitulasi/pengawas*') ? 'active-link' : '' }}">
-                    <a href="{{ route('rekapitulasi.pengawas.index') }}">Rekap Pengawas</a>
+                    <a href="{{ route('rekapitulasi.pengawas') }}">Rekap Pengawas</a>
                 </li>
             </ul>
         </li>
