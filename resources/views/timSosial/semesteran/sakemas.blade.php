@@ -184,7 +184,7 @@
 
                         <div class="mt-3">
                             <label class="form-label">Tanggal Pengumpulan</label>
-                            <input type="date name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}"
+                            <input type="date" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}"
                                 class="form-control">
                         </div>
                     </div>

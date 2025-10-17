@@ -109,10 +109,9 @@ class DistribusiBulananController extends Controller
         return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
     }
 
-    public function destroy($id)
+    public function destroy(DistribusiBulanan $distribusi_bulanan)
     {
-        $distribusi = DistribusiBulanan::findOrFail($id);
-        $distribusi->delete();
+        $distribusi_bulanan->delete();
 
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }

@@ -12,6 +12,7 @@ use App\Http\Controllers\DistribusiBulananController;
 
 // Produksi
 use App\Http\Controllers\ProduksiTahunanController;
+use App\Http\Controllers\ProduksiCaturwulananController;
 
 use App\Http\Controllers\SerutiController;
 use App\Http\Controllers\DashboardNwaController;
@@ -87,11 +88,26 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
 /* --- TIM PRODUKSI --- */
 Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
     
-    // --- ROUTE TAHUNAN ---
+    // --- ROUTE PRODUKSI TAHUNAN ---
     Route::prefix('tahunan')->name('tahunan.')->group(function () {
         Route::get('/search-petugas', [ProduksiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
         Route::post('/bulk-delete', [ProduksiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
         Route::resource('/', ProduksiTahunanController::class)->parameters(['' => 'tahunan']);
+    });
+
+    // --- ROUTE PRODUKSI CATURWULANAN ---
+    Route::prefix('caturwulanan')->name('caturwulanan.')->group(function () {
+        Route::get('/search-petugas', [ProduksiCaturwulananController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::post('/bulk-delete', [ProduksiCaturwulananController::class, 'bulkDelete'])->name('bulkDelete');
+        
+        // Route untuk proses CRUD
+        Route::post('/', [ProduksiCaturwulananController::class, 'store'])->name('store');
+        Route::get('/{produksi_caturwulanan}/edit', [ProduksiCaturwulananController::class, 'edit'])->name('edit');
+        Route::put('/{produksi_caturwulanan}', [ProduksiCaturwulananController::class, 'update'])->name('update');
+        Route::delete('/{produksi_caturwulanan}', [ProduksiCaturwulananController::class, 'destroy'])->name('destroy');
+        
+        // Route utama untuk menampilkan data berdasarkan jenis kegiatan
+        Route::get('/{jenisKegiatan}', [ProduksiCaturwulananController::class, 'index'])->name('index');
     });
 });
 

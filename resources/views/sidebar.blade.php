@@ -72,6 +72,8 @@
             </ul>
         </li>
 
+        <!-- Tim { Distribusi } -->
+
         <li class="menu-item has-dropdown {{ request()->is('distribusi*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-truck menu-icon"></i>
@@ -79,11 +81,15 @@
 
             </a>
             <ul class="submenu">
+
+                <!-- Distribusi Tahunan  -->
                 <li class="{{ request()->is('tim-distribusi/tahunan*') ? 'active-link' : '' }}">
                     <a href="{{ route('tim-distribusi.tahunan.index') }}">Distribusi Tahunan</a>
                 </li>
+
+                <!-- Distribusi Triwulanan  -->
                 <li
-                    class="menu-item has-dropdown {{ request()->is('tim-distribusi/kegiatan-triwulan*') ? 'active' : '' }}">
+                    class="menu-item has-dropdown {{ request()->is('tim-distribusi/triwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
 
@@ -102,6 +108,9 @@
                     </ul>
                     
                 </li>
+            
+                <!-- Distribusi Bulanan -->
+
                 <li class="menu-item has-dropdown {{ request()->is('tim-distribusi/bulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Distribusi Bulanan</span>
@@ -143,6 +152,8 @@
             </ul>
         </li>
 
+        <!-- TIM { PRODUKSI } -->
+
         <li class="menu-item has-dropdown {{ request()->is('produksi*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-graph-up-arrow menu-icon"></i>
@@ -150,23 +161,31 @@
 
             </a>
             <ul class="submenu">
+                
+                <!-- Produksi Tahuanan  -->
                 <li class="{{ request()->is('tim-produksi/tahunan*') ? 'active-link' : '' }}">
                     <a href="{{ route('tim-produksi.tahunan.index') }}">Produksi Tahunan</a>
                 </li>
+                
+                <!-- Produksi Caturwulanan  -->
                 <li
-                    class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-caturwulan*') ? 'active' : '' }}">
+                    class="menu-item has-dropdown {{ request()->is('tim-produksi/caturwulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Caturwulan</span>
 
                     </a>
                     <ul class="submenu">
+
+                        <!-- Ubinan Padi -->
                         <li
-                            class="produksi/kegiatan-caturwulan/ubinan-padi-palawija*') ? 'active-link' : '' }}">
-                            <a href="#">Ubinan Padi Palawija</a>
+                            class="{{ request()->is('tim-produksi/caturwulanan/upp*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan padi palawija']) }}">Ubinan Padi Palawija</a>
                         </li>
+
+                        <!-- Ubinan UTP -->
                         <li
-                            class="produksi/kegiatan-caturwulan/update-utp-palawija*') ? 'active-link' : '' }}">
-                            <a href="#">Update UTP Palawija</a>
+                            class="{{ request()->is('tim-produksi/caturwulanan/uup*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan utp palawija']) }}">Ubinan UTP Palawija</a>
                         </li>
                     </ul>
                 </li>

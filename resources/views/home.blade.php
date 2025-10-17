@@ -27,7 +27,7 @@
                 </a>
             </div>
             <div class="col-12 col-md-6 col-lg-3 mb-4">
-                <a href="#" class="dashboard-card bg-produksi">
+                <a href="{{ route('tim-produksi.tahunan.index') }}" class="dashboard-card bg-produksi">
                     <div class="dashboard-card-icon">
                         <span>⚙️</span> {{-- Ganti dengan ikon SVG jika ada --}}
                     </div>
