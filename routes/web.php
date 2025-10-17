@@ -13,6 +13,7 @@ use App\Http\Controllers\PencacahController;
 use App\Http\Controllers\PengawasController;
 use App\Http\Controllers\NwaTahunanController;
 use App\Http\Controllers\NwaTriwulananController;
+use App\Http\Controllers\MasterPetugasController;
 
 Route::get('/', fn() => view('home'))->name('home');
 
@@ -115,6 +116,15 @@ Route::prefix('rekapitulasi')->name('rekapitulasi.')->group(function () {
 });
 
 /* --- MASTER --- */
-Route::get('/master-petugas', fn() => view('masterpetugas'))->name('master.petugas');
+Route::get('/master-petugas', [MasterPetugasController::class, 'index'])->name('master.petugas.index');
+Route::resource('master-petugas', MasterPetugasController::class)
+    ->parameters(['master-petugas' => 'petugas'])
+    ->names('master.petugas');
+
+Route::post('/master-petugas/bulk-delete', [MasterPetugasController::class, 'bulkDelete'])->name('master.petugas.bulkDelete');
+Route::get('/master-petugas/export', [MasterPetugasController::class, 'export'])->name('master.petugas.export');
+
+
+
 Route::get('/master-kegiatan', fn() => view('masterkegiatan'))->name('master.kegiatan');
 Route::get('/user', fn() => view('user'))->name('user');

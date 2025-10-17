@@ -89,8 +89,7 @@
 
                     </a>
                     <ul class="submenu">
-                        <li
-                            class="{{ request()->is('tim-distribusi/kegiatan-triwulan/spunp*') ? 'active-link' : '' }}">
+                        <li class="{{ request()->is('tim-distribusi/kegiatan-triwulan/spunp*') ? 'active-link' : '' }}">
                             <a href="{{ route('tim-distribusi.spunp') }}">SPUNP</a>
                         </li>
                         <li class="{{ request()->is('tim-distribusi/kegiatan-triwulan/shkk*') ? 'active-link' : '' }}">
@@ -133,8 +132,7 @@
                 <li class="{{ request()->is('produksi/tahunan*') ? 'active-link' : '' }}">
                     <a href="{{ route('produksi.tahunan.index') }}">Produksi Tahunan</a>
                 </li>
-                <li
-                    class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-caturwulan*') ? 'active' : '' }}">
+                <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-caturwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Caturwulan</span>
 
@@ -168,8 +166,7 @@
                         </li>
                         <li class="{{ request()->is('produksi/kegiatan-triwulan/sphth*') ? 'active-link' : '' }}"><a
                                 href="{{ route('produksi.sphth') }}">SPHTH</a></li>
-                        <li
-                            class="{{ request()->is('produksi/kegiatan-triwulan/air-bersih*') ? 'active-link' : '' }}">
+                        <li class="{{ request()->is('produksi/kegiatan-triwulan/air-bersih*') ? 'active-link' : '' }}">
                             <a href="{{ route('produksi.airbersih') }}">Air Bersih</a>
                         </li>
                     </ul>
@@ -249,8 +246,9 @@
             </ul>
         </li>
 
+        {{-- Ganti href-nya menjadi route('master.petugas.index') --}}
         <li class="{{ request()->is('master-petugas*') ? 'active-link' : '' }}">
-            <a href="{{ route('master.petugas') }}">
+            <a href="{{ route('master.petugas.index') }}">
                 <i class="bi bi-person-badge-fill menu-icon"></i>
                 <span>Master Petugas</span>
             </a>
@@ -482,18 +480,18 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const dropdownToggles = document.querySelectorAll('.sidebar .dropdown-toggle');
 
-        dropdownToggles.forEach(function(toggle) {
-            toggle.addEventListener('click', function(event) {
+        dropdownToggles.forEach(function (toggle) {
+            toggle.addEventListener('click', function (event) {
                 event.preventDefault();
                 const parentMenuItem = this.closest('.menu-item.has-dropdown');
                 const parentLevel = parentMenuItem.parentElement; // ul induk
 
                 // Tutup hanya dropdown lain di level yang sama
                 const siblings = parentLevel.querySelectorAll('.menu-item.has-dropdown.active');
-                siblings.forEach(function(sibling) {
+                siblings.forEach(function (sibling) {
                     if (sibling !== parentMenuItem) {
                         sibling.classList.remove('active');
                     }
