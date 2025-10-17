@@ -221,24 +221,24 @@
 
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/ksapadi*') ? 'active-link' : '' }}">
-                            <a href="#">KSA Padi</a>
+                        <li class="{{ request()->is('tim-produksi/bulanan/ksapadi*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'ksapadi']) }}">KSA Padi</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/ksajagung*') ? 'active-link' : '' }}">
-                            <a href="#">KSA Jagung</a>
+                        <li class="{{ request()->is('tim-produksi/bulanan/ksajagung*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'ksajagung']) }}">KSA Jagung</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/lptb*') ? 'active-link' : '' }}"><a
-                                href="#">LPTB</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/sphsbs*') ? 'active-link' : '' }}"><a
-                                href="#">SPHSBS</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/sppalawija*') ? 'active-link' : '' }}">
-                            <a href="#">SP Palawija</a>
+                        <li class="{{ request()->is('tim-produksi/bulanan/lptb*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'lptb']) }}">LPTB</a></li>
+                        <li class="{{ request()->is('tim-produksi/bulanan/sphsbs*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'sphsbs']) }}">SPHSBS</a></li>
+                        <li class="{{ request()->is('tim-produksi/bulanan/sppalawija*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'sppalawija']) }}">SP Palawija</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/perkebunan*') ? 'active-link' : '' }}">
-                            <a href="#">Perkebunan Bulanan</a>
+                        <li class="{{ request()->is('tim-produksi/bulanan/perkebunan*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'perkebunan']) }}">Perkebunan Bulanan</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/ibs*') ? 'active-link' : '' }}"><a
-                                href="#">IBS Bulanan</a></li>
+                        <li class="{{ request()->is('tim-produksi/bulanan/ibs*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'ibs']) }}">IBS Bulanan</a></li>
                     </ul>
                 </li>
             </ul>
@@ -282,10 +282,10 @@
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('rekapitulasi/pencacah*') ? 'active-link' : '' }}">
-                    <a href="{{ route('rekapitulasi.pencacah') }}">Rekap Pencacah</a>
+                    <a href="{{ route('rekapitulasi.pencacah.index') }}">Rekap Pencacah</a>
                 </li>
                 <li class="{{ request()->is('rekapitulasi/pengawas*') ? 'active-link' : '' }}">
-                    <a href="{{ route('rekapitulasi.pengawas') }}">Rekap Pengawas</a>
+                    <a href="{{ route('rekapitulasi.pengawas.index') }}">Rekap Pengawas</a>
                 </li>
             </ul>
         </li>

@@ -1,10 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardDistribusiController;
+
+// SOSIAL
 use App\Http\Controllers\SosialTahunanController;
 use App\Http\Controllers\SosialSemesteranController;
+use App\Http\Controllers\SerutiController;
+
+// DISTRIBUSI
 use App\Http\Controllers\DistribusiTahunanController;
-use App\Http\Controllers\DashboardDistribusiController;
 use App\Http\Controllers\DistribusiTriwulananController;
 use App\Http\Controllers\DistribusiBulananController;
 
@@ -12,8 +17,9 @@ use App\Http\Controllers\DistribusiBulananController;
 use App\Http\Controllers\ProduksiTahunanController;
 use App\Http\Controllers\ProduksiCaturwulananController;
 use App\Http\Controllers\ProduksiTriwulananController;
+use App\Http\Controllers\ProduksiBulananController;
 
-use App\Http\Controllers\SerutiController;
+// NWAb
 use App\Http\Controllers\DashboardNwaController;
 use App\Http\Controllers\DashboardProduksiController;
 use App\Http\Controllers\DashboardSosialController;
@@ -107,7 +113,7 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
         Route::get('/{jenisKegiatan}', [ProduksiCaturwulananController::class, 'index'])->name('index');
     });
 
-    // --- ROUTE TRIWULANAN ---
+    // --- ROUTE PRODUKSI TRIWULANAN ---
     Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
         Route::get('/search-petugas', [ProduksiTriwulananController::class, 'searchPetugas'])->name('searchPetugas');
         Route::post('/bulk-delete', [ProduksiTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
@@ -120,9 +126,25 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
         
         Route::get('/{jenisKegiatan}', [ProduksiTriwulananController::class, 'index'])->name('index');
     });
+
+    // --- ROUTE Produksi Bulanan ---
+    Route::prefix('bulanan')->name('bulanan.')->group(function () {
+        Route::get('/search-petugas', [ProduksiBulananController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::post('/bulk-delete', [ProduksiBulananController::class, 'bulkDelete'])->name('bulkDelete');
+        
+        // Route untuk proses CRUD
+        Route::post('/', [ProduksiBulananController::class, 'store'])->name('store');
+
+        Route::get('/{distribusi_bulanan}/edit', [ProduksiBulananController::class, 'edit'])->name('edit');
+        Route::put('/{distribusi_bulanan}', [ProduksiBulananController::class, 'update'])->name('update');
+        Route::delete('/{distribusi_bulanan}', [ProduksiBulananController::class, 'destroy'])->name('destroy');
+        
+        // Route utama untuk menampilkan data berdasarkan jenis kegiatan
+        Route::get('/{jenisKegiatan}', [ProduksiBulananController::class, 'index'])->name('index');
+    });
 });
 
-/* --- [DIPERBAIKI] TIM NWA --- */
+/* ---  TIM NWA --- */
 Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
     // Route untuk NWA Tahunan (sudah benar)
     Route::resource('tahunan', NwaTahunanController::class);
