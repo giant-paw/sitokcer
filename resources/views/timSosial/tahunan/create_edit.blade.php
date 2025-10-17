@@ -161,12 +161,14 @@
         .is-invalid {
             border-color: #dc3545;
         }
+
         .invalid-feedback {
             display: block;
             margin-top: 0.25rem;
             font-size: 0.875rem;
             color: #dc3545;
         }
+
         .form-label .text-danger {
             font-weight: bold;
         }

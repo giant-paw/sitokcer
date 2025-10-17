@@ -7,7 +7,7 @@
 {{-- Memulai bagian konten --}}
 @section('content')
     <div class="container-fluid">
-        
+
         {{-- Header Selamat Datang --}}
         <div class="text-center mb-5">
             <h1>Selamat Datang di SITOKCER</h1>
@@ -60,11 +60,14 @@
                     <div class="card-body">
                         <h5 class="card-title mb-3">Informasi Import Data</h5>
                         <ol class="info-list">
-                            <li>Penambahan kegiatan yang berjalan dapat didaftarkan <a href="#">disini</a>, untuk kemudian konfirmasi ke Tim IT.</li>
+                            <li>Penambahan kegiatan yang berjalan dapat didaftarkan <a href="#">disini</a>, untuk
+                                kemudian konfirmasi ke Tim IT.</li>
                             <li>Manual penggunaan Stokcer dapat didownload <a href="#">disini</a>.</li>
                             <li>Gunakan template excel, yang dapat didownload <a href="#">disini</a>.</li>
-                            <li>Pastikan mengisikan kolom kegiatan dengan benar berdasarkan menu master kegiatan karena akan digunakan sebagai dasar tabulasi dan tab filtering.</li>
-                            <li>Pastikan mengisikan nama pencacah dan pengawas dengan benar berdasarkan menu pada master petugas, kesalahan penulisan nama akan mengakibatkan data tidak dapat ditarik.</li>
+                            <li>Pastikan mengisikan kolom kegiatan dengan benar berdasarkan menu master kegiatan karena akan
+                                digunakan sebagai dasar tabulasi dan tab filtering.</li>
+                            <li>Pastikan mengisikan nama pencacah dan pengawas dengan benar berdasarkan menu pada master
+                                petugas, kesalahan penulisan nama akan mengakibatkan data tidak dapat ditarik.</li>
                         </ol>
                     </div>
                 </div>
@@ -75,22 +78,22 @@
                 <div class="row">
                     <div class="col-12 col-md-4 mb-4">
                         <div class="card card-feature">
-                             <div class="card-body text-center">
+                            <div class="card-body text-center">
                                 <span class="feature-icon">📄</span>
                                 <h6 class="feature-title">SKGB Giling</h6>
                                 <p class="feature-desc">Produksi Tahunan View description</p>
                             </div>
                         </div>
                     </div>
-                     <div class="col-12 col-md-4 mb-4">
+                    <div class="col-12 col-md-4 mb-4">
                         <a href="#" class="feature-card-link">
                             <span class="feature-icon">📜</span>
                             <h6 class="feature-title">SKGB Kering</h6>
                         </a>
                     </div>
-                     <div class="col-12 col-md-4 mb-4">
+                    <div class="col-12 col-md-4 mb-4">
                         <a href="#" class="feature-card-link">
-                             <span class="feature-icon">📅</span>
+                            <span class="feature-icon">📅</span>
                             <h6 class="feature-title">IBS Bulanan</h6>
                         </a>
                     </div>
@@ -102,13 +105,13 @@
                     </div>
                     <div class="col-12 col-md-4 mb-4">
                         <a href="#" class="feature-card-link">
-                             <span class="feature-icon">💧</span>
+                            <span class="feature-icon">💧</span>
                             <h6 class="feature-title">Air Bersih</h6>
                         </a>
                     </div>
                     <div class="col-12 col-md-4 mb-4">
-                         <a href="#" class="feature-card-link">
-                             <span class="feature-icon">🌾</span>
+                        <a href="#" class="feature-card-link">
+                            <span class="feature-icon">🌾</span>
                             <h6 class="feature-title">Updating UTPPalawija</h6>
                         </a>
                     </div>

@@ -1,6 +1,5 @@
 <?php
 
-// app/Http/Controllers/SosialTahunanController.php
 namespace App\Http\Controllers;
 
 use App\Models\SosialTahunan;
@@ -30,7 +29,6 @@ class SosialTahunanController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        // jika validasi gagal, kita buka modal otomatis
         $openModal = session('openModal', false);
 
         return view('timSosial.tahunan.sosialtahunan', compact(
@@ -43,21 +41,27 @@ class SosialTahunanController extends Controller
         ));
     }
 
+    /** Halaman create (opsional jika tidak pakai modal) */
+    public function create(Request $req)
+    {
+        // prefill nama_kegiatan via query ?kategori=PODES|Polkam
+        $prefill = $req->query('kategori');
+        return view('timSosial.tahunan.create', compact('prefill'));
+    }
+
     public function store(Request $r)
     {
-        // validasi dulu
         $data = $r->validate([
             'nama_kegiatan'       => 'required|string|max:50',
             'BS_Responden'        => 'nullable|string|max:150',
             'pencacah'            => 'required|string|max:100',
             'pengawas'            => 'required|string|max:100',
-            'target_penyelesaian' => 'required',       // date string; kita konversi manual
+            'target_penyelesaian' => 'required', // Y-m-d dari input date
             'flag_progress'       => 'required|in:Belum Mulai,Proses,Selesai',
             'tanggal_pengumpulan' => 'nullable',
         ]);
 
-        // --- KONVERSI TANGGAL ---
-        // browser (type=date) -> 'Y-m-d'; DB kamu simpan dd/mm/YYYY (varchar)
+        // Simpan ke DB sebagai d/m/Y (varchar) sesuai struktur database kamu
         $data['target_penyelesaian'] = self::toDMY($data['target_penyelesaian']);
         if (!empty($data['tanggal_pengumpulan'])) {
             $data['tanggal_pengumpulan'] = self::toDMY($data['tanggal_pengumpulan']);
@@ -70,24 +74,83 @@ class SosialTahunanController extends Controller
             ->with('ok', 'Data berhasil ditambahkan.');
     }
 
-    private static function toDMY(string $value): string
+    public function show(SosialTahunan $tahunan)
     {
-        // jika sudah d/m/Y, biarkan; jika Y-m-d, konversi
-        // contoh input: '2025-07-31' => '31/07/2025'
-        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
-            return Carbon::createFromFormat('Y-m-d', $value)->format('d/m/Y');
+        return view('timSosial.tahunan.show', compact('tahunan'));
+    }
+
+    public function edit(SosialTahunan $tahunan)
+    {
+        // Siapkan nilai Y-m-d untuk prefill input date
+        $targetYmd = self::toYMD($tahunan->target_penyelesaian);
+        $kumpulYmd = self::toYMD($tahunan->tanggal_pengumpulan);
+
+        return view('timSosial.tahunan.create', [
+            'mode'      => 'edit',
+            'tahunan'   => $tahunan,
+            'prefill'   => $tahunan->nama_kegiatan,
+            'targetYmd' => $targetYmd,
+            'kumpulYmd' => $kumpulYmd,
+        ]);
+    }
+
+    public function update(Request $r, SosialTahunan $tahunan)
+    {
+        $data = $r->validate([
+            'nama_kegiatan'       => 'required|string|max:50',
+            'BS_Responden'        => 'nullable|string|max:150',
+            'pencacah'            => 'required|string|max:100',
+            'pengawas'            => 'required|string|max:100',
+            'target_penyelesaian' => 'required',
+            'flag_progress'       => 'required|in:Belum Mulai,Proses,Selesai',
+            'tanggal_pengumpulan' => 'nullable',
+        ]);
+
+        $data['target_penyelesaian'] = self::toDMY($data['target_penyelesaian']);
+        if (!empty($data['tanggal_pengumpulan'])) {
+            $data['tanggal_pengumpulan'] = self::toDMY($data['tanggal_pengumpulan']);
+        } else {
+            $data['tanggal_pengumpulan'] = null;
         }
-        // coba baca d/m/Y
-        try {
-            return Carbon::createFromFormat('d/m/Y', $value)->format('d/m/Y');
-        } catch (\Throwable $e) {
-            return $value; // fallback
-        }
+
+        $tahunan->update($data);
+
+        return redirect()
+            ->route('sosial.tahunan.index', ['kategori' => $data['nama_kegiatan'] ?? null])
+            ->with('ok', 'Data berhasil diperbarui.');
     }
 
     public function destroy(SosialTahunan $tahunan)
     {
         $tahunan->delete();
         return back()->with('ok', 'Data dihapus.');
+    }
+
+    // ================= Helpers =================
+
+    /** '2025-07-31' -> '31/07/2025' ; jika sudah d/m/Y dibiarkan */
+    private static function toDMY(string $value): string
+    {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return Carbon::createFromFormat('Y-m-d', $value)->format('d/m/Y');
+        }
+        try {
+            return Carbon::createFromFormat('d/m/Y', $value)->format('d/m/Y');
+        } catch (\Throwable $e) {
+            return $value;
+        }
+    }
+
+    /** '31/07/2025' -> '2025-07-31' ; jika sudah Y-m-d dibiarkan */
+    private static function toYMD(?string $value): ?string
+    {
+        if (!$value) return null;
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) return $value;
+
+        try {
+            return Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d');
+        } catch (\Throwable $e) {
+            return $value;
+        }
     }
 }

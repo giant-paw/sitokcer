@@ -53,7 +53,7 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
 /* --- TIM PRODUKSI --- */
 Route::prefix('produksi')->name('produksi.')->group(function () {
     // File ini tidak berada di dalam subfolder, jadi path-nya tetap
-    Route::get('/tahunan', fn() => view('timProduksi.produksitahunan'))->name('tahunan');
+    Route::get('/tahunan', fn() => view('timProduksi.produksitahunan'))->name('tahunan.index');
 
     // Menggunakan path 'ubinanpadi.namafile'
     Route::get('/kegiatan-caturwulan/ubinan-padi-palawija', fn() => view('timProduksi.ubinanpadi.ubinanpadipalawija'))->name('ubinanpadipalawija');
@@ -75,18 +75,23 @@ Route::prefix('produksi')->name('produksi.')->group(function () {
     Route::get('/kegiatan-bulanan/ibs', fn() => view('timProduksi.IBSbulanan.IBSbulanan'))->name('ibsbulanan');
 });
 
-/* --- TIM NWA --- */
-Route::prefix('nwa')->name('nwa.')->group(function () {
+/* --- [DIPERBAIKI] TIM NWA --- */
+Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
+    // Route untuk NWA Tahunan (sudah benar)
     Route::resource('tahunan', NwaTahunanController::class);
-    Route::prefix('triwulanan/{jenis}')
-        ->name('triwulanan.')
-        ->whereIn('jenis', ['sklnp', 'snaper', 'sktnp'])
-        ->group(function () {
-            Route::get('/',        [NwaTriwulananController::class, 'index'])->name('index');
-            Route::post('/',       [NwaTriwulananController::class, 'store'])->name('store');
-            Route::put('/{triwulanan}',   [NwaTriwulananController::class, 'update'])->name('update');
-            Route::delete('/{triwulanan}', [NwaTriwulananController::class, 'destroy'])->name('destroy');
-        });
+
+    // Route untuk menampilkan halaman utama dan tabel data (method index)
+    Route::get('/triwulanan/{jenis}', [NwaTriwulananController::class, 'index'])->name('triwulanan.index');
+
+    // Route untuk menyimpan data baru dari modal 'Tambah' (method store)
+    Route::post('/triwulanan/{jenis}', [NwaTriwulananController::class, 'store'])->name('triwulanan.store');
+
+    // Route untuk memperbarui data dari modal 'Edit' (method update)
+    // {nwa_triwulanan} adalah parameter untuk ID data yang akan di-update
+    Route::put('/triwulanan/{jenis}/{nwa_triwulanan}', [NwaTriwulananController::class, 'update'])->name('triwulanan.update');
+
+    // Route untuk menghapus data (method destroy)
+    Route::delete('/triwulanan/{jenis}/{nwa_triwulanan}', [NwaTriwulananController::class, 'destroy'])->name('triwulanan.destroy');
 });
 
 /* --- REKAPITULASI --- */

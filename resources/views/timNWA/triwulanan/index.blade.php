@@ -1,42 +1,37 @@
 @extends('layouts.app')
 
-@section('title', 'NWA Tahunan')
-@section('header-title', 'List Target Kegiatan Tahunan Tim NWA')
+@section('title', $prefix . ' (NWA Triwulanan)')
+@section('header-title', 'List Target ' . $prefix . ' (NWA Triwulanan)')
 
 @section('content')
     <div class="container-fluid px-0">
 
-        {{-- Toolbar + Search --}}
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <form method="get" action="{{ route('nwa.tahunan.index') }}">
-                <input type="hidden" name="kategori" value="{{ $kategori }}">
-                <div class="input-group" style="max-width: 360px">
-                    <input type="text" name="q" value="{{ $q }}" placeholder="Search" class="form-control">
-                    <button class="btn btn-outline-secondary">Cari</button>
-                </div>
-            </form>
-
-            <button class="btn btn-primary" onclick="openCreate()">
-                Tambah baru
-            </button>
-        </div>
-
-        {{-- Category Tabs --}}
+        {{-- Tabs TW1..TW4 --}}
+        @php $tabs = ['TW1','TW2','TW3','TW4']; @endphp
         <ul class="nav nav-tabs mb-3">
-            <li class="nav-item">
-                <a class="nav-link {{ $kategori === '' ? 'active' : '' }}" href="{{ route('nwa.tahunan.index') }}">
-                    Semua
-                </a>
-            </li>
-            @foreach ($kategoris as $k)
+            @foreach ($tabs as $t)
                 <li class="nav-item">
-                    <a class="nav-link {{ $kategori === $k['label'] ? 'active' : '' }}"
-                        href="{{ route('nwa.tahunan.index', ['kategori' => $k['label'], 'q' => $q]) }}">
-                        {{ $k['label'] }} ({{ $k['count'] }})
+                    <a class="nav-link {{ $tw === $t ? 'active' : '' }}"
+                        href="{{ route('nwa.triwulanan.index', [$jenis, 'tw' => $t, 'q' => request('q')]) }}">
+                        {{ $prefix }}-{{ $t }}
                     </a>
                 </li>
             @endforeach
         </ul>
+
+        {{-- Toolbar + Search --}}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <button class="btn btn-primary" onclick="openCreate()">
+                Tambah baru
+            </button>
+            <form method="get" action="{{ route('nwa.triwulanan.index', $jenis) }}">
+                <input type="hidden" name="tw" value="{{ $tw }}">
+                <div class="input-group" style="max-width: 360px;">
+                    <input type="text" name="q" value="{{ $q }}" placeholder="Search" class="form-control">
+                    <button class="btn btn-outline-secondary">Cari</button>
+                </div>
+            </form>
+        </div>
 
         {{-- Table --}}
         <div class="card">
@@ -81,7 +76,7 @@
                                     </td>
                                     <td class="text-nowrap text-center">
                                         <button type="button" class="btn btn-sm btn-outline-primary"
-                                            onclick="openEdit(this)" data-id="{{ $row->id_nwa }}"
+                                            onclick="openEdit(this)" data-id="{{ $row->id_nwa_triwulanan }}"
                                             data-nama="{{ $row->nama_kegiatan }}" data-bs="{{ $row->BS_Responden }}"
                                             data-pencacah="{{ $row->pencacah }}" data-pengawas="{{ $row->pengawas }}"
                                             data-target="{{ $row->target_penyelesaian ? \Carbon\Carbon::parse($row->target_penyelesaian)->format('Y-m-d') : '' }}"
@@ -89,7 +84,7 @@
                                             data-kumpul="{{ $row->tanggal_pengumpulan ? \Carbon\Carbon::parse($row->tanggal_pengumpulan)->format('Y-m-d') : '' }}">
                                             Edit
                                         </button>
-                                        <form action="{{ route('nwa.tahunan.destroy', $row) }}" method="post"
+                                        <form action="{{ route('nwa.triwulanan.destroy', [$jenis, $row]) }}" method="post"
                                             class="d-inline" onsubmit="return confirm('Hapus data ini?')">
                                             @csrf @method('DELETE')
                                             <button class="btn btn-sm btn-outline-danger">Hapus</button>
@@ -117,15 +112,13 @@
     <div class="modal fade" id="modalCreate" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
-                <form method="post" action="{{ route('nwa.tahunan.store') }}">
+                <form method="post" action="{{ route('nwa.triwulanan.store', $jenis) }}">
                     @csrf
                     <input type="hidden" name="_mode" value="create">
-
                     <div class="modal-header">
-                        <h5 class="modal-title">Tambah Data NWA Tahunan</h5>
+                        <h5 class="modal-title">Tambah Data {{ $prefix }} ({{ $tw }})</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-
                     <div class="modal-body">
                         @if ($errors->any() && old('_mode') === 'create')
                             <div class="alert alert-danger">
@@ -139,24 +132,29 @@
 
                         <div class="mb-3">
                             <label class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" class="form-control" required>
+                            <input type="text" name="nama_kegiatan"
+                                value="{{ old('nama_kegiatan', $prefix . '-' . $tw) }}" class="form-control" required>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Blok Sensus/Responden</label>
-                                <input type="text" name="BS_Responden" value="{{ old('BS_Responden') }}" class="form-control">
+                                <input type="text" name="BS_Responden" value="{{ old('BS_Responden') }}"
+                                    class="form-control">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Pencacah <span class="text-danger">*</span></label>
-                                <input type="text" name="pencacah" value="{{ old('pencacah') }}" class="form-control" required>
+                                <input type="text" name="pencacah" value="{{ old('pencacah') }}"
+                                    class="form-control" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Pengawas <span class="text-danger">*</span></label>
-                                <input type="text" name="pengawas" value="{{ old('pengawas') }}" class="form-control" required>
+                                <input type="text" name="pengawas" value="{{ old('pengawas') }}"
+                                    class="form-control" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Target Penyelesaian</label>
-                                <input type="date" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" class="form-control">
+                                <input type="date" name="target_penyelesaian"
+                                    value="{{ old('target_penyelesaian') }}" class="form-control">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Flag Progress <span class="text-danger">*</span></label>
@@ -170,11 +168,11 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Tanggal Pengumpulan</label>
-                                <input type="date" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}" class="form-control">
+                                <input type="date" name="tanggal_pengumpulan"
+                                    value="{{ old('tanggal_pengumpulan') }}" class="form-control">
                             </div>
                         </div>
                     </div>
-
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
                         <button type="reset" class="btn btn-outline-secondary">Reset</button>
@@ -194,12 +192,10 @@
                     @method('PUT')
                     <input type="hidden" name="_mode" value="edit">
                     <input type="hidden" name="_id" id="edit_id">
-
                     <div class="modal-header">
-                        <h5 class="modal-title">Edit Data NWA Tahunan</h5>
+                        <h5 class="modal-title">Edit Data {{ $prefix }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-
                     <div class="modal-body">
                         @if ($errors->any() && old('_mode') === 'edit')
                             <div class="alert alert-danger">
@@ -213,24 +209,34 @@
 
                         <div class="mb-3">
                             <label class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" id="edit_nama" name="nama_kegiatan" value="{{ old('_mode') === 'edit' ? old('nama_kegiatan') : '' }}" class="form-control" required>
+                            <input type="text" id="edit_nama" name="nama_kegiatan"
+                                value="{{ old('_mode') === 'edit' ? old('nama_kegiatan') : '' }}"
+                                class="form-control" required>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Blok Sensus/Responden</label>
-                                <input type="text" id="edit_bs" name="BS_Responden" value="{{ old('_mode') === 'edit' ? old('BS_Responden') : '' }}" class="form-control">
+                                <input type="text" id="edit_bs" name="BS_Responden"
+                                    value="{{ old('_mode') === 'edit' ? old('BS_Responden') : '' }}"
+                                    class="form-control">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Pencacah <span class="text-danger">*</span></label>
-                                <input type="text" id="edit_pencacah" name="pencacah" value="{{ old('_mode') === 'edit' ? old('pencacah') : '' }}" class="form-control" required>
+                                <input type="text" id="edit_pencacah" name="pencacah"
+                                    value="{{ old('_mode') === 'edit' ? old('pencacah') : '' }}" class="form-control"
+                                    required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Pengawas <span class="text-danger">*</span></label>
-                                <input type="text" id="edit_pengawas" name="pengawas" value="{{ old('_mode') === 'edit' ? old('pengawas') : '' }}" class="form-control" required>
+                                <input type="text" id="edit_pengawas" name="pengawas"
+                                    value="{{ old('_mode') === 'edit' ? old('pengawas') : '' }}" class="form-control"
+                                    required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Target Penyelesaian</label>
-                                <input type="date" id="edit_target" name="target_penyelesaian" value="{{ old('_mode') === 'edit' ? old('target_penyelesaian') : '' }}" class="form-control">
+                                <input type="date" id="edit_target" name="target_penyelesaian"
+                                    value="{{ old('_mode') === 'edit' ? old('target_penyelesaian') : '' }}"
+                                    class="form-control">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Flag Progress <span class="text-danger">*</span></label>
@@ -244,11 +250,12 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Tanggal Pengumpulan</label>
-                                <input type="date" id="edit_kumpul" name="tanggal_pengumpulan" value="{{ old('_mode') === 'edit' ? old('tanggal_pengumpulan') : '' }}" class="form-control">
+                                <input type="date" id="edit_kumpul" name="tanggal_pengumpulan"
+                                    value="{{ old('_mode') === 'edit' ? old('tanggal_pengumpulan') : '' }}"
+                                    class="form-control">
                             </div>
                         </div>
                     </div>
-
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary">Simpan</button>
@@ -262,7 +269,7 @@
 @push('scripts')
     <script>
         let modalCreate, modalEdit;
-        const updateUrlTemplate = "{{ route('nwa.tahunan.update', ['tahunan' => '__ID__']) }}";
+        const updateUrlTemplate = "{{ route('nwa.triwulanan.update', [$jenis, '__ID__']) }}";
 
         document.addEventListener('DOMContentLoaded', function() {
             modalCreate = new bootstrap.Modal(document.getElementById('modalCreate'));
