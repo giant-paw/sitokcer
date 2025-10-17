@@ -252,7 +252,7 @@
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('nwa/tahunan*') ? 'active-link' : '' }}">
-                    <a href="{{ route('nwa.tahunan') }}">NWA Tahunan</a>
+                    <a href="{{ route('nwa.tahunan.index') }}">NWA Tahunan</a>
                 </li>
                 <li class="menu-item has-dropdown {{ request()->is('nwa/triwulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
@@ -261,13 +261,13 @@
                     </a>
                     <ul class="submenu">
                         <li class="{{ request()->is('nwa/triwulanan/sklnp*') ? 'active-link' : '' }}">
-                            <a href="{{ route('nwa.sklnp') }}">SKLNP</a>
+                            <a href="{{ route('nwa.triwulanan.index', 'sklnp') }}">SKLNP</a>
                         </li>
                         <li class="{{ request()->is('nwa/triwulanan/snaper*') ? 'active-link' : '' }}">
-                            <a href="{{ route('nwa.snaper') }}">Snaper</a>
+                            <a href="{{ route('nwa.triwulanan.index', 'snaper') }}">Snaper</a>
                         </li>
                         <li class="{{ request()->is('nwa/triwulanan/sktnp*') ? 'active-link' : '' }}">
-                            <a href="{{ route('nwa.sktnp') }}">SKTNP</a>
+                            <a href="{{ route('nwa.triwulanan.index', 'sktnp') }}">SKTNP</a>
                         </li>
                     </ul>
                 </li>
@@ -282,16 +282,17 @@
             </a>
             <ul class="submenu">
                 <li class="{{ request()->is('rekapitulasi/pencacah*') ? 'active-link' : '' }}">
-                    <a href="{{ route('rekapitulasi.pencacah.index') }}">Rekap Pencacah</a>
+                    <a href="{{ route('rekapitulasi.pencacah') }}">Rekap Pencacah</a>
                 </li>
                 <li class="{{ request()->is('rekapitulasi/pengawas*') ? 'active-link' : '' }}">
-                    <a href="{{ route('rekapitulasi.pengawas.index') }}">Rekap Pengawas</a>
+                    <a href="{{ route('rekapitulasi.pengawas') }}">Rekap Pengawas</a>
                 </li>
             </ul>
         </li>
 
+        {{-- Ganti href-nya menjadi route('master.petugas.index') --}}
         <li class="{{ request()->is('master-petugas*') ? 'active-link' : '' }}">
-            <a href="{{ route('master.petugas') }}">
+            <a href="{{ route('master.petugas.index') }}">
                 <i class="bi bi-person-badge-fill menu-icon"></i>
                 <span>Master Petugas</span>
             </a>

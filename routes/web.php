@@ -3,10 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SosialTahunanController;
 use App\Http\Controllers\SosialSemesteranController;
-
-// Distribusi
-use App\Http\Controllers\DashboardDistribusiController;
 use App\Http\Controllers\DistribusiTahunanController;
+use App\Http\Controllers\DashboardDistribusiController;
 use App\Http\Controllers\DistribusiTriwulananController;
 use App\Http\Controllers\DistribusiBulananController;
 
@@ -21,6 +19,9 @@ use App\Http\Controllers\DashboardProduksiController;
 use App\Http\Controllers\DashboardSosialController;
 use App\Http\Controllers\PencacahController;
 use App\Http\Controllers\PengawasController;
+use App\Http\Controllers\NwaTahunanController;
+use App\Http\Controllers\NwaTriwulananController;
+use App\Http\Controllers\MasterPetugasController;
 
 Route::get('/', fn() => view('home'))->name('home');
 
@@ -32,15 +33,10 @@ Route::get('/dashboard-sosial', [DashboardSosialController::class, 'index'])->na
 
 /* --- TIM SOSIAL --- */
 Route::prefix('sosial')->name('sosial.')->group(function () {
-    // CRUD Sosial Tahunan (tanpa halaman create karena pakai modal di index)
     Route::resource('tahunan', SosialTahunanController::class);
-
-    // Resource lain (kalau butuh, biarkan default)
     Route::resource('seruti', SerutiController::class);
-
     Route::resource('semesteran', SosialSemesteranController::class);
-
-    // Halaman statis lain
+    // Rute lain tetap
     Route::get('/kegiatan-semesteran/susenas', fn() => view('timSosial.susenas'))->name('susenas');
 });
 
@@ -126,12 +122,23 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
     });
 });
 
-/* --- TIM NWA --- */
-Route::prefix('nwa')->name('nwa.')->group(function () {
-    Route::get('/tahunan',           fn() => view('timNWA.tahunan.NWAtahunan'))->name('tahunan');
-    Route::get('/triwulanan/sklnp',  fn() => view('timNWA.SKLNP.SKLNP'))->name('sklnp');
-    Route::get('/triwulanan/snaper', fn() => view('timNWA.snaper.snaper'))->name('snaper');
-    Route::get('/triwulanan/sktnp',  fn() => view('timNWA.SKTNP.SKTNP'))->name('sktnp');
+/* --- [DIPERBAIKI] TIM NWA --- */
+Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
+    // Route untuk NWA Tahunan (sudah benar)
+    Route::resource('tahunan', NwaTahunanController::class);
+
+    // Route untuk menampilkan halaman utama dan tabel data (method index)
+    Route::get('/triwulanan/{jenis}', [NwaTriwulananController::class, 'index'])->name('triwulanan.index');
+
+    // Route untuk menyimpan data baru dari modal 'Tambah' (method store)
+    Route::post('/triwulanan/{jenis}', [NwaTriwulananController::class, 'store'])->name('triwulanan.store');
+
+    // Route untuk memperbarui data dari modal 'Edit' (method update)
+    // {nwa_triwulanan} adalah parameter untuk ID data yang akan di-update
+    Route::put('/triwulanan/{jenis}/{nwa_triwulanan}', [NwaTriwulananController::class, 'update'])->name('triwulanan.update');
+
+    // Route untuk menghapus data (method destroy)
+    Route::delete('/triwulanan/{jenis}/{nwa_triwulanan}', [NwaTriwulananController::class, 'destroy'])->name('triwulanan.destroy');
 });
 
 /* --- REKAPITULASI --- */
@@ -155,6 +162,15 @@ Route::prefix('rekapitulasi')->name('rekapitulasi.')->group(function () {
 });
 
 /* --- MASTER --- */
-Route::get('/master-petugas',  fn() => view('masterpetugas'))->name('master.petugas');
+Route::get('/master-petugas', [MasterPetugasController::class, 'index'])->name('master.petugas.index');
+Route::resource('master-petugas', MasterPetugasController::class)
+    ->parameters(['master-petugas' => 'petugas'])
+    ->names('master.petugas');
+
+Route::post('/master-petugas/bulk-delete', [MasterPetugasController::class, 'bulkDelete'])->name('master.petugas.bulkDelete');
+Route::get('/master-petugas/export', [MasterPetugasController::class, 'export'])->name('master.petugas.export');
+
+
+
 Route::get('/master-kegiatan', fn() => view('masterkegiatan'))->name('master.kegiatan');
-Route::get('/user',            fn() => view('user'))->name('user');
+Route::get('/user', fn() => view('user'))->name('user');
