@@ -91,7 +91,7 @@
                 <li
                     class="menu-item has-dropdown {{ request()->is('tim-distribusi/triwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
-                        <span>Kegiatan Triwulan</span>
+                        <span>Kegiatan Triwulanan</span>
 
                     </a>
 
@@ -154,7 +154,7 @@
 
         <!-- TIM { PRODUKSI } -->
 
-        <li class="menu-item has-dropdown {{ request()->is('produksi*') ? 'active' : '' }}">
+        <li class="menu-item has-dropdown {{ request()->is('tim-produksi*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-graph-up-arrow menu-icon"></i>
                 <span>Tim Produksi</span>
@@ -162,7 +162,7 @@
             </a>
             <ul class="submenu">
                 
-                <!-- Produksi Tahuanan  -->
+                <!-- Produksi Tahunan  -->
                 <li class="{{ request()->is('tim-produksi/tahunan*') ? 'active-link' : '' }}">
                     <a href="{{ route('tim-produksi.tahunan.index') }}">Produksi Tahunan</a>
                 </li>
@@ -189,26 +189,29 @@
                         </li>
                     </ul>
                 </li>
-                <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-triwulan*') ? 'active' : '' }}">
+
+                <!-- Kegiatan TRIWULAN -->
+
+                <li class="menu-item has-dropdown {{ request()->is('tim-produksi/triwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
 
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sktr*') ? 'active-link' : '' }}"><a
-                                href="#">SKTR</a></li>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sktr*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sktr']) }}">SKTR</a></li>
                         <li class="{{ request()->is('produksi/kegiatan-triwulan/tpi*') ? 'active-link' : '' }}"><a
-                                href="#">TPI</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sphbst*') ? 'active-link' : '' }}">
-                            <a href="#">SPHBST</a>
+                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'tpi']) }}">TPI</a></li>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sphbst*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphbst']) }}">SPHBST</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sphtbf*') ? 'active-link' : '' }}">
-                            <a href="#">SPHTBF</a>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sphtbf*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphtbf']) }}">SPHTBF</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sphth*') ? 'active-link' : '' }}"><a
-                                href="#">SPHTH</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/air-bersih*') ? 'active-link' : '' }}">
-                            <a href="#">Air Bersih</a>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sphth*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphth']) }}">SPHTH</a></li>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/air-bersih*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'airbersih']) }}">Air Bersih</a>
                         </li>
                     </ul>
                 </li>
