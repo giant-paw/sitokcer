@@ -27,9 +27,13 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
     Route::resource('tahunan', SosialTahunanController::class);
     Route::resource('seruti', SerutiController::class);
     Route::resource('semesteran', SosialSemesteranController::class);
-    // Rute lain tetap
-    Route::get('/kegiatan-semesteran/susenas', fn() => view('timSosial.susenas'))->name('susenas');
+
+    Route::get('/semesteran/{kategori?}', [SosialSemesteranController::class, 'index'])->name('semesteran.index');
+    Route::post('/semesteran', [SosialSemesteranController::class, 'store'])->name('semesteran.store');
+    Route::put('/semesteran/{id}', [SosialSemesteranController::class, 'update'])->name('semesteran.update');
+    Route::delete('/semesteran/{id}', [SosialSemesteranController::class, 'destroy'])->name('semesteran.destroy');
 });
+
 
 /* --- TIM DISTRIBUSI --- */
 Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {

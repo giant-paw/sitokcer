@@ -12,47 +12,38 @@ class SosialSemesteranController extends Controller
 {
     public function index(Request $request)
     {
-        $kategori = $request->get('kategori', ''); // ex: "Sakernas"
-        $q        = trim($request->get('q', ''));
+        $kategori = $request->get('kategori', ''); // Mendapatkan kategori dari URL
 
         $query = SosialSemesteran::query();
 
-        if ($kategori) {
-            $query->where('nama_kegiatan', 'LIKE', "%$kategori%");
+        // Menyaring berdasarkan kategori yang dipilih
+        if ($kategori === 'Sakernas') {
+            $query->where('nama_kegiatan', 'LIKE', '%Sakernas%');
+        } elseif ($kategori === 'Susenas') {
+            $query->where('nama_kegiatan', 'LIKE', '%Susenas%');
         }
 
-        if ($q !== '') {
-            $query->where(function ($w) use ($q) {
-                $w->where('BS_Responden', 'LIKE', "%$q%")
-                    ->orWhere('pencacah', 'LIKE', "%$q%")
-                    ->orWhere('pengawas', 'LIKE', "%$q%")
-                    ->orWhere('flag_progress', 'LIKE', "%$q%");
-            });
-        }
-
+        // Ambil data sesuai kategori yang dipilih
         $items = $query->orderBy('id_sosial_semesteran', 'asc')
             ->paginate(20)
-            ->appends(['q' => $q, 'kategori' => $kategori]);
+            ->appends(['kategori' => $kategori]); // Menambahkan kategori ke URL agar tetap terlihat
 
-        // untuk auto-open modal ketika validasi gagal
-        $openModal = session('openModal', false);
-
-        return view('timSosial.semesteran.sakemas', compact('items', 'kategori', 'q', 'openModal'));
+        return view('timSosial.semesteran.index', compact('items', 'kategori'));
     }
 
     public function store(Request $r)
     {
         $data = $r->validate([
-            'nama_kegiatan'       => ['required', 'string', 'max:60', 'regex:/^Sakernas/i'],
+            'nama_kegiatan'       => ['required', 'string', 'max:60', 'regex:/^Susenas/i'], // Menyaring untuk Susenas
             'BS_Responden'        => 'nullable|string|max:150',
             'pencacah'            => 'required|string|max:100',
             'pengawas'            => 'required|string|max:100',
-            'target_penyelesaian' => 'nullable|date',         // dari input type=date (Y-m-d)
+            'target_penyelesaian' => 'nullable|date',
             'flag_progress'       => ['required', Rule::in(['Belum Mulai', 'Proses', 'Selesai'])],
-            'tanggal_pengumpulan' => 'nullable|date',         // dari input type=datetime-local
+            'tanggal_pengumpulan' => 'nullable|date',
         ]);
 
-        // Konversi tanggal sesuai skema penyimpanan (target_penyelesaian: d/m/Y, pengumpulan: Y-m-d H:i:s)
+        // Konversi tanggal sesuai skema penyimpanan
         if (!empty($data['target_penyelesaian'])) {
             $data['target_penyelesaian'] = Carbon::parse($data['target_penyelesaian'])->format('d/m/Y');
         }
@@ -63,9 +54,10 @@ class SosialSemesteranController extends Controller
         SosialSemesteran::create($data);
 
         return redirect()
-            ->route('sosial.semesteran.index', ['kategori' => 'Sakernas'])
-            ->with('ok', 'Data berhasil ditambahkan.');
+            ->route('sosial.semesteran.index', ['kategori' => 'Susenas'])  // Redirect ke halaman Susenas
+            ->with('ok', 'Data Susenas berhasil ditambahkan.');
     }
+
 
     public function show(SosialSemesteran $semesteran)
     {
