@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Distribusi;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class ProduksiBulanan extends Model
+class DistribusiTriwulanan extends Model
 {
-    protected $table = 'produksi_bulanan'; 
-    protected $primaryKey = 'id_produksi_bulanan'; 
+    protected $table = 'distribusi_triwulanan'; 
+    protected $primaryKey = 'id_distribusi_triwulanan'; 
     public $timestamps = true; 
 
     protected $fillable = [

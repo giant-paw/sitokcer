@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Nwa;
 
 use App\Http\Controllers\Controller;
-use App\Models\NwaTriwulanan;
+use App\Models\Nwa\NwaTriwulanan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 
 class NwaTriwulananController extends Controller
 {
-    /** Map slug menu -> prefix nama kegiatan */
     private const JENIS_MAP = [
         'sklnp'  => 'SKLNP',
         'snaper' => 'Snaper',

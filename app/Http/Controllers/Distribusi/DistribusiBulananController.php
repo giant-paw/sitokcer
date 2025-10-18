@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Distribusi;
 
 use App\Http\Controllers\Controller;
-use App\Models\DistribusiBulanan;
+use App\Models\Distribusi\DistribusiBulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Nwa;
 
 use App\Http\Controllers\Controller;
-use App\Models\NwaTahunan;
+use App\Models\Nwa\NwaTahunan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;

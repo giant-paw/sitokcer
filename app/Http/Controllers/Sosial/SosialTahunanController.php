@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Sosial;
 
 use App\Http\Controllers\Controller;
-use App\Models\SosialTahunan;
+use App\Models\Sosial\SosialTahunan;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 

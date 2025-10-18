@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Produksi;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\ProduksiTriwulanan;
+use App\Models\Produksi\ProduksiTriwulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 

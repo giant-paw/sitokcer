@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Distribusi;
 
 use App\Http\Controllers\Controller;
-use App\Models\DistribusiTriwulanan;
+use App\Models\Distribusi\DistribusiTriwulanan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;

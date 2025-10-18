@@ -3,14 +3,11 @@
 namespace App\Http\Controllers\MasterPetugas;
 
 use App\Http\Controllers\Controller;
-use App\Models\MasterPetugas;
+use App\Models\MasterPetugas\MasterPetugas;
 use Illuminate\Http\Request;
 
 class MasterPetugasController extends Controller
 {
-    /**
-     * Menampilkan daftar semua petugas dengan pagination.
-     */
     public function index(Request $request)
     {
         $q = $request->input('q');
@@ -27,9 +24,6 @@ class MasterPetugasController extends Controller
         return view('master.petugas.index', compact('petugas', 'q'));
     }
 
-    /**
-     * FUNGSI BARU - Menyimpan data petugas baru ke database.
-     */
     public function store(Request $request)
     {
         // Validasi sederhana
@@ -44,9 +38,6 @@ class MasterPetugasController extends Controller
         return redirect()->route('master.petugas.index')->with('success', 'Data petugas berhasil ditambahkan.');
     }
 
-    /**
-     * FUNGSI BARU - Memperbarui data petugas yang ada.
-     */
     public function update(Request $request, MasterPetugas $petugas)
     {
         // Validasi sederhana

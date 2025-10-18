@@ -1,7 +1,6 @@
 <?php
 
-// app/Models/SosialSemesteran.php
-namespace App\Models;
+namespace App\Models\Sosial;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,13 +11,13 @@ class SosialSemesteran extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'nama_kegiatan',        // contoh: "Sakernas Februari"
-        'BS_Responden',         // contoh: "009B"
+        'nama_kegiatan',        
+        'BS_Responden',         
         'pencacah',
         'pengawas',
-        'target_penyelesaian',  // tanggal (nullable)
-        'flag_progress',        // "Selesai" / dst
-        'tanggal_pengumpulan',  // datetime (nullable)
+        'target_penyelesaian',  
+        'flag_progress',        
+        'tanggal_pengumpulan',  
     ];
 
     // Format target_penyelesaian jika perlu manipulasi format

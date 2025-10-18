@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Distribusi;
 
 use App\Http\Controllers\Controller;
-use App\Models\DistribusiTahunan;
+use App\Models\Distribusi\DistribusiTahunan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;

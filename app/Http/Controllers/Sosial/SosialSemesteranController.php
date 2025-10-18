@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Sosial;
 
 use App\Http\Controllers\Controller;
-use App\Models\SosialSemesteran;
+use App\Models\Sosial\SosialSemesteran;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;

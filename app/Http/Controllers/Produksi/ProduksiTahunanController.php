@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Produksi;
 
 use App\Http\Controllers\Controller;
-use App\Models\ProduksiTahunan;
+use App\Models\Produksi\ProduksiTahunan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
