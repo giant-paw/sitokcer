@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Nwa;
 
+use App\Http\Controllers\Controller;
 use App\Models\NwaTahunan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

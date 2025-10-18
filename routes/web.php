@@ -1,7 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardDistribusiController;
+
+// DASHBOARD
+use App\Http\Controllers\Dashboard\DashboardDistribusiController;
+use App\Http\Controllers\Dashboard\DashboardNwaController;
+use App\Http\Controllers\Dashboard\DashboardProduksiController;
+use App\Http\Controllers\Dashboard\DashboardSosialController;
 
 // SOSIAL
 use App\Http\Controllers\Sosial\SosialTahunanController;
@@ -19,16 +24,18 @@ use App\Http\Controllers\Produksi\ProduksiCaturwulananController;
 use App\Http\Controllers\Produksi\ProduksiTriwulananController;
 use App\Http\Controllers\Produksi\ProduksiBulananController;
 
-// NWAb
-use App\Http\Controllers\DashboardNwaController;
-use App\Http\Controllers\DashboardProduksiController;
-use App\Http\Controllers\DashboardSosialController;
-use App\Http\Controllers\PencacahController;
-use App\Http\Controllers\PengawasController;
-use App\Http\Controllers\NwaTahunanController;
-use App\Http\Controllers\NwaTriwulananController;
-use App\Http\Controllers\MasterPetugasController;
+// NWA
+use App\Http\Controllers\Nwa\NwaTahunanController;
+use App\Http\Controllers\Nwa\NwaTriwulananController;
 
+// REKAPITULASI
+use App\Http\Controllers\Rekapitulasi\PencacahController;
+use App\Http\Controllers\Rekapitulasi\PengawasController;
+
+// MASTER PETUGAS
+use App\Http\Controllers\MasterPetugas\MasterPetugasController;
+
+// HOME
 Route::get('/', fn() => view('home'))->name('home');
 
 /* DASHBOARD */
@@ -48,7 +55,6 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
     Route::put('/semesteran/{id}', [SosialSemesteranController::class, 'update'])->name('semesteran.update');
     Route::delete('/semesteran/{id}', [SosialSemesteranController::class, 'destroy'])->name('semesteran.destroy');
 });
-
 
 /* --- TIM DISTRIBUSI --- */
 Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {

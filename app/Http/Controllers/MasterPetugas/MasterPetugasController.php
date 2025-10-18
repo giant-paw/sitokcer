@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\MasterPetugas;
 
+use App\Http\Controllers\Controller;
 use App\Models\MasterPetugas;
 use Illuminate\Http\Request;
 
