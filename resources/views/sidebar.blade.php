@@ -55,18 +55,19 @@
                         </li>
                     </ul>
                 </li>
-                <li class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-semesteran*') ? 'active' : '' }}">
+                <li class="menu-item has-dropdown {{ request()->is('sosial/semesteran*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Semesteran</span>
 
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('sosial/kegiatan-semesteran/sakernas*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.semesteran.index') }}">Sakernas</a>
+                        <li class="{{ request()->is('sosial/semesteran/sakernas*') ? 'active-link' : '' }}">
+                            <a href="{{ route('sosial.semesteran.index', ['kategori' => 'Sakernas']) }}">Sakernas</a>
                         </li>
-                        <li class="{{ request()->is('sosial/kegiatan-semesteran/susenas*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.susenas') }}">Susenas</a>
+                        <li class="{{ request()->is('sosial/semesteran/susenas*') ? 'active-link' : '' }}">
+                            <a href="{{ route('sosial.semesteran.index', ['kategori' => 'Susenas']) }}">Susenas</a>
                         </li>
+
                     </ul>
                 </li>
             </ul>

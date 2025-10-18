@@ -24,8 +24,7 @@ class NwaTriwulananController extends Controller
         $q      = trim($request->get('q', ''));
 
         $query = NwaTriwulanan::query()
-            ->whereRaw("TRIM(nama_kegiatan) LIKE ?", ["{$prefix}-{$tw}%"]);
-
+            ->where('nama_kegiatan', 'LIKE', "%{$prefix}-{$tw}%");
 
         if ($q !== '') {
             $query->where(function ($w) use ($q) {
@@ -35,6 +34,7 @@ class NwaTriwulananController extends Controller
                     ->orWhere('flag_progress', 'LIKE', "%$q%");
             });
         }
+
 
         $rows = $query->orderBy('id_nwa_triwulanan', 'asc')
             ->paginate(20)
