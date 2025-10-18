@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Sosial;
 
+use App\Http\Controllers\Controller;
 use App\Models\SosialTriwulanan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 
-class SerutiController extends Controller
+class SosialTriwulanController extends Controller
 {
     public function index(Request $request)
     {

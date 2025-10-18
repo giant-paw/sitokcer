@@ -1,12 +1,5 @@
 {{-- resources/views/sidebar.blade.php --}}
 <aside class="sidebar">
-    {{-- Logo dan Nama Situs --}}
-    <!-- <div class="sidebar-header">
-        <a href="{{ route('home') }}" class="sidebar-logo-link">
-            <img src="{{ asset('logo.png') }}" alt="Logo Sitokcer" class="sidebar-logo">
-            <h1 class="sidebar-title">Sitokcer</h1>
-        </a>
-    </div> -->
 
     <ul class="sidebar-menu">
         <li class="{{ request()->is('/') ? 'active-link' : '' }}">
@@ -34,6 +27,8 @@
             </ul>
         </li>
 
+        <!-- TIM SOSIAL -->
+
         <li class="menu-item has-dropdown {{ request()->is('sosial*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-people-fill menu-icon"></i>
@@ -41,20 +36,27 @@
 
             </a>
             <ul class="submenu">
+                
+                <!-- SOSIAL TAHUNAN -->
+                
                 <li class="{{ request()->is('sosial/tahunan*') ? 'active-link' : '' }}">
                     <a href="{{ route('sosial.tahunan.index') }}">Sosial Tahunan</a>
                 </li>
+                
+                <!-- SOSIAL TRIWULAN -->
                 <li class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-triwulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
 
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('sosial') ? 'active-link' : '' }}">
+                        <li class="{{ request()->is('sosial/kegiatan-triwulanan*') ? 'active-link' : '' }}">
                             <a href="{{ route('sosial.seruti.index') }}">Seruti</a>
                         </li>
                     </ul>
                 </li>
+
+                <!-- SOSIAL SEMESTERAN -->
                 <li class="menu-item has-dropdown {{ request()->is('sosial/semesteran*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Semesteran</span>
@@ -191,7 +193,7 @@
                     </ul>
                 </li>
 
-                <!-- Kegiatan TRIWULAN -->
+                <!-- PRODUKSI KEGIATAN TRIWULAN -->
 
                 <li class="menu-item has-dropdown {{ request()->is('tim-produksi/triwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
@@ -216,6 +218,8 @@
                         </li>
                     </ul>
                 </li>
+
+                <!-- PRODUKSI KEGIATAN BULANAN -->
                 <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-bulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Bulanan</span>
@@ -245,6 +249,9 @@
             </ul>
         </li>
 
+        
+        <!-- TIM NWA -->
+         
         <li class="menu-item has-dropdown {{ request()->is('nwa*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-bar-chart-line-fill menu-icon"></i>
@@ -252,14 +259,19 @@
 
             </a>
             <ul class="submenu">
+
+                <!-- NWA TAHUNAN  -->
                 <li class="{{ request()->is('nwa/tahunan*') ? 'active-link' : '' }}">
                     <a href="{{ route('nwa.tahunan.index') }}">NWA Tahunan</a>
                 </li>
+
+                <!-- NWA TRIWULAN  -->
                 <li class="menu-item has-dropdown {{ request()->is('nwa/triwulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>NWA Triwulanan</span>
 
                     </a>
+
                     <ul class="submenu">
                         <li class="{{ request()->is('nwa/triwulanan/sklnp*') ? 'active-link' : '' }}">
                             <a href="{{ route('nwa.triwulanan.index', 'sklnp') }}">SKLNP</a>
@@ -275,13 +287,17 @@
             </ul>
         </li>
 
+        <!-- REKAPITULASI -->
+
         <li class="menu-item has-dropdown {{ request()->is('rekapitulasi*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-file-earmark-text-fill menu-icon"></i>
                 <span>Rekapitulasi</span>
 
             </a>
+            
             <ul class="submenu">
+                <!-- Rekap Pencacah & Pengawas -->
                 <li class="{{ request()->is('rekapitulasi/pencacah*') ? 'active-link' : '' }}">
                     <a href="{{ route('rekapitulasi.pencacah.index') }}">Rekap Pencacah</a>
                 </li>
@@ -291,7 +307,7 @@
             </ul>
         </li>
 
-        {{-- Ganti href-nya menjadi route('master.petugas.index') --}}
+        <!-- MASTER DATA -->
         <li class="{{ request()->is('master-petugas*') ? 'active-link' : '' }}">
             <a href="{{ route('master.petugas.index') }}">
                 <i class="bi bi-person-badge-fill menu-icon"></i>
@@ -305,6 +321,8 @@
                 <span>Master Kegiatan</span>
             </a>
         </li>
+
+        <!-- USER -->
 
         <li class="{{ request()->is('user*') ? 'active-link' : '' }}">
             <a href="{{ route('user') }}">

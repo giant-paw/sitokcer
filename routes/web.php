@@ -4,9 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardDistribusiController;
 
 // SOSIAL
-use App\Http\Controllers\SosialTahunanController;
-use App\Http\Controllers\SosialSemesteranController;
-use App\Http\Controllers\SerutiController;
+use App\Http\Controllers\Sosial\SosialTahunanController;
+use App\Http\Controllers\Sosial\SosialSemesteranController;
+use App\Http\Controllers\Sosial\SosialTriwulanController;
 
 // DISTRIBUSI
 use App\Http\Controllers\Distribusi\DistribusiTahunanController;
@@ -40,7 +40,7 @@ Route::get('/dashboard-sosial', [DashboardSosialController::class, 'index'])->na
 /* --- TIM SOSIAL --- */
 Route::prefix('sosial')->name('sosial.')->group(function () {
     Route::resource('tahunan', SosialTahunanController::class);
-    Route::resource('seruti', SerutiController::class);
+    Route::resource('seruti', SosialTriwulanController::class);
     Route::resource('semesteran', SosialSemesteranController::class);
 
     Route::get('/semesteran/{kategori?}', [SosialSemesteranController::class, 'index'])->name('semesteran.index');

@@ -1,8 +1,8 @@
 <?php
-// app/Http/Controllers/SosialSemesteranController.php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Sosial;
 
+use App\Http\Controllers\Controller;
 use App\Models\SosialSemesteran;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
