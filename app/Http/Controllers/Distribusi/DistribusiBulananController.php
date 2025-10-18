@@ -1,17 +1,24 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Distribusi;
 
-use App\Models\DistribusiTahunan;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Models\DistribusiBulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class DistribusiTahunanController extends Controller
+use Illuminate\Http\Request;
+
+class DistribusiBulananController extends Controller
 {
-    public function index(Request $request)
+    // Tampil data sesuai jenis kegiatan
+    public function index(Request $request, $jenisKegiatan)
     {
-        $query = DistribusiTahunan::query();
+        if (!in_array(strtolower($jenisKegiatan), ['vhts', 'hkd', 'shpb', 'shp', 'shpj', 'shpbg'])) {
+            abort(404);
+        }
+
+        $query = DistribusiBulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%');
 
         if ($request->filled('kegiatan')) {
             $query->where('nama_kegiatan', $request->kegiatan);
@@ -26,7 +33,7 @@ class DistribusiTahunanController extends Controller
                   ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
-
+        
         $perPage = $request->input('per_page', 20); 
 
         if ($perPage == 'all') {
@@ -36,13 +43,14 @@ class DistribusiTahunanController extends Controller
 
         $listData = $query->latest()->paginate($perPage)->withQueryString();
 
-        $kegiatanCounts = DistribusiTahunan::query()
+        $kegiatanCounts = DistribusiBulanan::query()
+            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        return view('timDistribusi.distribusitahunan', compact('listData', 'kegiatanCounts'));
+        return view('timDistribusi.distribusiBulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
     }
 
     public function store(Request $request)
@@ -59,55 +67,55 @@ class DistribusiTahunanController extends Controller
 
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
-        DistribusiTahunan::create($validatedData);
+        DistribusiBulanan::create($validatedData);
 
         return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
 
-    public function edit($id)
+    public function edit(DistribusiBulanan $distribusi_bulanan)
     {
-        $distribusi = DistribusiTahunan::findOrFail($id);
-        
-        return response()->json($distribusi);
+        return response()->json($distribusi_bulanan);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, DistribusiBulanan $distribusi_bulanan)
     {
         $validatedData = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
             'BS_Responden' => 'required|string|max:255', 
             'pencacah' => 'required|string|max:255',
             'pengawas' => 'required|string|max:255',
-            'target_penyelesaian' => 'required|string|max:255',
+            'target_penyelesaian' => 'required|date',
             'flag_progress' => 'required|string',
-            'tanggal_pengumpulan' => 'nullable|string|max:255',
+            'tanggal_pengumpulan' => 'nullable|date',
         ]);
 
-        $distribusi = DistribusiTahunan::findOrFail($id);
+        if($request->has('target_penyelesaian')) {
+            $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+        }
+        
+        $distribusi_bulanan->update($validatedData);
 
-        $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
-
-        $distribusi->update($validatedData);
-        return redirect()->route('tim-distribusi.tahunan.index')->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
+        return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
+
 
     public function bulkDelete(Request $request)
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:distribusi_tahunan,id_distribusi' 
+            'ids.*' => 'exists:distribusi_bulanan,id_distribusi_bulanan' 
         ]);
 
-        DistribusiTahunan::whereIn('id_distribusi', $request->ids)->delete();
-        return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true, 'hide_after' => 2]);
+        DistribusiBulanan::whereIn('id_distribusi_bulanan', $request->ids)->delete();
+
+        return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
     }
 
-    public function destroy($id)
+    public function destroy(DistribusiBulanan $distribusi_bulanan)
     {
-        $distribusi = DistribusiTahunan::findOrFail($id);
-        $distribusi->delete();
+        $distribusi_bulanan->delete();
 
-        return redirect()->route('tim-distribusi.tahunan.index')->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
+        return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 
     public function searchPetugas(Request $request)
@@ -120,7 +128,7 @@ class DistribusiTahunanController extends Controller
         $field = $request->input('field');
         $query = $request->input('query', '');
 
-        $data = DistribusiTahunan::query()
+        $data = DistribusiBulanan::query()
             ->select($field)
             ->where($field, 'LIKE', "%{$query}%")
             ->distinct() 

@@ -9,15 +9,15 @@ use App\Http\Controllers\SosialSemesteranController;
 use App\Http\Controllers\SerutiController;
 
 // DISTRIBUSI
-use App\Http\Controllers\DistribusiTahunanController;
-use App\Http\Controllers\DistribusiTriwulananController;
-use App\Http\Controllers\DistribusiBulananController;
+use App\Http\Controllers\Distribusi\DistribusiTahunanController;
+use App\Http\Controllers\Distribusi\DistribusiTriwulananController;
+use App\Http\Controllers\Distribusi\DistribusiBulananController;
 
 // Produksi
-use App\Http\Controllers\ProduksiTahunanController;
-use App\Http\Controllers\ProduksiCaturwulananController;
-use App\Http\Controllers\ProduksiTriwulananController;
-use App\Http\Controllers\ProduksiBulananController;
+use App\Http\Controllers\Produksi\ProduksiTahunanController;
+use App\Http\Controllers\Produksi\ProduksiCaturwulananController;
+use App\Http\Controllers\Produksi\ProduksiTriwulananController;
+use App\Http\Controllers\Produksi\ProduksiBulananController;
 
 // NWAb
 use App\Http\Controllers\DashboardNwaController;

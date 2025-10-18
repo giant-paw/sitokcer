@@ -1,22 +1,24 @@
 <?php
 
-namespace App\Http\Controllers;
-use App\Models\ProduksiBulanan;
+namespace App\Http\Controllers\Produksi;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\ProduksiTriwulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-use Illuminate\Http\Request;
-
-class ProduksiBulananController extends Controller
+class ProduksiTriwulananController extends Controller
 {
-    // Tampil data sesuai jenis kegiatan
+    // Tampil data berdasarkan nama kegiatan
     public function index(Request $request, $jenisKegiatan)
     {
-        if (!in_array(strtolower($jenisKegiatan), ['ksapadi', 'ksajagung', 'lptb', 'sphsbs', 'sppalawija', 'perkebunan', 'ibs'])) {
+        
+        if (!in_array(strtolower($jenisKegiatan), ['sktr', 'tpi', 'sphbst', 'sphtbf', 'sphth', 'Airbersih'])) {
             abort(404);
         }
 
-        $query = ProduksiBulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%');
+        $query = ProduksiTriwulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%');
 
         if ($request->filled('kegiatan')) {
             $query->where('nama_kegiatan', $request->kegiatan);
@@ -31,7 +33,7 @@ class ProduksiBulananController extends Controller
                   ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
-        
+
         $perPage = $request->input('per_page', 20); 
 
         if ($perPage == 'all') {
@@ -41,14 +43,14 @@ class ProduksiBulananController extends Controller
 
         $listData = $query->latest()->paginate($perPage)->withQueryString();
 
-        $kegiatanCounts = ProduksiBulanan::query()
+        $kegiatanCounts = ProduksiTriwulanan::query()
             ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        return view('timProduksi.produksiBulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
+        return view('timProduksi.produksiTriwulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
     }
 
     public function store(Request $request)
@@ -65,34 +67,31 @@ class ProduksiBulananController extends Controller
 
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
-        ProduksiBulanan::create($validatedData);
+        ProduksiTriwulanan::create($validatedData);
 
         return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
 
-    public function edit(ProduksiBulanan $produksi_bulanan)
+    public function edit(ProduksiTriwulanan $produksi_triwulanan)
     {
-        return response()->json($produksi_bulanan);
+        return response()->json($produksi_triwulanan);
     }
 
-    public function update(Request $request, ProduksiBulanan $produksi_bulanan)
+    public function update(Request $request, ProduksiTriwulanan $produksi_triwulanan)
     {
         $validatedData = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
             'BS_Responden' => 'required|string|max:255', 
             'pencacah' => 'required|string|max:255',
             'pengawas' => 'required|string|max:255',
-            'target_penyelesaian' => 'required|date',
+            'target_penyelesaian' => 'required|string|max:255',
             'flag_progress' => 'required|string',
-            'tanggal_pengumpulan' => 'nullable|date',
+            'tanggal_pengumpulan' => 'nullable|string|max:255',
         ]);
 
-        if($request->has('target_penyelesaian')) {
-            $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
-        }
-        
-        $produksi_bulanan->update($validatedData);
+        $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
+        $produksi_triwulanan->update($validatedData);
         return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
@@ -101,17 +100,17 @@ class ProduksiBulananController extends Controller
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:produksi_bulanan,id_produksi_bulanan' 
+            'ids.*' => 'exists:produksi_triwulanan,id_produksi_triwulanan' 
         ]);
 
-        ProduksiBulanan::whereIn('id_produksi_bulanan', $request->ids)->delete();
+        ProduksiTriwulanan::whereIn('id_produksi_triwulanan', $request->ids)->delete();
 
         return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
     }
 
-    public function destroy(ProduksiBulanan $produksi_bulanan)
+    public function destroy(ProduksiTriwulanan $produksi_triwulanan)
     {
-        $produksi_bulanan->delete();
+        $produksi_triwulanan->delete();
 
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
@@ -126,7 +125,7 @@ class ProduksiBulananController extends Controller
         $field = $request->input('field');
         $query = $request->input('query', '');
 
-        $data = ProduksiBulanan::query()
+        $data = ProduksiTriwulanan::query()
             ->select($field)
             ->where($field, 'LIKE', "%{$query}%")
             ->distinct() 

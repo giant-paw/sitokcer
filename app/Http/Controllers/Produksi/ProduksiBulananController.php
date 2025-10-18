@@ -1,28 +1,24 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Produksi;
 
-use Illuminate\Http\Request;
-use App\Models\ProduksiCaturwulanan;
+use App\Http\Controllers\Controller;
+use App\Models\ProduksiBulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class ProduksiCaturwulananController extends Controller
+use Illuminate\Http\Request;
+
+class ProduksiBulananController extends Controller
 {
+    // Tampil data sesuai jenis kegiatan
     public function index(Request $request, $jenisKegiatan)
     {
-        
-        $lowercaseJenis = strtolower($jenisKegiatan);
-
-        if (!in_array($lowercaseJenis, ['ubinan padi palawija', 'ubinan utp palawija'])) {
+        if (!in_array(strtolower($jenisKegiatan), ['ksapadi', 'ksajagung', 'lptb', 'sphsbs', 'sppalawija', 'perkebunan', 'ibs'])) {
             abort(404);
         }
 
-        $searchString = str_replace(' ', '', $lowercaseJenis); 
-        
-        $query = ProduksiCaturwulanan::query()
-            ->whereRaw('LOWER(REPLACE(nama_kegiatan, " ", "")) LIKE ?', [$searchString . '%']);
-
+        $query = ProduksiBulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%');
 
         if ($request->filled('kegiatan')) {
             $query->where('nama_kegiatan', $request->kegiatan);
@@ -32,12 +28,12 @@ class ProduksiCaturwulananController extends Controller
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+                  ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                  ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                  ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
-
+        
         $perPage = $request->input('per_page', 20); 
 
         if ($perPage == 'all') {
@@ -47,14 +43,14 @@ class ProduksiCaturwulananController extends Controller
 
         $listData = $query->latest()->paginate($perPage)->withQueryString();
 
-        $kegiatanCounts = ProduksiCaturwulanan::query()
-            ->whereRaw('LOWER(REPLACE(nama_kegiatan, " ", "")) LIKE ?', [$searchString . '%']) 
+        $kegiatanCounts = ProduksiBulanan::query()
+            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        return view('timProduksi.produksiCaturwulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
+        return view('timProduksi.produksiBulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
     }
 
     public function store(Request $request)
@@ -66,22 +62,22 @@ class ProduksiCaturwulananController extends Controller
             'pengawas' => 'required|string|max:255',
             'target_penyelesaian' => 'required|date',
             'flag_progress' => 'required|string',
-            'tanggal_pengumpulan' => 'required|date',
+            'tanggal_pengumpulan' => 'nullable|date',
         ]);
 
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
-        ProduksiCaturwulanan::create($validatedData);
+        ProduksiBulanan::create($validatedData);
 
         return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
 
-    public function edit(ProduksiCaturwulanan $produksi_caturwulanan)
+    public function edit(ProduksiBulanan $produksi_bulanan)
     {
-        return response()->json($produksi_caturwulanan);
+        return response()->json($produksi_bulanan);
     }
 
-    public function update(Request $request, ProduksiCaturwulanan $produksi_caturwulanan)
+    public function update(Request $request, ProduksiBulanan $produksi_bulanan)
     {
         $validatedData = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
@@ -90,13 +86,15 @@ class ProduksiCaturwulananController extends Controller
             'pengawas' => 'required|string|max:255',
             'target_penyelesaian' => 'required|date',
             'flag_progress' => 'required|string',
-            'tanggal_pengumpulan' => 'required|date',
+            'tanggal_pengumpulan' => 'nullable|date',
         ]);
 
-        $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
-
-        $produksi_caturwulanan->update($validatedData);
+        if($request->has('target_penyelesaian')) {
+            $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+        }
         
+        $produksi_bulanan->update($validatedData);
+
         return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
@@ -105,19 +103,18 @@ class ProduksiCaturwulananController extends Controller
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:produksi_caturwulanan,id_produksi_caturwulanan' 
+            'ids.*' => 'exists:produksi_bulanan,id_produksi_bulanan' 
         ]);
 
-        ProduksiCaturwulanan::whereIn('id_produksi_caturwulanan', $request->ids)->delete();
+        ProduksiBulanan::whereIn('id_produksi_bulanan', $request->ids)->delete();
 
         return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
     }
 
-
-    public function destroy(ProduksiCaturwulanan $produksi_caturwulanan)
+    public function destroy(ProduksiBulanan $produksi_bulanan)
     {
-        $produksi_caturwulanan->delete();
-        
+        $produksi_bulanan->delete();
+
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 
@@ -127,11 +124,11 @@ class ProduksiCaturwulananController extends Controller
             'field' => 'required|in:pencacah,pengawas',
             'query' => 'nullable|string|max:100',
         ]);
-    
+
         $field = $request->input('field');
         $query = $request->input('query', '');
 
-        $data = ProduksiCaturwulanan::query()
+        $data = ProduksiBulanan::query()
             ->select($field)
             ->where($field, 'LIKE', "%{$query}%")
             ->distinct() 

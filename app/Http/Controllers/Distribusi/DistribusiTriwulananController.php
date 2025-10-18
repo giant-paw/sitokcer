@@ -1,23 +1,24 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Distribusi;
 
+use App\Http\Controllers\Controller;
+use App\Models\DistribusiTriwulanan;
 use Illuminate\Http\Request;
-use App\Models\ProduksiTriwulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class ProduksiTriwulananController extends Controller
+class DistribusiTriwulananController extends Controller
 {
-    // Tampil data berdasarkan nama kegiatan
+    // Tampil data SPUNP atau SHKK
     public function index(Request $request, $jenisKegiatan)
     {
         
-        if (!in_array(strtolower($jenisKegiatan), ['sktr', 'tpi', 'sphbst', 'sphtbf', 'sphth', 'Airbersih'])) {
+        if (!in_array(strtolower($jenisKegiatan), ['spunp', 'shkk'])) {
             abort(404);
         }
 
-        $query = ProduksiTriwulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%');
+        $query = DistribusiTriwulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%');
 
         if ($request->filled('kegiatan')) {
             $query->where('nama_kegiatan', $request->kegiatan);
@@ -42,14 +43,14 @@ class ProduksiTriwulananController extends Controller
 
         $listData = $query->latest()->paginate($perPage)->withQueryString();
 
-        $kegiatanCounts = ProduksiTriwulanan::query()
+        $kegiatanCounts = DistribusiTriwulanan::query()
             ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        return view('timProduksi.produksiTriwulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
+        return view('timDistribusi.distribusiTriwulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
     }
 
     public function store(Request $request)
@@ -66,17 +67,17 @@ class ProduksiTriwulananController extends Controller
 
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
-        ProduksiTriwulanan::create($validatedData);
+        DistribusiTriwulanan::create($validatedData);
 
         return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
 
-    public function edit(ProduksiTriwulanan $produksi_triwulanan)
+    public function edit(DistribusiTriwulanan $distribusi_triwulanan)
     {
-        return response()->json($produksi_triwulanan);
+        return response()->json($distribusi_triwulanan);
     }
 
-    public function update(Request $request, ProduksiTriwulanan $produksi_triwulanan)
+    public function update(Request $request, DistribusiTriwulanan $distribusi_triwulanan)
     {
         $validatedData = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
@@ -90,7 +91,7 @@ class ProduksiTriwulananController extends Controller
 
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
-        $produksi_triwulanan->update($validatedData);
+        $distribusi_triwulanan->update($validatedData);
         return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
@@ -99,17 +100,17 @@ class ProduksiTriwulananController extends Controller
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:produksi_triwulanan,id_produksi_triwulanan' 
+            'ids.*' => 'exists:distribusi_triwulanan,id_distribusi_triwulanan' 
         ]);
 
-        ProduksiTriwulanan::whereIn('id_produksi_triwulanan', $request->ids)->delete();
+        DistribusiTriwulanan::whereIn('id_distribusi_triwulanan', $request->ids)->delete();
 
         return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
     }
 
-    public function destroy(ProduksiTriwulanan $produksi_triwulanan)
+    public function destroy(DistribusiTriwulanan $distribusi_triwulanan)
     {
-        $produksi_triwulanan->delete();
+        $distribusi_triwulanan->delete();
 
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
@@ -124,7 +125,7 @@ class ProduksiTriwulananController extends Controller
         $field = $request->input('field');
         $query = $request->input('query', '');
 
-        $data = ProduksiTriwulanan::query()
+        $data = DistribusiTriwulanan::query()
             ->select($field)
             ->where($field, 'LIKE', "%{$query}%")
             ->distinct() 

@@ -1,23 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Distribusi;
 
-use App\Models\DistribusiTriwulanan;
+use App\Http\Controllers\Controller;
+use App\Models\DistribusiTahunan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class DistribusiTriwulananController extends Controller
+class DistribusiTahunanController extends Controller
 {
-    // Tampil data SPUNP atau SHKK
-    public function index(Request $request, $jenisKegiatan)
+    public function index(Request $request)
     {
-        
-        if (!in_array(strtolower($jenisKegiatan), ['spunp', 'shkk'])) {
-            abort(404);
-        }
-
-        $query = DistribusiTriwulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%');
+        $query = DistribusiTahunan::query();
 
         if ($request->filled('kegiatan')) {
             $query->where('nama_kegiatan', $request->kegiatan);
@@ -42,14 +37,13 @@ class DistribusiTriwulananController extends Controller
 
         $listData = $query->latest()->paginate($perPage)->withQueryString();
 
-        $kegiatanCounts = DistribusiTriwulanan::query()
-            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')
+        $kegiatanCounts = DistribusiTahunan::query()
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        return view('timDistribusi.distribusiTriwulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
+        return view('timDistribusi.distribusitahunan', compact('listData', 'kegiatanCounts'));
     }
 
     public function store(Request $request)
@@ -66,17 +60,19 @@ class DistribusiTriwulananController extends Controller
 
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
-        DistribusiTriwulanan::create($validatedData);
+        DistribusiTahunan::create($validatedData);
 
         return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
 
-    public function edit(DistribusiTriwulanan $distribusi_triwulanan)
+    public function edit($id)
     {
-        return response()->json($distribusi_triwulanan);
+        $distribusi = DistribusiTahunan::findOrFail($id);
+        
+        return response()->json($distribusi);
     }
 
-    public function update(Request $request, DistribusiTriwulanan $distribusi_triwulanan)
+    public function update(Request $request, $id)
     {
         $validatedData = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
@@ -88,30 +84,31 @@ class DistribusiTriwulananController extends Controller
             'tanggal_pengumpulan' => 'nullable|string|max:255',
         ]);
 
+        $distribusi = DistribusiTahunan::findOrFail($id);
+
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
-        $distribusi_triwulanan->update($validatedData);
-        return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
+        $distribusi->update($validatedData);
+        return redirect()->route('tim-distribusi.tahunan.index')->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
-
 
     public function bulkDelete(Request $request)
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:distribusi_triwulanan,id_distribusi_triwulanan' 
+            'ids.*' => 'exists:distribusi_tahunan,id_distribusi' 
         ]);
 
-        DistribusiTriwulanan::whereIn('id_distribusi_triwulanan', $request->ids)->delete();
-
-        return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
+        DistribusiTahunan::whereIn('id_distribusi', $request->ids)->delete();
+        return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true, 'hide_after' => 2]);
     }
 
-    public function destroy(DistribusiTriwulanan $distribusi_triwulanan)
+    public function destroy($id)
     {
-        $distribusi_triwulanan->delete();
+        $distribusi = DistribusiTahunan::findOrFail($id);
+        $distribusi->delete();
 
-        return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
+        return redirect()->route('tim-distribusi.tahunan.index')->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 
     public function searchPetugas(Request $request)
@@ -124,7 +121,7 @@ class DistribusiTriwulananController extends Controller
         $field = $request->input('field');
         $query = $request->input('query', '');
 
-        $data = DistribusiTriwulanan::query()
+        $data = DistribusiTahunan::query()
             ->select($field)
             ->where($field, 'LIKE', "%{$query}%")
             ->distinct() 
