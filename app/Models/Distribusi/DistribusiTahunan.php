@@ -12,6 +12,7 @@ class DistribusiTahunan extends Model
     public $timestamps = true; 
 
     protected $fillable = [
+        'id_master_kegiatan',
         'nama_kegiatan',
         'BS_Responden',
         'pencacah',
@@ -21,4 +22,10 @@ class DistribusiTahunan extends Model
         'flag_progress',
         'tanggal_pengumpulan'
     ];
+
+    // Relasi ke MasterKegiatan
+    public function masterKegiatan()
+    {
+        return $this->belongsTo(MasterKegiatan::class, 'id_master_kegiatan', 'id_master_kegiatan');
+    }
 }

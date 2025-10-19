@@ -315,8 +315,9 @@
             </a>
         </li>
 
+        <!-- MASTER KEGIATAN -->
         <li class="{{ request()->is('master-kegiatan*') ? 'active-link' : '' }}">
-            <a href="{{ route('master.kegiatan') }}">
+            <a href="{{ route('master.kegiatan.index') }}">
                 <i class="bi bi-clipboard-data-fill menu-icon"></i>
                 <span>Master Kegiatan</span>
             </a>

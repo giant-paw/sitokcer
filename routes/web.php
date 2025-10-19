@@ -33,7 +33,10 @@ use App\Http\Controllers\Rekapitulasi\PencacahController;
 use App\Http\Controllers\Rekapitulasi\PengawasController;
 
 // MASTER PETUGAS
-use App\Http\Controllers\MasterPetugas\MasterPetugasController;
+use App\Http\Controllers\Master\MasterPetugasController;
+
+// MASTER KEGIATAN
+use App\Http\Controllers\Master\MasterKegiatanController;
 
 // HOME
 Route::get('/', fn() => view('home'))->name('home');
@@ -193,6 +196,7 @@ Route::prefix('rekapitulasi')->name('rekapitulasi.')->group(function () {
     Route::post('/pengawas/print-selected', [PengawasController::class, 'printSelectedData'])->name('pengawas.printSelected');
 });
 
+/* --- MASTER PETUGAS --- */
 Route::prefix('master-petugas')
     ->name('master.petugas.')
     ->controller(MasterPetugasController::class)
@@ -210,5 +214,18 @@ Route::prefix('master-petugas')
         Route::delete('/{petugas}', 'destroy')->name('destroy');
     });
 
-Route::get('/master-kegiatan', fn() => view('masterkegiatan'))->name('master.kegiatan');
+/* --- MASTER KEGIATAN --- */
+Route::prefix('master-kegiatan')
+    ->name('master.kegiatan.')
+    ->controller(MasterKegiatanController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{kegiatan}/edit', 'edit')->name('edit');
+        Route::put('/{kegiatan}', 'update')->name('update');
+        Route::delete('/{kegiatan}', 'destroy')->name('destroy');
+        Route::post('/bulk-delete', 'bulkDelete')->name('bulkDelete');
+    });
+
+
 Route::get('/user', fn() => view('user'))->name('user');

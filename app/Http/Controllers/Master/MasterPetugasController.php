@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\MasterPetugas;
+namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
-use App\Models\MasterPetugas\MasterPetugas;
+use App\Models\Master\MasterPetugas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator; 
 use Illuminate\Validation\Rule; 
@@ -11,23 +11,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MasterPetugasController extends Controller
 {
-    // public function index(Request $request)
-    // {
-    //     $search = $request->input('search');
-
-    //     $petugas = MasterPetugas::when($search, function ($query, $term) { 
-    //         // Logika pencarian
-    //         $query->where('nama_petugas', 'like', "%{$term}%")
-    //               ->orWhere('nik', 'like', "%{$term}%")
-    //               ->orWhere('kategori', 'like', "%{$term}%");
-    //     })
-    //     ->latest() 
-    //     ->orderBy('nama_petugas', 'asc')
-    //     ->paginate(15)
-    //     ->appends(['search' => $search]); 
-
-    //     return view('masterPetugas.masterPetugas', compact('petugas', 'search')); 
-    // }
 
     public function index(Request $request)
     {
@@ -47,7 +30,7 @@ class MasterPetugasController extends Controller
             $perPage = $total > 0 ? $total : 15;
         }
 
-        $petugas = $query->orderBy('nama_petugas', 'asc')
+        $petugas = $query->orderBy('created_at', 'desc')
                          ->paginate($perPage)
                          ->withQueryString();
 
