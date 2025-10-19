@@ -307,7 +307,7 @@
             </ul>
         </li>
 
-        <!-- MASTER DATA -->
+        <!-- MASTER PETUGAS -->
         <li class="{{ request()->is('master-petugas*') ? 'active-link' : '' }}">
             <a href="{{ route('master.petugas.index') }}">
                 <i class="bi bi-person-badge-fill menu-icon"></i>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Distribusi\DistribusiBulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\MasterPetugas\MasterPetugas;
 
 use Illuminate\Http\Request;
 
@@ -128,12 +129,10 @@ class DistribusiBulananController extends Controller
         $field = $request->input('field');
         $query = $request->input('query', '');
 
-        $data = DistribusiBulanan::query()
-            ->select($field)
-            ->where($field, 'LIKE', "%{$query}%")
-            ->distinct() 
-            ->limit(5)  
-            ->pluck($field);
+        $data = MasterPetugas::query()
+            ->where('nama_petugas', 'LIKE', "%{$query}%")
+            ->limit(10) 
+            ->pluck('nama_petugas');
 
         return response()->json($data);
     }

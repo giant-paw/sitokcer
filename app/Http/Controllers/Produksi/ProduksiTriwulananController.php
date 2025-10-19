@@ -125,12 +125,10 @@ class ProduksiTriwulananController extends Controller
         $field = $request->input('field');
         $query = $request->input('query', '');
 
-        $data = ProduksiTriwulanan::query()
-            ->select($field)
-            ->where($field, 'LIKE', "%{$query}%")
-            ->distinct() 
-            ->limit(5)  
-            ->pluck($field);
+        $data = MasterPetugas::query()
+            ->where('nama_petugas', 'LIKE', "%{$query}%")
+            ->limit(10) 
+            ->pluck('nama_petugas');
 
         return response()->json($data);
     }

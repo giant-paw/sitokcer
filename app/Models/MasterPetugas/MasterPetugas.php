@@ -10,21 +10,21 @@ class MasterPetugas extends Model
     use HasFactory;
 
     /**
-     * Nama tabel yang terhubung dengan model.
+     * 
      *
      * @var string
      */
     protected $table = 'master_petugas';
 
     /**
-     * Primary key untuk model.
+     * 
      *
      * @var string
      */
     protected $primaryKey = 'id_petugas';
 
     /**
-     * Atribut yang dapat diisi secara massal.
+     * 
      *
      * @var array
      */
@@ -45,13 +45,4 @@ class MasterPetugas extends Model
     'status',
 ];
 
-
-
-    /**
-     * Menonaktifkan timestamps (created_at dan updated_at).
-     *
-     * @var bool
-     */
-    public $timestamps = false;
 }
-
