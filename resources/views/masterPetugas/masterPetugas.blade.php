@@ -23,15 +23,31 @@
                         <i class="bi bi-trash me-1"></i> Hapus Terpilih
                     </button>
                 </div>
-                {{-- Form Pencarian Kanan --}}
-                <div class="col-12 col-md-4 mt-2 mt-md-0">
-                    <form action="{{ route('master.petugas.index') }}" method="GET" class="d-flex"> {{-- Jadikan d-flex --}}
-                        <input type="text" class="form-control me-1" name="search" value="{{ $search ?? '' }}" placeholder="Cari Nama/NIK/Kategori...">
-                        <button class="btn btn-outline-primary" type="submit">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </form>
+                
+                <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 col-12 col-md-6 mt-2 mt-md-0">
+                    
+                    <div class="d-flex align-items-center">
+                        <label for="perPageSelect" class="form-label me-2 mb-0 small text-nowrap">Tampilkan:</label>
+                        <select class="form-select form-select-sm" id="perPageSelect" style="width: auto;">
+                            @php $options = [10, 15, 25, 50, 100, 'all']; @endphp
+                            @foreach($options as $option)
+                                <option value="{{ $option }}" {{ (request('per_page', 15) == $option) ? 'selected' : '' }}>
+                                    {{ $option == 'all' ? 'Semua' : $option }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex-grow-1" style="min-width: 200px;">
+                         <form action="{{ route('master.petugas.index') }}" method="GET" class="d-flex">
+                            <input type="text" class="form-control me-1" name="search" value="{{ $search ?? '' }}" placeholder="Cari Nama/NIK/Kategori...">
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </form>
+                    </div>
                 </div>
+
             </div>
 
             {{-- Tabel Data --}}
@@ -45,33 +61,45 @@
                                 <th>Nama Petugas</th>
                                 <th>Kategori</th>
                                 <th>NIK</th>
+                                <th>Alamat</th>
                                 <th>No HP</th>
                                 <th>Posisi</th>
-                                {{-- <th>Email</th> --}} {{-- Komentari email agar tidak terlalu lebar --}}
+                                <th>Email</th>
+                                <th>Pendidikan</th>
+                                <th>Tanggal Lahir</th>
+                                <th>Kecamatan</th>
+                                <th>Pekerjaan</th>
                                 <th style="width: 10%;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($petugas as $p)
                                 <tr>
-                                    <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" name="ids[]" value="{{ $p->id_petugas }}"></td>
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input row-checkbox" name="ids[]" value="{{ $p->id_petugas }}">
+                                    </td>
                                     <td>{{ $p->nama_petugas }}</td>
                                     <td class="text-center">{{ $p->kategori }}</td>
                                     <td>{{ $p->nik }}</td>
+                                    <td>{{ $p->alamat }}</td>         
                                     <td>{{ $p->no_hp }}</td>
                                     <td>{{ $p->posisi }}</td>
-                                    {{-- <td>{{ $p->email }}</td> --}}
+                                    <td>{{ $p->email }}</td>
+                                    <td>{{ $p->pendidikan }}</td>     
+                                    <td>{{ $p->tgl_lahir ? \Carbon\Carbon::parse($p->tgl_lahir)->format('d/m/Y') : '-' }}</td>  
+                                    <td>{{ $p->kecamatan }}</td>      
+                                    <td>{{ $p->pekerjaan }}</td>      
                                     <td class="text-center">
                                         <div class="btn-group btn-group-sm" role="group">
                                             <button type="button" class="btn btn-warning"
-                                                    title="Edit" {{-- Tambahkan title --}}
+                                                    title="Edit"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#editDataModal"
                                                     onclick="editData({{ $p->id_petugas }})">
                                                 <i class="bi bi-pencil-square"></i>
                                             </button>
                                             <button type="button" class="btn btn-danger"
-                                                    title="Hapus" {{-- Tambahkan title --}}
+                                                    title="Hapus"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#deleteDataModal"
                                                     onclick="deleteData({{ $p->id_petugas }})">
@@ -82,8 +110,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    {{-- Sesuaikan colspan dengan jumlah kolom header yang TAMPIL --}}
-                                    <td colspan="7" class="text-center py-3"> {{-- Tambah padding --}}
+                                    <td colspan="12" class="text-center py-3"> 
                                         <span class="text-muted">Tidak ada data ditemukan.</span>
                                         @if($search)
                                            <a href="{{ route('master.petugas.index') }}" class="ms-2">Reset pencarian</a>
@@ -96,12 +123,12 @@
                 </div>
             </form>
         </div>
-        <div class="card-footer d-flex flex-wrap justify-content-between align-items-center bg-light"> {{-- bg-light --}}
-            <div class="text-muted small mb-2 mb-md-0"> {{-- margin bottom di mobile --}}
+        <div class="card-footer d-flex flex-wrap justify-content-between align-items-center bg-light"> 
+            <div class="text-muted small mb-2 mb-md-0"> 
                 Menampilkan {{ $petugas->firstItem() ?? 0 }} - {{ $petugas->lastItem() ?? 0 }} dari {{ $petugas->total() }} data
             </div>
             <div>
-                {{ $petugas->links() }} {{-- Bootstrap 5 pagination --}}
+                {{ $petugas->links() }}
             </div>
         </div>
     </div>
@@ -345,6 +372,22 @@
         const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
         const bulkDeleteForm = document.getElementById('bulkDeleteForm');
         const confirmDeleteButton = document.getElementById('confirmDeleteButton');
+        const perPageSelect = document.getElementById('perPageSelect');
+
+        if (perPageSelect) {
+            perPageSelect.addEventListener('change', function() {
+                const selectedValue = this.value;
+
+                const currentUrl = new URL(window.location.href);
+                const params = currentUrl.searchParams;
+
+                params.set('per_page', selectedValue);
+
+                params.set('page', 1);
+
+                window.location.href = currentUrl.pathname + '?' + params.toString();
+            });
+        }
 
         function updateBulkDeleteButtonState() {
             const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
@@ -373,8 +416,6 @@
             });
         }
 
-        // --- SCRIPT UNTUK MENANGANI MODAL ERROR VALIDASI ---
-        // Jika ada error saat TAMBAH, buka modal tambah
         @if (session('error_modal') == 'tambahDataModal' && $errors->any())
             const tambahModalEl = document.getElementById('tambahDataModal');
             if (tambahModalEl) {
@@ -383,13 +424,11 @@
             }
         @endif
 
-        // Jika ada error saat EDIT, buka modal edit dan panggil editData lagi
         @if (session('error_modal') == 'editDataModal' && $errors->any() && session('edit_id'))
             const editModalEl = document.getElementById('editDataModal');
             const editId = {{ session('edit_id') }};
             if (editModalEl && editId) {
                  const editModal = new bootstrap.Modal(editModalEl);
-                 // Kita panggil editData LAGI agar data asli (sebelum diedit & gagal) terisi
                  editData(editId); 
                  // Setelah modal terbuka, kita tandai field yang error
                  // Ini butuh sedikit delay agar modal sempat terender
@@ -424,15 +463,22 @@
 
 @push('styles')
 <style>
-    /* Styling tambahan jika diperlukan */
+    .table-responsive {
+        overflow-x: auto;
+    }
     .table th {
-        white-space: nowrap; /* Agar header tidak wrap */
+        white-space: nowrap;
+        vertical-align: middle;
     }
-    .modal-body .form-label {
-        font-weight: 500; /* Sedikit tebalkan label modal */
+    .table td {
+        vertical-align: middle;
     }
-    .invalid-feedback {
-        display: block; /* Pastikan pesan error selalu tampil jika ada */
+    /* Untuk membatasi lebar kolom alamat */
+    .table td:nth-child(5) {  /* kolom alamat */
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 </style>
 @endpush

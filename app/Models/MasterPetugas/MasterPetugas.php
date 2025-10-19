@@ -37,12 +37,9 @@ class MasterPetugas extends Model
     'posisi',
     'email',
     'pendidikan',
-    'tmt_pengangkatan',
-    'no_sk',
-    'tgl_sk',
-    'pejabat_pengangkatan',
-    'foto',
-    'status',
+    'tgl_lahir',
+    'kecamatan',
+    'pekerjaan'
 ];
 
 }
