@@ -72,14 +72,29 @@ class DistribusiTahunanController extends Controller
             'pengawas.exists' => 'Nama pengawas tidak terdaftar di master petugas. Silakan pilih dari rekomendasi.',
         ];
 
-        // Validasi dengan rules dasar dan pesan kustom
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
-        
-        $validatedData = $validator->validated();
-        
-        $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Data yang diberikan tidak valid.',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            
+            return back()
+                    ->withErrors($validator)
+                    ->withInput()
+                    ->with('error_modal', 'tambahDataModal');
+        }
+
+        $validatedData = $validator->validated();
+        $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
         DistribusiTahunan::create($validatedData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data berhasil ditambahkan!']);
+        }
 
         return back()->with('success', 'Data berhasil ditambahkan!');
     }
@@ -113,11 +128,18 @@ class DistribusiTahunanController extends Controller
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Data yang diberikan tidak valid.',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
             return back()
                     ->withErrors($validator)
                     ->withInput()
                     ->with('error_modal', 'editDataModal')
-                    ->with('edit_id', $tahunan->id_distribusi);
+                    ->with('edit_id', $tahunan->id_distribusi); 
         }
 
         $validatedData = $validator->validated();
@@ -127,6 +149,11 @@ class DistribusiTahunanController extends Controller
         }
 
         $tahunan->update($validatedData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data berhasil diperbarui!']);
+        }
+        
         return back()->with('success', 'Data berhasil diperbarui!');
     }
 

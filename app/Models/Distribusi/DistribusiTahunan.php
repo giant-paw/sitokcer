@@ -27,4 +27,9 @@ class DistribusiTahunan extends Model
     {
         return $this->belongsTo(MasterKegiatan::class, 'nama_kegiatan', 'nama_kegiatan');
     }
+
+    protected $casts = [
+        'target_penyelesaian' => 'datetime',
+        'tanggal_pengumpulan' => 'datetime',
+    ];
 }
