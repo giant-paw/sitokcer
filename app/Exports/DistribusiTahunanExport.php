@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-<<<<<<< HEAD
 use App\Models\Distribusi\DistribusiTahunan;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -57,18 +56,5 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
             $row->flag_progress,
             $row->tanggal_pengumpulan,
         ];
-=======
-use App\Models\DistribusiTahunan;
-use Maatwebsite\Excel\Concerns\FromCollection;
-
-class DistribusiTahunanExport implements FromCollection
-{
-    /**
-    * @return \Illuminate\Support\Collection
-    */
-    public function collection()
-    {
-        return DistribusiTahunan::all();
->>>>>>> jay
     }
 }
