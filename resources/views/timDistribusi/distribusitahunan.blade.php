@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Distribusi Tahunan - Sitokcer')
-
+@section('title', 'Distribusi Tahunan')
 @section('header-title', 'List Target Kegiatan Tahunan Tim Distribusi')
 
 @section('content')

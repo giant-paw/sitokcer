@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class DistribusiTriwulanan extends Model
 {
+    use HasFactory;
+
     protected $table = 'distribusi_triwulanan'; 
     protected $primaryKey = 'id_distribusi_triwulanan'; 
     public $timestamps = true; 
@@ -19,5 +21,10 @@ class DistribusiTriwulanan extends Model
         'target_penyelesaian',
         'flag_progress',
         'tanggal_pengumpulan'
+    ];
+
+    protected $casts = [
+        'target_penyelesaian' => 'datetime',
+        'tanggal_pengumpulan' => 'datetime',
     ];
 }

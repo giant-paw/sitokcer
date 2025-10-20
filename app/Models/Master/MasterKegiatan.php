@@ -4,6 +4,7 @@ namespace App\Models\Master;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Distribusi\DistribusiTahunan;
 
 class MasterKegiatan extends Model
 {
@@ -19,4 +20,9 @@ class MasterKegiatan extends Model
         'nama_kegiatan',
         'deskripsi',
     ];
+
+    public function distribusiTahunan()
+    {
+        return $this->hasMany(DistribusiTahunan::class, 'nama_kegiatan', 'nama_kegiatan');
+    }
 }
