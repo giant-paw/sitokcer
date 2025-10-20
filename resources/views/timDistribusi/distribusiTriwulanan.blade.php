@@ -3,7 +3,6 @@
 @section('title', 'Distribusi Triwulanan - Sitokcer')
 @section('header-title', 'List Target Kegiatan Triwulanan Tim Distribusi')
 
-{{-- TAMBAHKAN STYLES UNTUK AUTOCOMPLETE --}}
 @push('styles')
 <style>
     .autocomplete-container {
@@ -13,7 +12,7 @@
         position: absolute;
         border: 1px solid #d1d3e2;
         border-top: none;
-        z-index: 1056; /* Di atas modal (1055) */
+        z-index: 1056;
         width: 100%;
         background-color: #fff;
         max-height: 200px;
@@ -723,7 +722,6 @@
             });
         }
 
-        // --- Logika Fallback (Non-AJAX) Error Modal ---
         @if (session('error_modal') == 'tambahDataModal' && $errors->any())
         const tambahModalEl_fallback = document.getElementById('tambahDataModal');
         if (tambahModalEl_fallback) {
