@@ -337,12 +337,12 @@
         if (!input) return;
         const suggestionsContainer = document.getElementById(suggestionsId);
         let debounceTimer;
-        let activeSuggestionIndex = -1; // Untuk navigasi keyboard
+        let activeSuggestionIndex = -1; 
 
         input.addEventListener('input', function() {
             const query = this.value;
             clearTimeout(debounceTimer);
-            if (query.length < 1) { // Tampilkan rekomendasi bahkan dari 1 karakter
+            if (query.length < 1) { 
                 if (suggestionsContainer) suggestionsContainer.innerHTML = '';
                 activeSuggestionIndex = -1;
                 return;
@@ -352,19 +352,18 @@
                 fetch(finalSearchUrl)
                     .then(response => response.json())
                     .then(data => {
-                        suggestionsContainer.innerHTML = ''; // Kosongkan suggestion lama
+                        suggestionsContainer.innerHTML = ''; 
                         activeSuggestionIndex = -1;
                         data.forEach((item, index) => {
                             const div = document.createElement('div');
                             div.textContent = item;
                             div.classList.add('autocomplete-suggestion-item');
 
-                            // Saat suggestion diklik, isi input dan tutup box
                             div.onclick = () => {
                                 input.value = item;
                                 suggestionsContainer.innerHTML = '';
                             };
-                            // Saat mouse hover, update active index
+
                             div.onmouseover = () => {
                                 document.querySelectorAll(`#${suggestionsId} .autocomplete-suggestion-item`).forEach(el => el.classList.remove('active'));
                                 div.classList.add('active');
@@ -374,25 +373,25 @@
                         });
                     })
                     .catch(error => console.error('Autocomplete error:', error));
-            }, 300); // Delay 300ms sebelum fetch
+            }, 100); 
         });
 
-        // Navigasi Keyboard (Arrow Up, Arrow Down, Enter, Escape)
+ 
         input.addEventListener('keydown', function(e) {
             const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item');
             if (suggestions.length === 0) return;
 
             if (e.key === 'ArrowDown') {
-                e.preventDefault(); // Hentikan kursor gerak di input
+                e.preventDefault(); 
                 activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length;
                 updateActiveSuggestion(suggestions, activeSuggestionIndex);
             } else if (e.key === 'ArrowUp') {
-                e.preventDefault(); // Hentikan kursor gerak di input
+                e.preventDefault(); 
                 activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length;
                 updateActiveSuggestion(suggestions, activeSuggestionIndex);
             } else if (e.key === 'Enter') {
                 if (activeSuggestionIndex > -1) {
-                    e.preventDefault(); // Hentikan form submit
+                    e.preventDefault();
                     input.value = suggestions[activeSuggestionIndex].textContent;
                     suggestionsContainer.innerHTML = '';
                     activeSuggestionIndex = -1;
@@ -403,7 +402,6 @@
             }
         });
 
-        /** Helper untuk update suggestion yg aktif (highlight) */
         function updateActiveSuggestion(suggestions, index) {
             suggestions.forEach(el => el.classList.remove('active'));
             if (suggestions[index]) {
@@ -411,7 +409,6 @@
             }
         }
 
-        // Tutup suggestion box jika klik di luar input
         document.addEventListener('click', (e) => {
             if (e.target.id !== inputId && suggestionsContainer) {
                 suggestionsContainer.innerHTML = '';
@@ -420,22 +417,17 @@
         });
     }
 
-    /**
-     * Tampilkan modal edit dan isi datanya dari server
-     * @param {number} id - ID data yang akan diedit
-     */
     function editData(id) {
         const editModalEl = document.getElementById('editDataModal');
         if (!editModalEl) return;
         const editModal = new bootstrap.Modal(editModalEl);
         const editForm = document.getElementById('editForm');
-        editForm.action = `/tim-distribusi/tahunan/${id}`; // Set action form edit
-
-        // BARU: Bersihkan error lama sebelum fetch data baru
+        editForm.action = `/tim-distribusi/tahunan/${id}`; 
+        
         clearFormErrors(editForm);
 
-        // Ambil data dari server
-        fetch(`/tim-distribusi/tahunan/${id}/edit`) // Panggil rute edit
+        
+        fetch(`/tim-distribusi/tahunan/${id}/edit`) 
             .then(response => {
                 if (!response.ok) {
                     return response.text().then(text => {
@@ -445,7 +437,7 @@
                 return response.json();
             })
             .then(data => {
-                // Isi field di modal edit
+                
                 document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
                 document.getElementById('edit_BS_Responden').value = data.BS_Responden || '';
                 document.getElementById('edit_pencacah').value = data.pencacah || '';
@@ -454,7 +446,7 @@
                 document.getElementById('edit_flag_progress').value = data.flag_progress || 'Belum Selesai';
                 document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan || '';
 
-                editModal.show(); // Tampilkan modal
+                editModal.show(); 
             })
             .catch(error => {
                 console.error("Error loading edit data:", error);
@@ -462,19 +454,14 @@
             });
     }
 
-    /**
-     * Konfigurasi modal hapus untuk satu data
-     * @param {number} id - ID data yang akan dihapus
-     */
     function deleteData(id) {
         const deleteModalEl = document.getElementById('deleteDataModal');
         if (!deleteModalEl) return;
         const deleteModal = new bootstrap.Modal(deleteModalEl);
         const deleteForm = document.getElementById('deleteForm');
 
-        deleteForm.action = `/tim-distribusi/tahunan/${id}`; // Set action untuk hapus satu data
+        deleteForm.action = `/tim-distribusi/tahunan/${id}`; 
 
-        // Pastikan method DELETE digunakan
         let methodInput = deleteForm.querySelector('input[name="_method"]');
         if (!methodInput) {
             methodInput = document.createElement('input');
@@ -484,12 +471,10 @@
         }
         methodInput.value = 'DELETE';
 
-        // Hapus input 'ids[]' jika ada dari bulk delete sebelumnya
         deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
 
         document.getElementById('deleteModalBody').innerText = 'Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.';
 
-        // Atasi duplikasi event listener
         const newConfirmButton = document.getElementById('confirmDeleteButton').cloneNode(true);
         document.getElementById('confirmDeleteButton').parentNode.replaceChild(newConfirmButton, document.getElementById('confirmDeleteButton'));
         newConfirmButton.addEventListener('click', (e) => {
@@ -501,53 +486,33 @@
     }
 
 
-    // ==========================================================
-    // FUNGSI BARU UNTUK HELPER AJAX
-    // ==========================================================
-
-    /**
-     * Menghapus semua pesan error validasi dari form
-     * @param {HTMLFormElement} form - Elemen form
-     */
     function clearFormErrors(form) {
         form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        // Target div error spesifik yang punya data-field
+       
         form.querySelectorAll('.invalid-feedback[data-field]').forEach(el => el.textContent = '');
     }
 
-    /**
-     * Menampilkan error validasi di form
-     * @param {HTMLFormElement} form - Elemen form
-     * @param {object} errors - Objek error dari Laravel (cth: {nama_kegiatan: ["pesan"]})
-     */
     function showFormErrors(form, errors) {
         for (const [field, messages] of Object.entries(errors)) {
             const input = form.querySelector(`[name="${field}"]`);
-            // Cari div error yang sesuai
+            
             const errorDiv = form.querySelector(`.invalid-feedback[data-field="${field}"]`);
 
             if (input) {
                 input.classList.add('is-invalid');
             }
             if (errorDiv) {
-                errorDiv.textContent = messages[0]; // Tampilkan pesan error pertama
+                errorDiv.textContent = messages[0]; 
             }
         }
     }
 
-    /**
-     * Meng-handle submit form via AJAX
-     * @param {Event} event - Event submit
-     * @param {HTMLFormElement} form - Elemen form
-     * @param {bootstrap.Modal} modalInstance - Instance modal Bootstrap
-     */
     async function handleFormSubmitAjax(event, form, modalInstance) {
-        event.preventDefault(); // Hentikan submit standar
+        event.preventDefault(); 
 
         const submitButton = form.querySelector('button[type="submit"]');
         const spinner = submitButton.querySelector('.spinner-border');
 
-        // Tampilkan loading
         submitButton.disabled = true;
         if (spinner) spinner.classList.remove('d-none');
         clearFormErrors(form);
@@ -558,46 +523,37 @@
                 method: form.method,
                 body: formData,
                 headers: {
-                    'Accept': 'application/json', // Minta respon JSON
-                    'X-CSRF-TOKEN': formData.get('_token') // Ambil CSRF token dari form
+                    'Accept': 'application/json', 
+                    'X-CSRF-TOKEN': formData.get('_token')
                 }
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                // Jika response 422 (Validation Error)
                 if (response.status === 422 && data.errors) {
                     showFormErrors(form, data.errors);
                 } else {
-                    // Error lain
                     alert(data.message || 'Terjadi kesalahan server.');
                 }
             } else {
-                // Jika sukses (response.ok)
+                
                 modalInstance.hide();
-                // Tampilkan alert sukses (opsional) atau langsung reload
-                // alert(data.success); 
-                location.reload(); // Reload halaman untuk lihat data baru
+                
+                location.reload();
             }
 
         } catch (error) {
             console.error('Fetch error:', error);
             alert('Tidak dapat terhubung ke server.');
         } finally {
-            // Sembunyikan loading
             submitButton.disabled = false;
             if (spinner) spinner.classList.add('d-none');
         }
     }
 
-    // ==========================================================
-    // SCRIPT UTAMA (DOM Ready)
-    // ==========================================================
-
     document.addEventListener('DOMContentLoaded', function() {
 
-        // --- Inisialisasi Autocomplete ---
         @if(Route::has('master.kegiatan.search'))
         initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', '{{ route("master.kegiatan.search") }}');
         initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', '{{ route("master.kegiatan.search") }}');
@@ -615,16 +571,13 @@
         @endif
 
 
-        // --- BARU: Inisialisasi Handler AJAX Form ---
         const tambahModalEl = document.getElementById('tambahDataModal');
         const tambahForm = document.getElementById('tambahForm');
         if (tambahModalEl && tambahForm) {
             const tambahModal = new bootstrap.Modal(tambahModalEl);
-            // Tambahkan listener ke event submit form
             tambahForm.addEventListener('submit', (event) => {
                 handleFormSubmitAjax(event, tambahForm, tambahModal);
             });
-            // Opsional: Bersihkan error & form saat modal ditutup
             tambahModalEl.addEventListener('hidden.bs.modal', () => {
                 clearFormErrors(tambahForm);
                 tambahForm.reset(); 
@@ -635,18 +588,14 @@
         const editForm = document.getElementById('editForm');
         if (editModalEl && editForm) {
             const editModal = new bootstrap.Modal(editModalEl);
-            // Tambahkan listener ke event submit form
             editForm.addEventListener('submit', (event) => {
                 handleFormSubmitAjax(event, editForm, editModal);
             });
-            // Opsional: Bersihkan error saat modal ditutup
             editModalEl.addEventListener('hidden.bs.modal', () => {
                 clearFormErrors(editForm);
             });
         }
 
-
-        // --- Logika Select All & Bulk Delete ---
         const selectAll = document.getElementById('selectAll');
         const rowCheckboxes = document.querySelectorAll('.row-checkbox');
         const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
@@ -697,7 +646,6 @@
             deleteModal.show();
         });
 
-        // --- Logika Dropdown Per Page ---
         const perPageSelect = document.getElementById('perPageSelect');
         if (perPageSelect) {
             perPageSelect.addEventListener('change', function() {
@@ -705,12 +653,11 @@
                 const currentUrl = new URL(window.location.href);
                 const params = currentUrl.searchParams;
                 params.set('per_page', selectedValue);
-                params.set('page', 1); // Reset ke halaman 1
+                params.set('page', 1);
                 window.location.href = currentUrl.pathname + '?' + params.toString();
             });
         }
 
-        // --- Logika Fallback (Non-AJAX) Error Modal ---
         @if (session('error_modal') == 'tambahDataModal' && $errors->any())
         const tambahModalEl_fallback = document.getElementById('tambahDataModal');
         if (tambahModalEl_fallback) {
@@ -722,7 +669,7 @@
         @if (session('error_modal') == 'editDataModal' && $errors->any() && session('edit_id'))
         const editId = {{ session('edit_id') }};
         if (editId) {
-            editData(editId); // Panggil fungsi editData untuk isi data & tampilkan modal
+            editData(editId); 
             
             setTimeout(() => {
                 const editForm_fallback = document.getElementById('editForm');
@@ -742,7 +689,6 @@
         }
         @endif
 
-        // --- Auto-hide Alert Sukses/Error (Non-Modal) ---
         const autoHideAlerts = document.querySelectorAll('.alert-dismissible[role="alert"]');
         autoHideAlerts.forEach(alert => {
             if (!alert.closest('.modal')) { // Pastikan ini bukan bagian dari modal
@@ -751,7 +697,7 @@
                     if (bsAlert) {
                         bsAlert.close();
                     }
-                }, 5000); // Hilang setelah 5 detik
+                }, 5000); 
             }
         });
 
