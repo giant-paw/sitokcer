@@ -94,4 +94,17 @@ class MasterKegiatanController extends Controller
             return back()->with('error', 'Gagal menghapus: Salah satu kegiatan mungkin sedang digunakan di data lain.');
         }
     }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('query', '');
+
+        $data = MasterKegiatan::query()
+            ->where('nama_kegiatan', 'LIKE', "%{$query}%")
+            ->orWhere('deskripsi', 'LIKE', "%{$query}%") 
+            ->limit(10)
+            ->pluck('nama_kegiatan');
+
+        return response()->json($data);
+    }
 }
