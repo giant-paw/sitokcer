@@ -3,6 +3,7 @@
 namespace App\Models\Sosial;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class SosialSemesteran extends Model
 {
@@ -11,41 +12,40 @@ class SosialSemesteran extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'nama_kegiatan',        
-        'BS_Responden',         
+        'nama_kegiatan',
+        'BS_Responden',
         'pencacah',
         'pengawas',
-        'target_penyelesaian',  
-        'flag_progress',        
-        'tanggal_pengumpulan',  
+        'target_penyelesaian',
+        'flag_progress',
+        'tanggal_pengumpulan',
     ];
 
-    // Format target_penyelesaian jika perlu manipulasi format
-    public function getTargetPenyelesaianFormattedAttribute()
+    /**
+     * [PERBAIKAN] Accessor untuk mengkonversi 'target_penyelesaian'
+     * dari format string 'd/m/Y' menjadi objek Carbon saat diakses.
+     * Ini akan memperbaiki error parsing secara permanen.
+     *
+     * @param  string|null  $value
+     * @return \Carbon\Carbon|null
+     */
+    public function getTargetPenyelesaianAttribute($value)
     {
-        if (!$this->target_penyelesaian) return '-';
+        if (empty($value)) {
+            return null;
+        }
+
         try {
-            // Parsing tanggal format dd/mm/yyyy
-            return \Carbon\Carbon::createFromFormat('d/m/Y', $this->target_penyelesaian)->format('d/m/Y');
+            return Carbon::createFromFormat('d/m/Y', $value);
         } catch (\Exception $e) {
-            // Jika format salah, langsung tampilkan apa adanya agar tidak error
-            return $this->target_penyelesaian;
+
+            return Carbon::parse($value);
         }
     }
 
 
-    // Format tanggal_pengumpulan jika perlu manipulasi format
-    public function getTanggalPengumpulanFormattedAttribute()
-    {
-        if (!$this->tanggal_pengumpulan) return '-';
-        try {
-            // Parsing format dd/mm/yyyy atau dd/mm/yyyy H:i
-            if (preg_match('/\d{2}\/\d{2}\/\d{4}/', $this->tanggal_pengumpulan)) {
-                return \Carbon\Carbon::createFromFormat('d/m/Y', substr($this->tanggal_pengumpulan, 0, 10))->format('d/m/Y');
-            }
-            return \Carbon\Carbon::parse($this->tanggal_pengumpulan)->format('d/m/Y H:i');
-        } catch (\Exception $e) {
-            return $this->tanggal_pengumpulan;
-        }
-    }
+    protected $casts = [
+        'tanggal_pengumpulan' => 'datetime',
+    ];
 }
+
