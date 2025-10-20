@@ -173,21 +173,4 @@ class DistribusiTahunanController extends Controller
         DistribusiTahunan::whereIn('id_distribusi', $request->ids)->delete();
         return back()->with('success', 'Data yang dipilih berhasil dihapus!');
     }
-
-    public function searchPetugas(Request $request)
-    {
-        $request->validate([
-            'field' => 'required|in:pencacah,pengawas',
-            'query' => 'nullable|string|max:100',
-        ]);
-
-        $query = $request->input('query', '');
-
-        $data = MasterPetugas::query()
-            ->where('nama_petugas', 'LIKE', "%{$query}%")
-            ->limit(10) 
-            ->pluck('nama_petugas');
-
-        return response()->json($data);
-    }
 }

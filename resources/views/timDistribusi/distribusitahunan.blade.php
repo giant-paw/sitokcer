@@ -3,6 +3,33 @@
 @section('title', 'Distribusi Tahunan')
 @section('header-title', 'List Target Kegiatan Tahunan Tim Distribusi')
 
+@push('styles')
+<style>
+    .autocomplete-container {
+        position: relative;
+    }
+    .autocomplete-suggestions {
+        position: absolute;
+        border: 1px solid #d1d3e2;
+        border-top: none;
+        z-index: 1056; /* Di atas modal (1055) */
+        width: 100%;
+        background-color: #dcd5d5ff;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .autocomplete-suggestion-item {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+    .autocomplete-suggestion-item:hover,
+    .autocomplete-suggestion-item.active {
+        background-color: #0d6efd;
+        color: #fff;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <div class="card shadow-sm">
@@ -14,6 +41,12 @@
                 <div class="d-flex flex-wrap gap-2">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahDataModal">
                         <i class="bi bi-plus-circle me-1"></i> Tambah Baru
+                    </button>
+                    <button type="button" class="btn btn-secondary">
+                        <i class="bi bi-upload"></i> Import
+                    </button>
+                    <button type="button" class="btn btn-success">
+                        <i class="bi bi-download"></i> Ekspor Hasil
                     </button>
                     <button type="button" class="btn btn-danger" id="bulkDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteDataModal" disabled>
                         <i class="bi bi-trash me-1"></i> Hapus Terpilih
@@ -706,29 +739,3 @@
 
 @endpush
 
-@push('styles')
-<style>
-    .autocomplete-container {
-        position: relative;
-    }
-    .autocomplete-suggestions {
-        position: absolute;
-        border: 1px solid #d1d3e2;
-        border-top: none;
-        z-index: 1056; /* Di atas modal (1055) */
-        width: 100%;
-        background-color: #dcd5d5ff;
-        max-height: 200px;
-        overflow-y: auto;
-    }
-    .autocomplete-suggestion-item {
-        padding: 8px 12px;
-        cursor: pointer;
-    }
-    .autocomplete-suggestion-item:hover,
-    .autocomplete-suggestion-item.active {
-        background-color: #0d6efd;
-        color: #fff;
-    }
-</style>
-@endpush
