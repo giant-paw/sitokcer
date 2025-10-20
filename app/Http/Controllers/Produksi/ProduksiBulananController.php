@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Produksi\ProduksiBulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\MasterPetugas\MasterPetugas;
+use App\Models\Master\MasterPetugas;
+
 
 use Illuminate\Http\Request;
 
@@ -19,7 +20,7 @@ class ProduksiBulananController extends Controller
             abort(404);
         }
 
-        $query = ProduksiBulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%');
+        $query = ProduksiBulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan) . '%');
 
         if ($request->filled('kegiatan')) {
             $query->where('nama_kegiatan', $request->kegiatan);
@@ -27,15 +28,15 @@ class ProduksiBulananController extends Controller
 
         if ($request->filled('search')) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                  ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                  ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
-        
-        $perPage = $request->input('per_page', 20); 
+
+        $perPage = $request->input('per_page', 20);
 
         if ($perPage == 'all') {
             $total = (clone $query)->count();
@@ -45,7 +46,7 @@ class ProduksiBulananController extends Controller
         $listData = $query->latest()->paginate($perPage)->withQueryString();
 
         $kegiatanCounts = ProduksiBulanan::query()
-            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')
+            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan) . '%')
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
@@ -58,7 +59,7 @@ class ProduksiBulananController extends Controller
     {
         $validatedData = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
-            'BS_Responden' => 'required|string|max:255', 
+            'BS_Responden' => 'required|string|max:255',
             'pencacah' => 'required|string|max:255',
             'pengawas' => 'required|string|max:255',
             'target_penyelesaian' => 'required|date',
@@ -82,7 +83,7 @@ class ProduksiBulananController extends Controller
     {
         $validatedData = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
-            'BS_Responden' => 'required|string|max:255', 
+            'BS_Responden' => 'required|string|max:255',
             'pencacah' => 'required|string|max:255',
             'pengawas' => 'required|string|max:255',
             'target_penyelesaian' => 'required|date',
@@ -90,10 +91,10 @@ class ProduksiBulananController extends Controller
             'tanggal_pengumpulan' => 'nullable|date',
         ]);
 
-        if($request->has('target_penyelesaian')) {
+        if ($request->has('target_penyelesaian')) {
             $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
         }
-        
+
         $produksi_bulanan->update($validatedData);
 
         return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
@@ -104,7 +105,7 @@ class ProduksiBulananController extends Controller
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:produksi_bulanan,id_produksi_bulanan' 
+            'ids.*' => 'exists:produksi_bulanan,id_produksi_bulanan'
         ]);
 
         ProduksiBulanan::whereIn('id_produksi_bulanan', $request->ids)->delete();
@@ -131,7 +132,7 @@ class ProduksiBulananController extends Controller
 
         $data = MasterPetugas::query()
             ->where('nama_petugas', 'LIKE', "%{$query}%")
-            ->limit(10) 
+            ->limit(10)
             ->pluck('nama_petugas');
 
         return response()->json($data);

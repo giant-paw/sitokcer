@@ -7,7 +7,9 @@ use App\Models\Distribusi\DistribusiTahunan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\MasterPetugas\MasterPetugas;
+use App\Models\Master\MasterPetugas;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\DistribusiTahunanExport;
 
 class DistribusiTahunanController extends Controller
 {
@@ -21,15 +23,15 @@ class DistribusiTahunanController extends Controller
 
         if ($request->filled('search')) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                  ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                  ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
 
-        $perPage = $request->input('per_page', 20); 
+        $perPage = $request->input('per_page', 20);
 
         if ($perPage == 'all') {
             $total = (clone $query)->count();
@@ -51,7 +53,7 @@ class DistribusiTahunanController extends Controller
     {
         $validatedData = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
-            'BS_Responden' => 'required|string|max:255', 
+            'BS_Responden' => 'required|string|max:255',
             'pencacah' => 'required|string|max:255',
             'pengawas' => 'required|string|max:255',
             'target_penyelesaian' => 'required|date',
@@ -69,7 +71,7 @@ class DistribusiTahunanController extends Controller
     public function edit($id)
     {
         $distribusi = DistribusiTahunan::findOrFail($id);
-        
+
         return response()->json($distribusi);
     }
 
@@ -77,7 +79,7 @@ class DistribusiTahunanController extends Controller
     {
         $validatedData = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
-            'BS_Responden' => 'required|string|max:255', 
+            'BS_Responden' => 'required|string|max:255',
             'pencacah' => 'required|string|max:255',
             'pengawas' => 'required|string|max:255',
             'target_penyelesaian' => 'required|string|max:255',
@@ -97,7 +99,7 @@ class DistribusiTahunanController extends Controller
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:distribusi_tahunan,id_distribusi' 
+            'ids.*' => 'exists:distribusi_tahunan,id_distribusi'
         ]);
 
         DistribusiTahunan::whereIn('id_distribusi', $request->ids)->delete();
@@ -123,9 +125,25 @@ class DistribusiTahunanController extends Controller
 
         $data = MasterPetugas::query()
             ->where('nama_petugas', 'LIKE', "%{$query}%")
-            ->limit(10) 
+            ->limit(10)
             ->pluck('nama_petugas');
 
         return response()->json($data);
+    }
+    public function export(Request $request)
+    {
+        $dataRange = $request->input('dataRange');
+        $dataFormat = $request->input('dataFormat');
+        $exportFormat = $request->input('exportFormat');
+
+        $exportClass = new DistribusiTahunanExport($dataRange, $dataFormat);
+
+        if ($exportFormat == 'excel') {
+            return Excel::download($exportClass, 'DistribusiTahunan.xlsx');
+        } elseif ($exportFormat == 'csv') {
+            return Excel::download($exportClass, 'DistribusiTahunan.csv');
+        }
+
+        return back()->with('error', 'Format ekspor tidak didukung.');
     }
 }

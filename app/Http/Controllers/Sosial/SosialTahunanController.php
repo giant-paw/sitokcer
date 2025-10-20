@@ -154,4 +154,17 @@ class SosialTahunanController extends Controller
             return $value;
         }
     }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids'); // Ambil array id yang dikirim melalui checkbox
+
+        if ($ids) {
+            // Hapus data berdasarkan id yang terpilih
+            SosialTahunan::whereIn('id_sosial_tahunan', $ids)->delete();
+            return redirect()->route('sosial.tahunan.index')->with('ok', 'Data berhasil dihapus.');
+        }
+
+        return back()->with('error', 'Tidak ada data yang dipilih.');
+    }
 }

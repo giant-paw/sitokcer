@@ -7,6 +7,7 @@ use App\Models\Produksi\ProduksiTahunan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Master\MasterPetugas;
 
 class ProduksiTahunanController extends Controller
 {
@@ -20,15 +21,15 @@ class ProduksiTahunanController extends Controller
 
         if ($request->filled('search')) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                  ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                  ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
 
-        $perPage = $request->input('per_page', 20); 
+        $perPage = $request->input('per_page', 20);
 
         if ($perPage == 'all') {
             $total = (clone $query)->count();
@@ -50,7 +51,7 @@ class ProduksiTahunanController extends Controller
     {
         $validatedData = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
-            'BS_Responden' => 'required|string|max:255', 
+            'BS_Responden' => 'required|string|max:255',
             'pencacah' => 'required|string|max:255',
             'pengawas' => 'required|string|max:255',
             'target_penyelesaian' => 'required|date',
@@ -68,7 +69,7 @@ class ProduksiTahunanController extends Controller
     public function edit($id)
     {
         $produksi = ProduksiTahunan::findOrFail($id);
-        
+
         return response()->json($produksi);
     }
 
@@ -76,7 +77,7 @@ class ProduksiTahunanController extends Controller
     {
         $validatedData = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
-            'BS_Responden' => 'required|string|max:255', 
+            'BS_Responden' => 'required|string|max:255',
             'pencacah' => 'required|string|max:255',
             'pengawas' => 'required|string|max:255',
             'target_penyelesaian' => 'required|string|max:255',
@@ -96,7 +97,7 @@ class ProduksiTahunanController extends Controller
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:produksi_tahunan,id_produksi' 
+            'ids.*' => 'exists:produksi_tahunan,id_produksi'
         ]);
 
         ProduksiTahunan::whereIn('id_produksi', $request->ids)->delete();
@@ -123,7 +124,7 @@ class ProduksiTahunanController extends Controller
 
         $data = MasterPetugas::query()
             ->where('nama_petugas', 'LIKE', "%{$query}%")
-            ->limit(10) 
+            ->limit(10)
             ->pluck('nama_petugas');
 
         return response()->json($data);
