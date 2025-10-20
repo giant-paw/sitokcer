@@ -1,12 +1,5 @@
 {{-- resources/views/sidebar.blade.php --}}
 <aside class="sidebar">
-    {{-- Logo dan Nama Situs --}}
-    <!-- <div class="sidebar-header">
-        <a href="{{ route('home') }}" class="sidebar-logo-link">
-            <img src="{{ asset('logo.png') }}" alt="Logo Sitokcer" class="sidebar-logo">
-            <h1 class="sidebar-title">Sitokcer</h1>
-        </a>
-    </div> -->
 
     <ul class="sidebar-menu">
         <li class="{{ request()->is('/') ? 'active-link' : '' }}">
@@ -34,6 +27,8 @@
             </ul>
         </li>
 
+        <!-- TIM SOSIAL -->
+
         <li class="menu-item has-dropdown {{ request()->is('sosial*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-people-fill menu-icon"></i>
@@ -41,36 +36,46 @@
 
             </a>
             <ul class="submenu">
+                
+                <!-- SOSIAL TAHUNAN -->
+                
                 <li class="{{ request()->is('sosial/tahunan*') ? 'active-link' : '' }}">
                     <a href="{{ route('sosial.tahunan.index') }}">Sosial Tahunan</a>
                 </li>
+                
+                <!-- SOSIAL TRIWULAN -->
                 <li class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-triwulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
 
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('sosial') ? 'active-link' : '' }}">
+                        <li class="{{ request()->is('sosial/kegiatan-triwulanan*') ? 'active-link' : '' }}">
                             <a href="{{ route('sosial.seruti.index') }}">Seruti</a>
                         </li>
                     </ul>
                 </li>
-                <li class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-semesteran*') ? 'active' : '' }}">
+
+                <!-- SOSIAL SEMESTERAN -->
+                <li class="menu-item has-dropdown {{ request()->is('sosial/semesteran*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Semesteran</span>
 
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('sosial/kegiatan-semesteran/sakernas*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.semesteran.index') }}">Sakernas</a>
+                        <li class="{{ request()->is('sosial/semesteran/sakernas*') ? 'active-link' : '' }}">
+                            <a href="{{ route('sosial.semesteran.index', ['kategori' => 'Sakernas']) }}">Sakernas</a>
                         </li>
-                        <li class="{{ request()->is('sosial/kegiatan-semesteran/susenas*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.susenas') }}">Susenas</a>
+                        <li class="{{ request()->is('sosial/semesteran/susenas*') ? 'active-link' : '' }}">
+                            <a href="{{ route('sosial.semesteran.index', ['kategori' => 'Susenas']) }}">Susenas</a>
                         </li>
+
                     </ul>
                 </li>
             </ul>
         </li>
+
+        <!-- Tim { Distribusi } -->
 
         <li class="menu-item has-dropdown {{ request()->is('distribusi*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
@@ -79,127 +84,174 @@
 
             </a>
             <ul class="submenu">
+
+                <!-- Distribusi Tahunan  -->
                 <li class="{{ request()->is('tim-distribusi/tahunan*') ? 'active-link' : '' }}">
                     <a href="{{ route('tim-distribusi.tahunan.index') }}">Distribusi Tahunan</a>
                 </li>
+
+                <!-- Distribusi Triwulanan  -->
                 <li
-                    class="menu-item has-dropdown {{ request()->is('tim-distribusi/kegiatan-triwulan*') ? 'active' : '' }}">
+                    class="menu-item has-dropdown {{ request()->is('tim-distribusi/triwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
-                        <span>Kegiatan Triwulan</span>
+                        <span>Kegiatan Triwulanan</span>
 
                     </a>
+
                     <ul class="submenu">
-                        <li class="{{ request()->is('tim-distribusi/kegiatan-triwulan/spunp*') ? 'active-link' : '' }}">
-                            <a href="{{ route('tim-distribusi.spunp') }}">SPUNP</a>
+                        {{-- Link SPUNP --}}
+                        <li class="{{ request()->is('tim-distribusi/triwulanan/spunp*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => 'spunp']) }}">SPUNP</a>
                         </li>
-                        <li class="{{ request()->is('tim-distribusi/kegiatan-triwulan/shkk*') ? 'active-link' : '' }}">
-                            <a href="{{ route('tim-distribusi.shkk') }}">SHKK</a>
+
+                        {{-- Link SHKK --}}
+                        <li class="{{ request()->is('tim-distribusi/triwulanan/shkk*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => 'shkk']) }}">SHKK</a>
                         </li>
                     </ul>
+                    
                 </li>
+            
+                <!-- Distribusi Bulanan -->
+
                 <li class="menu-item has-dropdown {{ request()->is('tim-distribusi/bulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Distribusi Bulanan</span>
-
                     </a>
+                    
                     <ul class="submenu">
-                        <li class="{{ request()->is('tim-distribusi/bulanan/vhts*') ? 'active-link' : '' }}"><a
-                                href="{{ route('tim-distribusi.vhts') }}">VHTS</a></li>
-                        <li class="{{ request()->is('tim-distribusi/bulanan/hkd*') ? 'active-link' : '' }}"><a
-                                href="{{ route('tim-distribusi.hkd') }}">HKD</a></li>
-                        <li class="{{ request()->is('tim-distribusi/bulanan/shpb*') ? 'active-link' : '' }}"><a
-                                href="{{ route('tim-distribusi.shpb') }}">SHPB</a></li>
-                        <li class="{{ request()->is('tim-distribusi/bulanan/shp*') ? 'active-link' : '' }}"><a
-                                href="{{ route('tim-distribusi.shp') }}">SHP</a></li>
-                        <li class="{{ request()->is('tim-distribusi/bulanan/shpj*') ? 'active-link' : '' }}"><a
-                                href="{{ route('tim-distribusi.shpj') }}">SHPJ</a></li>
-                        <li class="{{ request()->is('tim-distribusi/bulanan/shpgb*') ? 'active-link' : '' }}"><a
-                                href="{{ route('tim-distribusi.shpgb') }}">SHPBG</a></li>
-                        <li class="{{ request()->is('tim-distribusi/bulanan/hd*') ? 'active-link' : '' }}"><a
-                                href="{{ route('tim-distribusi.hd') }}">HD</a></li>
+                        {{-- Link VHTS --}}
+                        <li class="{{ request()->is('tim-distribusi/bulanan/vhts*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.bulanan.index', ['jenisKegiatan' => 'vhts']) }}">VHTS</a>
+                        </li>
+
+                        {{-- Link HKD --}}
+                        <li class="{{ request()->is('tim-distribusi/bulanan/hkd*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.bulanan.index', ['jenisKegiatan' => 'hkd']) }}">HKD</a>
+                        </li>
+
+                        {{-- Link SHPB --}}
+                        <li class="{{ request()->is('tim-distribusi/bulanan/shpb*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.bulanan.index', ['jenisKegiatan' => 'shpb']) }}">SHPB</a>
+                        </li>
+
+                        {{-- Link SHP --}}
+                        <li class="{{ request()->is('tim-distribusi/bulanan/shp*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.bulanan.index', ['jenisKegiatan' => 'shp']) }}">SHP</a>
+                        </li>
+
+                        {{-- Link SHPJ --}}
+                        <li class="{{ request()->is('tim-distribusi/bulanan/shpj*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.bulanan.index', ['jenisKegiatan' => 'shpj']) }}">SHPJ</a>
+                        </li>
+
+                        {{-- Link SHPBG --}}
+                        <li class="{{ request()->is('tim-distribusi/bulanan/shpbg*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-distribusi.bulanan.index', ['jenisKegiatan' => 'shpbg']) }}">SHPBG</a>
+                        </li>
                     </ul>
+
                 </li>
             </ul>
         </li>
 
-        <li class="menu-item has-dropdown {{ request()->is('produksi*') ? 'active' : '' }}">
+        <!-- TIM { PRODUKSI } -->
+
+        <li class="menu-item has-dropdown {{ request()->is('tim-produksi*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-graph-up-arrow menu-icon"></i>
                 <span>Tim Produksi</span>
 
             </a>
             <ul class="submenu">
-                <li class="{{ request()->is('produksi/tahunan*') ? 'active-link' : '' }}">
-                    <a href="{{ route('produksi.tahunan.index') }}">Produksi Tahunan</a>
+                
+                <!-- Produksi Tahunan  -->
+                <li class="{{ request()->is('tim-produksi/tahunan*') ? 'active-link' : '' }}">
+                    <a href="{{ route('tim-produksi.tahunan.index') }}">Produksi Tahunan</a>
                 </li>
-                <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-caturwulan*') ? 'active' : '' }}">
+                
+                <!-- Produksi Caturwulanan  -->
+                <li
+                    class="menu-item has-dropdown {{ request()->is('tim-produksi/caturwulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Caturwulan</span>
 
                     </a>
                     <ul class="submenu">
+
+                        <!-- Ubinan Padi -->
                         <li
-                            class="{{ request()->is('produksi/kegiatan-caturwulan/ubinan-padi-palawija*') ? 'active-link' : '' }}">
-                            <a href="{{ route('produksi.ubinanpadipalawija') }}">Ubinan Padi Palawija</a>
+                            class="{{ request()->is('tim-produksi/caturwulanan/upp*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan padi palawija']) }}">Ubinan Padi Palawija</a>
                         </li>
+
+                        <!-- Ubinan UTP -->
                         <li
-                            class="{{ request()->is('produksi/kegiatan-caturwulan/update-utp-palawija*') ? 'active-link' : '' }}">
-                            <a href="{{ route('produksi.updateingutppalawija') }}">Update UTP Palawija</a>
+                            class="{{ request()->is('tim-produksi/caturwulanan/uup*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan utp palawija']) }}">Ubinan UTP Palawija</a>
                         </li>
                     </ul>
                 </li>
-                <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-triwulan*') ? 'active' : '' }}">
+
+                <!-- PRODUKSI KEGIATAN TRIWULAN -->
+
+                <li class="menu-item has-dropdown {{ request()->is('tim-produksi/triwulan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
 
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sktr*') ? 'active-link' : '' }}"><a
-                                href="{{ route('produksi.sktr') }}">SKTR</a></li>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sktr*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sktr']) }}">SKTR</a></li>
                         <li class="{{ request()->is('produksi/kegiatan-triwulan/tpi*') ? 'active-link' : '' }}"><a
-                                href="{{ route('produksi.tpi') }}">TPI</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sphbst*') ? 'active-link' : '' }}">
-                            <a href="{{ route('produksi.sphbst') }}">SPHBST</a>
+                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'tpi']) }}">TPI</a></li>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sphbst*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphbst']) }}">SPHBST</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sphtbf*') ? 'active-link' : '' }}">
-                            <a href="{{ route('produksi.sphtbf') }}">SPHTBF</a>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sphtbf*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphtbf']) }}">SPHTBF</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/sphth*') ? 'active-link' : '' }}"><a
-                                href="{{ route('produksi.sphth') }}">SPHTH</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/air-bersih*') ? 'active-link' : '' }}">
-                            <a href="{{ route('produksi.airbersih') }}">Air Bersih</a>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sphth*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphth']) }}">SPHTH</a></li>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/air-bersih*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'airbersih']) }}">Air Bersih</a>
                         </li>
                     </ul>
                 </li>
+
+                <!-- PRODUKSI KEGIATAN BULANAN -->
                 <li class="menu-item has-dropdown {{ request()->is('produksi/kegiatan-bulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Bulanan</span>
 
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/ksapadi*') ? 'active-link' : '' }}">
-                            <a href="{{ route('produksi.ksapadi') }}">KSA Padi</a>
+                        <li class="{{ request()->is('tim-produksi/bulanan/ksapadi*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'ksapadi']) }}">KSA Padi</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/ksajagung*') ? 'active-link' : '' }}">
-                            <a href="{{ route('produksi.ksajagung') }}">KSA Jagung</a>
+                        <li class="{{ request()->is('tim-produksi/bulanan/ksajagung*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'ksajagung']) }}">KSA Jagung</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/lptb*') ? 'active-link' : '' }}"><a
-                                href="{{ route('produksi.lptb') }}">LPTB</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/sphsbs*') ? 'active-link' : '' }}"><a
-                                href="{{ route('produksi.sphsbs') }}">SPHSBS</a></li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/sppalawija*') ? 'active-link' : '' }}">
-                            <a href="{{ route('produksi.sppalawija') }}">SP Palawija</a>
+                        <li class="{{ request()->is('tim-produksi/bulanan/lptb*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'lptb']) }}">LPTB</a></li>
+                        <li class="{{ request()->is('tim-produksi/bulanan/sphsbs*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'sphsbs']) }}">SPHSBS</a></li>
+                        <li class="{{ request()->is('tim-produksi/bulanan/sppalawija*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'sppalawija']) }}">SP Palawija</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/perkebunan*') ? 'active-link' : '' }}">
-                            <a href="{{ route('produksi.perkebunanbulanan') }}">Perkebunan Bulanan</a>
+                        <li class="{{ request()->is('tim-produksi/bulanan/perkebunan*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'perkebunan']) }}">Perkebunan Bulanan</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-bulanan/ibs*') ? 'active-link' : '' }}"><a
-                                href="{{ route('produksi.ibsbulanan') }}">IBS Bulanan</a></li>
+                        <li class="{{ request()->is('tim-produksi/bulanan/ibs*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'ibs']) }}">IBS Bulanan</a></li>
                     </ul>
                 </li>
             </ul>
         </li>
 
+        
+        <!-- TIM NWA -->
+         
         <li class="menu-item has-dropdown {{ request()->is('nwa*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-bar-chart-line-fill menu-icon"></i>
@@ -207,14 +259,19 @@
 
             </a>
             <ul class="submenu">
+
+                <!-- NWA TAHUNAN  -->
                 <li class="{{ request()->is('nwa/tahunan*') ? 'active-link' : '' }}">
                     <a href="{{ route('nwa.tahunan.index') }}">NWA Tahunan</a>
                 </li>
+
+                <!-- NWA TRIWULAN  -->
                 <li class="menu-item has-dropdown {{ request()->is('nwa/triwulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>NWA Triwulanan</span>
 
                     </a>
+
                     <ul class="submenu">
                         <li class="{{ request()->is('nwa/triwulanan/sklnp*') ? 'active-link' : '' }}">
                             <a href="{{ route('nwa.triwulanan.index', 'sklnp') }}">SKLNP</a>
@@ -230,13 +287,17 @@
             </ul>
         </li>
 
+        <!-- REKAPITULASI -->
+
         <li class="menu-item has-dropdown {{ request()->is('rekapitulasi*') ? 'active' : '' }}">
             <a href="#" class="dropdown-toggle">
                 <i class="bi bi-file-earmark-text-fill menu-icon"></i>
                 <span>Rekapitulasi</span>
 
             </a>
+            
             <ul class="submenu">
+                <!-- Rekap Pencacah & Pengawas -->
                 <li class="{{ request()->is('rekapitulasi/pencacah*') ? 'active-link' : '' }}">
                     <a href="{{ route('rekapitulasi.pencacah.index') }}">Rekap Pencacah</a>
                 </li>
@@ -246,7 +307,7 @@
             </ul>
         </li>
 
-        {{-- Ganti href-nya menjadi route('master.petugas.index') --}}
+        <!-- MASTER PETUGAS -->
         <li class="{{ request()->is('master-petugas*') ? 'active-link' : '' }}">
             <a href="{{ route('master.petugas.index') }}">
                 <i class="bi bi-person-badge-fill menu-icon"></i>
@@ -254,12 +315,15 @@
             </a>
         </li>
 
+        <!-- MASTER KEGIATAN -->
         <li class="{{ request()->is('master-kegiatan*') ? 'active-link' : '' }}">
-            <a href="{{ route('master.kegiatan') }}">
+            <a href="{{ route('master.kegiatan.index') }}">
                 <i class="bi bi-clipboard-data-fill menu-icon"></i>
                 <span>Master Kegiatan</span>
             </a>
         </li>
+
+        <!-- USER -->
 
         <li class="{{ request()->is('user*') ? 'active-link' : '' }}">
             <a href="{{ route('user') }}">

@@ -8,10 +8,8 @@ return new class extends Migration
 {
     public function up()
     {
-        // Schema::table('distribusi_tahunan', function (Blueprint $table) {
-            
-        //     // Menambahkan kolom created_at dan updated_at
-        //     $table->timestamps(); 
-        // });
+        Schema::table('produksi_caturwulanan', function (Blueprint $table) {
+            $table->timestamps(); 
+        });
     }
 };

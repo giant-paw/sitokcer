@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Distribusi Tahunan - Sitokcer')
+@section('title', 'Distribusi Triwulanan - Sitokcer')
 
-@section('header-title', 'List Target Kegiatan Tahunan Tim Distribusi')
+@section('header-title', 'List Target Kegiatan Triwulanan Tim Distribusi')
 
 @section('content')
     <div class="container-fluid">
         <div class="card">
             <div class="card-header bg-light">
-                <h4 class="card-title mb-0">LIST TARGET KEGIATAN TAHUNAN TIM DISTRIBUSI</h4>
+                <h4 class="card-title mb-0">LIST TARGET KEGIATAN TRIWULANAN: {{ strtoupper($jenisKegiatan) }}</h4>
             </div>
             <div class="card-body">
                 <div class="mb-4 d-flex flex-wrap justify-content-between align-items-center">
@@ -59,18 +59,21 @@
 
                 <ul class="nav nav-pills mb-3 d-flex flex-wrap gap-8" >
                     <li class="nav-item"> 
-                        <a class="nav-link {{ request('kegiatan') == '' ? 'active' : '' }}" href="{{ route('tim-distribusi.tahunan.index') }}">All data</a>
+                        <a class="nav-link {{ request('kegiatan') == '' ? 'active' : '' }}" href="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}">All data</a>
                     </li>
                     @foreach($kegiatanCounts as $kegiatan)
                         <li class="nav-item">
-                            <a class="nav-link {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'active' : '' }}" href="{{ route('tim-distribusi.tahunan.index', ['kegiatan' => $kegiatan->nama_kegiatan]) }}">
+                            <a class="nav-link {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'active' : '' }}" 
+                            {{-- PERBAIKAN ADA DI SINI --}}
+                            href="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'kegiatan' => $kegiatan->nama_kegiatan]) }}">
+                                
                                 {{ $kegiatan->nama_kegiatan }} <span class="badge bg-secondary">{{ $kegiatan->total }}</span>
                             </a>
                         </li>
                     @endforeach
                 </ul>
 
-                <form action="{{ route('tim-distribusi.tahunan.index') }}" method="GET" class="mb-4">
+                <form action="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET" class="mb-4">
                     <div class="row g-2 align-items-center">
                         @if(request('kegiatan'))
                             <input type="hidden" name="kegiatan" value="{{ request('kegiatan') }}">
@@ -108,7 +111,7 @@
                             @forelse ($listData as $item)
                                 <tr>
                                     <td>
-                                        <input type="checkbox" class="form-check-input row-checkbox" value="{{ $item->id_distribusi }}">
+                                        <input type="checkbox" class="form-check-input row-checkbox" value="{{ $item->id_distribusi_triwulanan }}">
                                     </td>
                                     <td>{{ $item->nama_kegiatan }}</td>
                                     <td>{{ $item->BS_Responden }}</td>
@@ -122,7 +125,7 @@
                                         <button class="btn btn-sm btn-warning" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#editDataModal" 
-                                                onclick="editData({{ $item->id_distribusi }})">
+                                                onclick="editData({{ $item->id_distribusi_triwulanan }})">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
 
@@ -130,7 +133,7 @@
                                         <button class="btn btn-sm btn-danger" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#deleteDataModal" 
-                                                onclick="deleteData({{ $item->id_distribusi }})">
+                                                onclick="deleteData({{ $item->id_distribusi_triwulanan }})">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
@@ -158,7 +161,7 @@
     <!-- Modal Tambah Data -->
     <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <form action="{{ route('tim-distribusi.tahunan.store') }}" method="POST">
+            <form action="{{ route('tim-distribusi.triwulanan.store') }}" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
@@ -317,7 +320,7 @@
             }
 
             debounceTimer = setTimeout(() => {
-                const searchUrl = `{{ route("tim-distribusi.tahunan.searchPetugas") }}?field=${fieldName}&query=${query}`;
+                const searchUrl = `{{ route("tim-distribusi.triwulanan.searchPetugas") }}?field=${fieldName}&query=${query}`;
                 
                 fetch(searchUrl)
                     .then(response => response.json())
@@ -347,8 +350,8 @@
 
     // --- FUNGSI UNTUK EDIT DATA ---
     function editData(id) {
-        const getUrl = `/tim-distribusi/tahunan/${id}/edit`;
-        const updateUrl = `/tim-distribusi/tahunan/${id}`;
+        const getUrl = `/tim-distribusi/triwulanan/${id}/edit`;
+        const updateUrl = `/tim-distribusi/triwulanan/${id}`;
         const editForm = document.getElementById('editForm');
         
         fetch(getUrl)
@@ -375,13 +378,12 @@
     // --- FUNGSI UNTUK HAPUS SATU DATA ---
     function deleteData(id) {
         const deleteForm = document.getElementById('deleteForm');
-        deleteForm.action = `/tim-distribusi/tahunan/${id}`;
+        deleteForm.action = `/tim-distribusi/triwulanan/${id}`;
         deleteForm.querySelector('input[name="_method"]').value = 'DELETE';
         deleteForm.querySelectorAll('input[name="ids[]"]').forEach(input => input.remove());
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        // Inisialisasi Autocomplete untuk semua 4 field
         initAutocomplete('pencacah', 'pencacah-suggestions', 'pencacah');
         initAutocomplete('pengawas', 'pengawas-suggestions', 'pengawas');
         initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', 'pencacah');
@@ -395,42 +397,16 @@
             });
         }
         
-        // Event listener untuk tombol Bulk Delete
-        const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-        if (bulkDeleteBtn) {
-            bulkDeleteBtn.addEventListener('click', function() {
-                const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
-
-                if (selectedIds.length === 0) {
-                    alert('Pilih setidaknya satu data untuk dihapus.');
-                    return;
-                }
-
-                const deleteModal = new bootstrap.Modal(document.getElementById('deleteDataModal'));
-                const deleteForm = document.getElementById('deleteForm');
-                
-                deleteForm.action = '{{ route("tim-distribusi.tahunan.bulkDelete") }}';
-                deleteForm.querySelector('input[name="_method"]').value = 'POST'; 
-                deleteForm.querySelectorAll('input[name="ids[]"]').forEach(input => input.remove());
-                
-                selectedIds.forEach(id => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'ids[]';
-                    input.value = id;
-                    deleteForm.appendChild(input);
-                });
-                deleteModal.show();
-            });
-        }
-
         // Enable/disable bulk delete button
+        const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+
         function updateBulkDeleteState() {
             const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
             bulkDeleteBtn.disabled = checkedCount === 0;
         }
 
-        document.querySelectorAll('.row-checkbox').forEach(cb => {
+        rowCheckboxes.forEach(cb => {
             cb.addEventListener('change', updateBulkDeleteState);
         });
 
@@ -444,6 +420,32 @@
 
         // Inisialisasi awal
         updateBulkDeleteState();
+
+        // Event listener untuk tombol Bulk Delete
+        bulkDeleteBtn.addEventListener('click', function() {
+            const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                alert('Pilih setidaknya satu data untuk dihapus.');
+                return;
+            }
+
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteDataModal'));
+            const deleteForm = document.getElementById('deleteForm');
+            
+            deleteForm.action = '{{ route("tim-distribusi.triwulanan.bulkDelete") }}';
+            deleteForm.querySelector('input[name="_method"]').value = 'POST'; 
+            deleteForm.querySelectorAll('input[name="ids[]"]').forEach(input => input.remove());
+            
+            selectedIds.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = id;
+                deleteForm.appendChild(input);
+            });
+            deleteModal.show();
+        });
 
         const perPageSelect = document.getElementById('perPageSelect');
         if (perPageSelect) {
