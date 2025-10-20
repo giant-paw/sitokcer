@@ -12,7 +12,7 @@ class NwaTahunanController extends Controller
 {
     public function index(Request $request)
     {
-        $kategori = trim($request->get('kategori', ''));  // filter by nama_kegiatan
+        $kategori = trim($request->get('kategori', '')); // filter by nama_kegiatan
         $q        = trim($request->get('q', ''));
 
         $query = NwaTahunan::query();
@@ -30,9 +30,15 @@ class NwaTahunanController extends Controller
             });
         }
 
-        $rows = $query->orderBy('id_nwa', 'asc')
-            ->paginate(20)
-            ->appends(['kategori' => $kategori, 'q' => $q]);
+        // [MODIFIED] Handle 'per_page' request for display dropdown
+        $perPage = $request->input('per_page', 20);
+        if ($perPage === 'all') {
+            $rows = $query->orderBy('id_nwa', 'asc')->get();
+        } else {
+            $rows = $query->orderBy('id_nwa', 'asc')
+                ->paginate((int)$perPage)
+                ->appends($request->except('page')); // appends all query strings
+        }
 
         // daftar kategori + jumlah (untuk pill/tautan di atas)
         $katMap = NwaTahunan::selectRaw('nama_kegiatan as kategori, COUNT(*) as jml')
@@ -101,5 +107,26 @@ class NwaTahunanController extends Controller
     {
         $tahunan->delete();
         return back()->with('ok', 'Data dihapus.');
+    }
+
+    /**
+     * [BARU] Menghapus beberapa data tahunan sekaligus (bulk delete).
+     */
+    public function bulkDelete(Request $request)
+    {
+        // 1. Validasi request
+        $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer|exists:nwa_tahunan,id_nwa' // Validasi bahwa semua ID ada
+        ]);
+
+        $ids = $request->input('ids');
+
+        // 2. Hapus data berdasarkan ID yang dipilih
+        NwaTahunan::whereIn('id_nwa', $ids)->delete();
+
+        // 3. Redirect kembali dengan pesan sukses
+        return redirect()->route('nwa.tahunan.index')
+                         ->with('ok', count($ids) . ' data berhasil dihapus.');
     }
 }
