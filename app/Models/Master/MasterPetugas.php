@@ -29,17 +29,20 @@ class MasterPetugas extends Model
      * @var array
      */
     protected $fillable = [
-    'nama_petugas',
-    'kategori',
-    'nik',
-    'alamat',
-    'no_hp',
-    'posisi',
-    'email',
-    'pendidikan',
-    'tgl_lahir',
-    'kecamatan',
-    'pekerjaan'
-];
+        'nama_petugas',
+        'kategori',
+        'nik',
+        'alamat',
+        'no_hp',
+        'posisi',
+        'email',
+        'pendidikan',
+        'tgl_lahir',
+        'kecamatan',
+        'pekerjaan'
+    ];
+    protected $casts = [
+        'tgl_lahir' => 'date',
+    ];
 
 }
