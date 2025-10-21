@@ -19,7 +19,7 @@ class NwaTriwulananController extends Controller
     /** List halaman (satu view untuk semua jenis) */
     public function index(Request $request, string $jenis)
     {
-        $prefix = self::prefixOf($jenis);          // SKLNP / Snaper / SKTNP
+        $prefix = self::prefixOf($jenis);       // SKLNP / Snaper / SKTNP
         $tw     = strtoupper($request->get('tw', 'TW1'));  // TW1..TW4
         $q      = trim($request->get('q', ''));
 
@@ -35,10 +35,19 @@ class NwaTriwulananController extends Controller
             });
         }
 
+        // Ambil per_page dari request, default ke 20
+        $perPage = $request->input('per_page', 20);
+        if ($perPage === 'all') {
+            // Jika 'all', jangan gunakan paginasi
+            $rows = $query->orderBy('id_nwa_triwulanan', 'asc')->get();
+            // Buat instance paginator manual jika diperlukan, atau handle di view
+            // Untuk simple, kita biarkan sebagai collection
+        } else {
+            $rows = $query->orderBy('id_nwa_triwulanan', 'asc')
+                ->paginate((int)$perPage)
+                ->appends($request->except('page')); // appends all query strings
+        }
 
-        $rows = $query->orderBy('id_nwa_triwulanan', 'asc')
-            ->paginate(20)
-            ->appends(['tw' => $tw, 'q' => $q]);
 
         return view('timNWA.triwulanan.index', [
             'rows'   => $rows,
@@ -110,6 +119,32 @@ class NwaTriwulananController extends Controller
         return redirect()->route('nwa.triwulanan.index', [$jenis, 'tw' => $tw])
             ->with('ok', 'Data dihapus.');
     }
+
+    /**
+     * [BARU] Menghapus beberapa data triwulanan sekaligus (bulk delete).
+     */
+    public function bulkDelete(Request $request, string $jenis)
+    {
+        // 1. Validasi request
+        $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer|exists:nwa_triwulanan,id_nwa_triwulanan'
+        ]);
+
+        $ids = $request->input('ids');
+
+        // 2. Hapus data berdasarkan ID yang dipilih
+        NwaTriwulanan::whereIn('id_nwa_triwulanan', $ids)->delete();
+
+        // 3. Redirect kembali dengan pesan sukses (menggunakan 'ok' agar konsisten)
+        // Redirect juga menyertakan parameter TW dari request agar tetap di tab yang sama.
+        return redirect()->route('nwa.triwulanan.index', [
+                'jenis' => $jenis,
+                'tw' => $request->query('tw', 'TW1')
+            ])
+            ->with('ok', count($ids) . ' data berhasil dihapus.');
+    }
+
 
     /* ===== Helpers ===== */
 
