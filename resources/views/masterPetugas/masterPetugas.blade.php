@@ -1,20 +1,21 @@
-@extends('layouts.app') {{-- Sesuaikan dengan layout utama Anda --}}
+@extends('layouts.app')
 
 @section('title', 'Master Petugas')
-@section('header-title', 'Master Petugas') {{-- Sesuaikan jika perlu --}}
+@section('header-title', 'Master Petugas')
 
 @section('content')
 <div class="container-fluid">
-    <div class="card shadow-sm"> {{-- Tambahkan shadow --}}
-        <div class="card-header bg-light py-3"> {{-- Atur padding header --}}
-             <h4 class="card-title mb-0">Daftar Petugas</h4>
+    <div class="card shadow-sm">
+        <div class="card-header bg-light py-3">
+            <h4 class="card-title mb-0">Daftar Petugas</h4>
         </div>
         <div class="card-body">
-            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2"> {{-- Tambahkan gap --}}
-                {{-- Tombol Aksi Kiri --}}
+            {{-- Toolbar Aksi, Filter, dan Pencarian --}}
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                {{-- Grup Tombol Aksi di Kiri --}}
                 <div class="d-flex flex-wrap gap-2">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahDataModal">
-                        <i class="bi bi-plus-circle me-1"></i> Tambah Baru {{-- Tambahkan margin icon --}}
+                        <i class="bi bi-plus-circle me-1"></i> Tambah Baru
                     </button>
                     <a href="{{ route('master.petugas.export') }}" class="btn btn-success">
                         <i class="bi bi-download me-1"></i> Ekspor CSV
@@ -23,9 +24,9 @@
                         <i class="bi bi-trash me-1"></i> Hapus Terpilih
                     </button>
                 </div>
-                
+
+                {{-- Grup Filter dan Pencarian di Kanan --}}
                 <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 col-12 col-md-6 mt-2 mt-md-0">
-                    
                     <div class="d-flex align-items-center">
                         <label for="perPageSelect" class="form-label me-2 mb-0 small text-nowrap">Tampilkan:</label>
                         <select class="form-select form-select-sm" id="perPageSelect" style="width: auto;">
@@ -37,9 +38,8 @@
                             @endforeach
                         </select>
                     </div>
-
                     <div class="flex-grow-1" style="min-width: 200px;">
-                         <form action="{{ route('master.petugas.index') }}" method="GET" class="d-flex">
+                        <form action="{{ route('master.petugas.index') }}" method="GET" class="d-flex">
                             <input type="text" class="form-control me-1" name="search" value="{{ $search ?? '' }}" placeholder="Cari Nama/NIK/Kategori...">
                             <button class="btn btn-outline-primary" type="submit">
                                 <i class="bi bi-search"></i>
@@ -47,29 +47,30 @@
                         </form>
                     </div>
                 </div>
-
             </div>
+
+            {{-- Alert Notifikasi --}}
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
 
             {{-- Tabel Data --}}
             <form id="bulkDeleteForm" action="{{ route('master.petugas.bulkDelete') }}" method="POST">
                 @csrf
                 <div class="table-responsive">
-                    <table class="table table-striped table-bordered table-hover align-middle"> {{-- align-middle --}}
-                        <thead class="table-light text-center"> {{-- text-center --}}
+                    <table class="table table-striped table-bordered table-hover align-middle">
+                        <thead class="table-light text-center">
                             <tr>
                                 <th style="width: 1%;"><input type="checkbox" class="form-check-input" id="selectAll"></th>
                                 <th>Nama Petugas</th>
                                 <th>Kategori</th>
                                 <th>NIK</th>
-                                <th>Alamat</th>
                                 <th>No HP</th>
                                 <th>Posisi</th>
-                                <th>Email</th>
-                                <th>Pendidikan</th>
-                                <th>Tanggal Lahir</th>
-                                <th>Kecamatan</th>
-                                <th>Pekerjaan</th>
-                                <th style="width: 10%;">Aksi</th>
+                                <th style="width: 15%;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -81,39 +82,29 @@
                                     <td>{{ $p->nama_petugas }}</td>
                                     <td class="text-center">{{ $p->kategori }}</td>
                                     <td>{{ $p->nik }}</td>
-                                    <td>{{ $p->alamat }}</td>         
                                     <td>{{ $p->no_hp }}</td>
                                     <td>{{ $p->posisi }}</td>
-                                    <td>{{ $p->email }}</td>
-                                    <td>{{ $p->pendidikan }}</td>     
-                                    <td>{{ $p->tgl_lahir ? \Carbon\Carbon::parse($p->tgl_lahir)->format('d/m/Y') : '-' }}</td>  
-                                    <td>{{ $p->kecamatan }}</td>      
-                                    <td>{{ $p->pekerjaan }}</td>      
                                     <td class="text-center">
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <button type="button" class="btn btn-warning"
-                                                    title="Edit"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editDataModal"
-                                                    onclick="editData({{ $p->id_petugas }})">
+                                        {{-- [PERBAIKAN] Mengubah gaya tombol agar konsisten --}}
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <a href="{{ route('master.petugas.show', $p) }}" class="btn btn-sm btn-secondary" title="Lihat">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-warning" title="Edit" data-bs-toggle="modal" data-bs-target="#editDataModal" onclick="editData({{ $p->id_petugas }})">
                                                 <i class="bi bi-pencil-square"></i>
                                             </button>
-                                            <button type="button" class="btn btn-danger"
-                                                    title="Hapus"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#deleteDataModal"
-                                                    onclick="deleteData({{ $p->id_petugas }})">
+                                            <button type="button" class="btn btn-sm btn-danger" title="Hapus" data-bs-toggle="modal" data-bs-target="#deleteDataModal" onclick="deleteData({{ $p->id_petugas }})">
                                                 <i class="bi bi-trash"></i>
                                             </button>
-                                         </div>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="12" class="text-center py-3"> 
+                                    <td colspan="7" class="text-center py-3">
                                         <span class="text-muted">Tidak ada data ditemukan.</span>
-                                        @if($search)
-                                           <a href="{{ route('master.petugas.index') }}" class="ms-2">Reset pencarian</a>
+                                        @if($search ?? false)
+                                            <a href="{{ route('master.petugas.index') }}" class="ms-2">Reset pencarian</a>
                                         @endif
                                     </td>
                                 </tr>
@@ -123,8 +114,8 @@
                 </div>
             </form>
         </div>
-        <div class="card-footer d-flex flex-wrap justify-content-between align-items-center bg-light"> 
-            <div class="text-muted small mb-2 mb-md-0"> 
+        <div class="card-footer d-flex flex-wrap justify-content-between align-items-center bg-light">
+            <div class="text-muted small mb-2 mb-md-0">
                 Menampilkan {{ $petugas->firstItem() ?? 0 }} - {{ $petugas->lastItem() ?? 0 }} dari {{ $petugas->total() }} data
             </div>
             <div>
@@ -134,7 +125,8 @@
     </div>
 </div>
 
-<div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true" data-bs-backdrop="static"> {{-- static backdrop --}}
+{{-- Semua modal (Tambah, Edit, Hapus) tetap disertakan di sini --}}
+<div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg">
         <form action="{{ route('master.petugas.store') }}" method="POST">
             @csrf
@@ -164,7 +156,7 @@
                             <input type="text" class="form-control @error('nik') is-invalid @enderror" id="nik" name="nik" value="{{ old('nik') }}">
                             @error('nik') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                         <div class="col-md-6 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="no_hp" class="form-label">No HP</label>
                             <input type="text" class="form-control @error('no_hp') is-invalid @enderror" id="no_hp" name="no_hp" value="{{ old('no_hp') }}" placeholder="+62 8xx...">
                             @error('no_hp') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -189,12 +181,12 @@
                             <input type="text" class="form-control @error('pendidikan') is-invalid @enderror" id="pendidikan" name="pendidikan" value="{{ old('pendidikan') }}">
                             @error('pendidikan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                         <div class="col-md-6 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="tgl_lahir" class="form-label">Tanggal Lahir</label>
                             <input type="date" class="form-control @error('tgl_lahir') is-invalid @enderror" id="tgl_lahir" name="tgl_lahir" value="{{ old('tgl_lahir') }}">
                             @error('tgl_lahir') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                         <div class="col-md-6 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="kecamatan" class="form-label">Kecamatan</label>
                             <input type="text" class="form-control @error('kecamatan') is-invalid @enderror" id="kecamatan" name="kecamatan" value="{{ old('kecamatan') }}">
                             @error('kecamatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -226,8 +218,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                     <div class="row gx-3">
-                         <div class="col-md-6 mb-3">
+                    <div class="row gx-3">
+                        <div class="col-md-6 mb-3">
                             <label for="edit_nama_petugas" class="form-label">Nama Petugas <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('nama_petugas', 'edit_error') is-invalid @enderror" id="edit_nama_petugas" name="nama_petugas" required>
                             @error('nama_petugas', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -246,7 +238,7 @@
                             <input type="text" class="form-control @error('nik', 'edit_error') is-invalid @enderror" id="edit_nik" name="nik">
                             @error('nik', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                         <div class="col-md-6 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="edit_no_hp" class="form-label">No HP</label>
                             <input type="text" class="form-control @error('no_hp', 'edit_error') is-invalid @enderror" id="edit_no_hp" name="no_hp">
                             @error('no_hp', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -271,12 +263,12 @@
                             <input type="text" class="form-control @error('pendidikan', 'edit_error') is-invalid @enderror" id="edit_pendidikan" name="pendidikan">
                             @error('pendidikan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                         <div class="col-md-6 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="edit_tgl_lahir" class="form-label">Tanggal Lahir</label>
                             <input type="date" class="form-control @error('tgl_lahir', 'edit_error') is-invalid @enderror" id="edit_tgl_lahir" name="tgl_lahir">
                             @error('tgl_lahir', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                         <div class="col-md-6 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="edit_kecamatan" class="form-label">Kecamatan</label>
                             <input type="text" class="form-control @error('kecamatan', 'edit_error') is-invalid @enderror" id="edit_kecamatan" name="kecamatan">
                             @error('kecamatan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -303,7 +295,7 @@
             @csrf
             @method('DELETE')
             <div class="modal-content">
-                <div class="modal-header bg-danger text-white"> {{-- Header merah --}}
+                <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title" id="deleteDataModalLabel">Konfirmasi Hapus</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -312,7 +304,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteButton">Ya, Hapus</button> {{-- Teks lebih jelas --}}
+                    <button type="button" class="btn btn-danger" id="confirmDeleteButton">Ya, Hapus</button>
                 </div>
             </div>
         </form>
@@ -332,7 +324,6 @@
                 return response.json();
             })
             .then(data => {
-                // Isi field di modal edit, gunakan || '' untuk fallback jika null
                 document.getElementById('edit_nama_petugas').value = data.nama_petugas || '';
                 document.getElementById('edit_kategori').value = data.kategori || '';
                 document.getElementById('edit_nik').value = data.nik || '';
@@ -345,9 +336,8 @@
                 document.getElementById('edit_kecamatan').value = data.kecamatan || '';
                 document.getElementById('edit_pekerjaan').value = data.pekerjaan || '';
 
-                // Hapus kelas error validasi sebelumnya
                 editForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-                editForm.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = ''); // Hapus pesan error lama
+                editForm.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
             })
             .catch(error => {
                 console.error('Error fetching data for edit:', error);
@@ -377,14 +367,10 @@
         if (perPageSelect) {
             perPageSelect.addEventListener('change', function() {
                 const selectedValue = this.value;
-
                 const currentUrl = new URL(window.location.href);
                 const params = currentUrl.searchParams;
-
                 params.set('per_page', selectedValue);
-
                 params.set('page', 1);
-
                 window.location.href = currentUrl.pathname + '?' + params.toString();
             });
         }
@@ -428,34 +414,30 @@
             const editModalEl = document.getElementById('editDataModal');
             const editId = {{ session('edit_id') }};
             if (editModalEl && editId) {
-                 const editModal = new bootstrap.Modal(editModalEl);
-                 editData(editId); 
-                 // Setelah modal terbuka, kita tandai field yang error
-                 // Ini butuh sedikit delay agar modal sempat terender
-                 setTimeout(() => {
-                    @foreach ($errors->getBag('default')->keys() as $field)
+                const editModal = new bootstrap.Modal(editModalEl);
+                editData(editId); 
+                setTimeout(() => {
+                    @foreach ($errors->getBag('edit_error')->keys() as $field)
                         const fieldElement = document.getElementById('edit_{{ $field }}');
                         if (fieldElement) {
                             fieldElement.classList.add('is-invalid');
-                            // Cari div invalid-feedback terdekat dan isi pesannya
                             const errorElement = fieldElement.closest('.mb-3').querySelector('.invalid-feedback');
                             if (errorElement) {
-                                errorElement.textContent = '{{ $errors->first($field) }}';
+                                errorElement.textContent = '{{ $errors->getBag("edit_error")->first($field) }}';
                             }
                         }
                     @endforeach
-                 }, 500); // Delay 500ms
-                 editModal.show();
+                }, 500);
+                editModal.show();
             }
         @endif
 
-        // Auto-hide alert setelah beberapa detik
-        const autoHideAlerts = document.querySelectorAll('.alert-success, .alert-danger');
+        const autoHideAlerts = document.querySelectorAll('.alert-success');
         autoHideAlerts.forEach(alert => {
             setTimeout(() => {
                 const bsAlert = new bootstrap.Alert(alert);
                 bsAlert.close();
-            }, 5000); // 5 detik
+            }, 5000);
         });
     });
 </script>
@@ -463,22 +445,9 @@
 
 @push('styles')
 <style>
-    .table-responsive {
-        overflow-x: auto;
-    }
-    .table th {
-        white-space: nowrap;
-        vertical-align: middle;
-    }
-    .table td {
-        vertical-align: middle;
-    }
-    /* Untuk membatasi lebar kolom alamat */
-    .table td:nth-child(5) {  /* kolom alamat */
-        max-width: 200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+    #perPageSelect.form-select-sm {
+        padding-right: 2.25rem;
     }
 </style>
 @endpush
+
