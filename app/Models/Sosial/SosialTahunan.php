@@ -1,6 +1,6 @@
 <?php
-// app/Models/SosialTahunan.php
-namespace App\Models;
+
+namespace App\Models\Sosial;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;

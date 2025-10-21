@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Distribusi;
 
 use App\Http\Controllers\Controller;
-use App\Models\DistribusiTriwulanan;
+use App\Models\Distribusi\DistribusiTriwulanan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\MasterPetugas\MasterPetugas;
+use App\Models\Master\MasterKegiatan; 
+use Illuminate\Support\Facades\Validator;
 
 class DistribusiTriwulananController extends Controller
 {
@@ -50,24 +53,53 @@ class DistribusiTriwulananController extends Controller
             ->orderBy('nama_kegiatan')
             ->get();
 
+        $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
+
         return view('timDistribusi.distribusiTriwulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
     }
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'nama_kegiatan' => 'required|string|max:255',
+        $baseRules = [
+            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
             'BS_Responden' => 'required|string|max:255', 
-            'pencacah' => 'required|string|max:255',
-            'pengawas' => 'required|string|max:255',
+            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
             'flag_progress' => 'required|string',
             'tanggal_pengumpulan' => 'nullable|date',
-        ]);
+        ];
 
+        $customMessages = [
+            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar di master kegiatan.',
+            'pencacah.exists' => 'Nama pencacah tidak terdaftar di master petugas.',
+            'pengawas.exists' => 'Nama pengawas tidak terdaftar di master petugas.',
+        ];
+
+        $validator = Validator::make($request->all(), $baseRules, $customMessages);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Data yang diberikan tidak valid.',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            
+            return back()
+                    ->withErrors($validator)
+                    ->withInput()
+                    ->with('error_modal', 'tambahDataModal');
+        }
+
+        $validatedData = $validator->validated();
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
         DistribusiTriwulanan::create($validatedData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data berhasil ditambahkan!']);
+        }
 
         return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
@@ -79,19 +111,48 @@ class DistribusiTriwulananController extends Controller
 
     public function update(Request $request, DistribusiTriwulanan $distribusi_triwulanan)
     {
-        $validatedData = $request->validate([
-            'nama_kegiatan' => 'required|string|max:255',
+        $baseRules = [
+            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
             'BS_Responden' => 'required|string|max:255', 
-            'pencacah' => 'required|string|max:255',
-            'pengawas' => 'required|string|max:255',
-            'target_penyelesaian' => 'required|string|max:255',
+            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'target_penyelesaian' => 'required|date', 
             'flag_progress' => 'required|string',
-            'tanggal_pengumpulan' => 'nullable|string|max:255',
-        ]);
+            'tanggal_pengumpulan' => 'nullable|date', 
+        ];
 
+        $customMessages = [
+            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar di master kegiatan.',
+            'pencacah.exists' => 'Nama pencacah tidak terdaftar di master petugas.',
+            'pengawas.exists' => 'Nama pengawas tidak terdaftar di master petugas.',
+        ];
+
+        $validator = Validator::make($request->all(), $baseRules, $customMessages);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Data yang diberikan tidak valid.',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            return back()
+                    ->withErrors($validator)
+                    ->withInput()
+                    ->with('error_modal', 'editDataModal')
+                    ->with('edit_id', $distribusi_triwulanan->id_distribusi_triwulanan);
+        }
+
+        $validatedData = $validator->validated();
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
         $distribusi_triwulanan->update($validatedData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data berhasil diperbarui!']);
+        }
+        
         return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
@@ -125,12 +186,10 @@ class DistribusiTriwulananController extends Controller
         $field = $request->input('field');
         $query = $request->input('query', '');
 
-        $data = DistribusiTriwulanan::query()
-            ->select($field)
-            ->where($field, 'LIKE', "%{$query}%")
-            ->distinct() 
-            ->limit(5)  
-            ->pluck($field);
+        $data = MasterPetugas::query()
+            ->where('nama_petugas', 'LIKE', "%{$query}%")
+            ->limit(10) 
+            ->pluck('nama_petugas');
 
         return response()->json($data);
     }

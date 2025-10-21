@@ -1,24 +1,43 @@
 <?php
 
 namespace App\Http\Controllers\Distribusi;
-
+    
 use App\Http\Controllers\Controller;
-use App\Models\DistribusiBulanan;
+use App\Models\Distribusi\DistribusiBulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\MasterPetugas\MasterPetugas;
+use App\Models\Master\MasterKegiatan; 
+use Illuminate\Support\Facades\Validator;
 
 use Illuminate\Http\Request;
 
 class DistribusiBulananController extends Controller
 {
-    // Tampil data sesuai jenis kegiatan
     public function index(Request $request, $jenisKegiatan)
     {
-        if (!in_array(strtolower($jenisKegiatan), ['vhts', 'hkd', 'shpb', 'shp', 'shpj', 'shpbg'])) {
+        $validJenis = ['vhts', 'hkd', 'shpb', 'shp', 'shpj', 'shpbg'];
+        if (!in_array(strtolower($jenisKegiatan), $validJenis)) {
             abort(404);
         }
 
-        $query = DistribusiBulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%');
+        $selectedTahun = $request->input('tahun', date('Y'));
+
+        $availableTahun = DistribusiBulanan::query()
+            ->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%')
+            ->select(DB::raw('YEAR(created_at) as tahun')) 
+            ->distinct()
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun')
+            ->toArray();
+        
+        if (!in_array(date('Y'), $availableTahun)) {
+            array_unshift($availableTahun, date('Y'));
+        }
+
+        $query = DistribusiBulanan::query()
+                 ->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%')
+                 ->whereYear('created_at', $selectedTahun);
 
         if ($request->filled('kegiatan')) {
             $query->where('nama_kegiatan', $request->kegiatan);
@@ -41,33 +60,71 @@ class DistribusiBulananController extends Controller
             $perPage = $total > 0 ? $total : 20;
         }
 
-        $listData = $query->latest()->paginate($perPage)->withQueryString();
+        $listData = $query->latest('id_distribusi_bulanan')->paginate($perPage)->withQueryString(); // Gunakan primary key
 
         $kegiatanCounts = DistribusiBulanan::query()
             ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')
+            ->whereYear('created_at', $selectedTahun)
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        return view('timDistribusi.distribusiBulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
+        
+        $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
+
+        return view('timDistribusi.distribusiBulanan', compact(
+            'listData', 
+            'kegiatanCounts', 
+            'jenisKegiatan',
+            'masterKegiatanList', 
+            'availableTahun',     
+            'selectedTahun'       
+        ));
     }
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'nama_kegiatan' => 'required|string|max:255',
+        $baseRules = [
+            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
             'BS_Responden' => 'required|string|max:255', 
-            'pencacah' => 'required|string|max:255',
-            'pengawas' => 'required|string|max:255',
+            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
             'flag_progress' => 'required|string',
             'tanggal_pengumpulan' => 'nullable|date',
-        ]);
+        ];
 
+        $customMessages = [
+            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar di master kegiatan.',
+            'pencacah.exists' => 'Nama pencacah tidak terdaftar di master petugas.',
+            'pengawas.exists' => 'Nama pengawas tidak terdaftar di master petugas.',
+        ];
+
+        $validator = Validator::make($request->all(), $baseRules, $customMessages);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Data yang diberikan tidak valid.',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            
+            return back()
+                    ->withErrors($validator)
+                    ->withInput()
+                    ->with('error_modal', 'tambahDataModal');
+        }
+
+        $validatedData = $validator->validated();
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
         DistribusiBulanan::create($validatedData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data berhasil ditambahkan!']);
+        }
 
         return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
@@ -79,22 +136,48 @@ class DistribusiBulananController extends Controller
 
     public function update(Request $request, DistribusiBulanan $distribusi_bulanan)
     {
-        $validatedData = $request->validate([
-            'nama_kegiatan' => 'required|string|max:255',
+        $baseRules = [
+            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
             'BS_Responden' => 'required|string|max:255', 
-            'pencacah' => 'required|string|max:255',
-            'pengawas' => 'required|string|max:255',
-            'target_penyelesaian' => 'required|date',
+            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'target_penyelesaian' => 'required|date', 
             'flag_progress' => 'required|string',
-            'tanggal_pengumpulan' => 'nullable|date',
-        ]);
+            'tanggal_pengumpulan' => 'nullable|date', 
+        ];
 
-        if($request->has('target_penyelesaian')) {
-            $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+        $customMessages = [
+            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar di master kegiatan.',
+            'pencacah.exists' => 'Nama pencacah tidak terdaftar di master petugas.',
+            'pengawas.exists' => 'Nama pengawas tidak terdaftar di master petugas.',
+        ];
+
+        $validator = Validator::make($request->all(), $baseRules, $customMessages);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Data yang diberikan tidak valid.',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            return back()
+                    ->withErrors($validator)
+                    ->withInput()
+                    ->with('error_modal', 'editDataModal')
+                    ->with('edit_id', $distribusi_bulanan->id_distribusi_bulanan);
         }
-        
+
+        $validatedData = $validator->validated();
+        $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+
         $distribusi_bulanan->update($validatedData);
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data berhasil diperbarui!']);
+        }
+        
         return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
@@ -128,12 +211,10 @@ class DistribusiBulananController extends Controller
         $field = $request->input('field');
         $query = $request->input('query', '');
 
-        $data = DistribusiBulanan::query()
-            ->select($field)
-            ->where($field, 'LIKE', "%{$query}%")
-            ->distinct() 
-            ->limit(5)  
-            ->pluck($field);
+        $data = MasterPetugas::query()
+            ->where('nama_petugas', 'LIKE', "%{$query}%")
+            ->limit(10) 
+            ->pluck('nama_petugas');
 
         return response()->json($data);
     }

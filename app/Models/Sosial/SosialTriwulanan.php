@@ -1,6 +1,6 @@
-<?php
-// app/Models/SosialTriwulanan.php
-namespace App\Models;
+<?php 
+
+namespace App\Models\Sosial;
 
 use Illuminate\Database\Eloquent\Model;
 

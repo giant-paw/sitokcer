@@ -1,14 +1,16 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\produksi;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class DistribusiTahunan extends Model
+class ProduksiTahunan extends Model
 {
-    protected $table = 'distribusi_tahunan'; 
-    protected $primaryKey = 'id_distribusi'; 
+    use HasFactory;
+
+    protected $table = 'produksi_tahunan'; 
+    protected $primaryKey = 'id_produksi'; 
     public $timestamps = true; 
 
     protected $fillable = [
@@ -17,8 +19,12 @@ class DistribusiTahunan extends Model
         'pencacah',
         'pengawas',
         'target_penyelesaian',
-        'tahun_kegiatan',
         'flag_progress',
         'tanggal_pengumpulan'
+    ];
+
+    protected $casts = [
+        'target_penyelesaian' => 'datetime',
+        'tanggal_pengumpulan' => 'datetime',
     ];
 }

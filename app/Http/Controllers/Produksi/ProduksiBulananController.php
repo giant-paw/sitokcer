@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Produksi;
-
-use App\Http\Controllers\Controller;
+namespace App\Http\Controllers;
 use App\Models\ProduksiBulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;

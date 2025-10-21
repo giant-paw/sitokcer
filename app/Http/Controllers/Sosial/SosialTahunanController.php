@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Sosial;
 
 use App\Http\Controllers\Controller;
-use App\Models\SosialTahunan;
+use App\Models\Sosial\SosialTahunan;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -153,5 +153,22 @@ class SosialTahunanController extends Controller
         } catch (\Throwable $e) {
             return $value;
         }
+    }
+    public function bulkDelete(Request $request)
+    {
+        // 1. Validasi request
+        $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer|exists:sosial_tahunan,id_sosial_tahunan' // Pastikan nama tabel dan PK benar
+        ]);
+
+        $ids = $request->input('ids');
+
+        // 2. Hapus data berdasarkan ID yang dipilih
+        SosialTahunan::whereIn('id_sosial_tahunan', $ids)->delete(); // Pastikan PK benar
+
+        // 3. Redirect kembali dengan pesan sukses
+        return redirect()->route('sosial.tahunan.index')
+                         ->with('ok', count($ids) . ' data berhasil dihapus.');
     }
 }
