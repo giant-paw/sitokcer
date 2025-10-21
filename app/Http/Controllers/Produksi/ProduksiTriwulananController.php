@@ -15,7 +15,7 @@ class ProduksiTriwulananController extends Controller
 {
     public function index(Request $request, $jenisKegiatan)
     {
-        $validJenis = ['sktr', 'tpi', 'sphbst', 'sphtbf', 'sphth', 'Airbersih'];
+        $validJenis = ['sktr', 'tpi', 'sphbst', 'sphtbf', 'sphth', 'airbersih'];
         if (!in_array(strtolower($jenisKegiatan), $validJenis)) {
             abort(404);
         }

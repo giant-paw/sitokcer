@@ -15,11 +15,34 @@ class ProduksiBulananController extends Controller
     // Tampil data sesuai jenis kegiatan
     public function index(Request $request, $jenisKegiatan)
     {
-        if (!in_array(strtolower($jenisKegiatan), ['ksapadi', 'ksajagung', 'lptb', 'sphsbs', 'sppalawija', 'perkebunan', 'ibs'])) {
-            abort(404);
+        $validJenis = ['sktr', 'tpi', 'sphbst', 'sphtbf', 'sphth', 'airbersih']; 
+
+        $lowercaseJenis = strtolower($jenisKegiatan); 
+
+        if (!in_array($lowercaseJenis, $validJenis)) { 
+            abort(404); 
         }
 
-        $query = ProduksiBulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%');
+        $selectedTahun = $request->input('tahun', date('Y'));
+
+        $availableTahun = ProduksiTriwulanan::query() 
+            ->where('nama_kegiatan', 'LIKE', $jenisKegiatan . '%') 
+            ->select(DB::raw('YEAR(created_at) as tahun'))
+            ->distinct()
+            ->whereNotNull('created_at')
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun')
+            ->toArray();
+        
+        if (!empty($availableTahun) && !in_array(date('Y'), $availableTahun)) {
+             array_unshift($availableTahun, date('Y'));
+        } elseif (empty($availableTahun)) {
+             $availableTahun = [date('Y')];
+        }
+
+        $query = ProduksiTriwulanan::query() 
+            ->where('nama_kegiatan', 'LIKE', $jenisKegiatan . '%')
+            ->whereYear('created_at', $selectedTahun);
 
         if ($request->filled('kegiatan')) {
             $query->where('nama_kegiatan', $request->kegiatan);
@@ -42,16 +65,27 @@ class ProduksiBulananController extends Controller
             $perPage = $total > 0 ? $total : 20;
         }
 
-        $listData = $query->latest()->paginate($perPage)->withQueryString();
+        $listData = $query->latest('id_produksi_triwulanan')->paginate($perPage)->withQueryString(); 
 
-        $kegiatanCounts = ProduksiBulanan::query()
-            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')
+        $kegiatanCounts = ProduksiTriwulanan::query() 
+            ->where('nama_kegiatan', 'LIKE', $jenisKegiatan . '%') 
+            ->whereYear('created_at', $selectedTahun)
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        return view('timProduksi.produksiBulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
+        
+        $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
+
+        return view('timProduksi.produksiTriwulanan', compact(
+            'listData', 
+            'kegiatanCounts', 
+            'jenisKegiatan',
+            'masterKegiatanList', 
+            'availableTahun',     
+            'selectedTahun'       
+        ));
     }
 
     public function store(Request $request)

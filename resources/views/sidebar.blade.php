@@ -213,7 +213,7 @@
                         </li>
                         <li class="{{ request()->is('tim-produksi/triwulanan/sphth*') ? 'active-link' : '' }}"><a
                                 href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphth']) }}">SPHTH</a></li>
-                        <li class="{{ request()->is('tim-produksi/triwulanan/air-bersih*') ? 'active-link' : '' }}">
+                        <li class="{{ request()->is('tim-produksi/triwulanan/airbersih*') ? 'active-link' : '' }}">
                             <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'airbersih']) }}">Air Bersih</a>
                         </li>
                     </ul>
