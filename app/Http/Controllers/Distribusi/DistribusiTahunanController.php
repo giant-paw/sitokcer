@@ -142,6 +142,8 @@ class DistribusiTahunanController extends Controller
             return Excel::download($exportClass, 'DistribusiTahunan.xlsx');
         } elseif ($exportFormat == 'csv') {
             return Excel::download($exportClass, 'DistribusiTahunan.csv');
+        } elseif ($exportFormat == 'word') {
+            return $exportClass->exportToWord();
         }
 
         return back()->with('error', 'Format ekspor tidak didukung.');
