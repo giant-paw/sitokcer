@@ -146,12 +146,21 @@
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->routeIs('tim-produksi.triwulanan.index') && request()->route('jenisKegiatan') == 'sktr' ? 'active-link' : '' }}"><a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sktr']) }}">SKTR</a></li>
-                        <li class="{{ request()->routeIs('tim-produksi.triwulanan.index') && request()->route('jenisKegiatan') == 'tpi' ? 'active-link' : '' }}"><a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'tpi']) }}">TPI</a></li>
-                        <li class="{{ request()->routeIs('tim-produksi.triwulanan.index') && request()->route('jenisKegiatan') == 'sphbst' ? 'active-link' : '' }}"><a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphbst']) }}">SPHBST</a></li>
-                        <li class="{{ request()->routeIs('tim-produksi.triwulanan.index') && request()->route('jenisKegiatan') == 'sphtbf' ? 'active-link' : '' }}"><a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphtbf']) }}">SPHTBF</a></li>
-                        <li class="{{ request()->routeIs('tim-produksi.triwulanan.index') && request()->route('jenisKegiatan') == 'sphth' ? 'active-link' : '' }}"><a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphth']) }}">SPHTH</a></li>
-                        <li class="{{ request()->routeIs('tim-produksi.triwulanan.index') && request()->route('jenisKegiatan') == 'airbersih' ? 'active-link' : '' }}"><a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'airbersih']) }}">Air Bersih</a></li>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sktr*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sktr']) }}">SKTR</a></li>
+                        <li class="{{ request()->is('produksi/kegiatan-triwulan/tpi*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'tpi']) }}">TPI</a></li>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sphbst*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphbst']) }}">SPHBST</a>
+                        </li>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sphtbf*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphtbf']) }}">SPHTBF</a>
+                        </li>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sphth*') ? 'active-link' : '' }}"><a
+                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphth']) }}">SPHTH</a></li>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/airbersih*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'airbersih']) }}">Air Bersih</a>
+                        </li>
                     </ul>
                 </li>
 

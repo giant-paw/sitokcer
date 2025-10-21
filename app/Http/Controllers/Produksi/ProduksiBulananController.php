@@ -1,12 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Produksi;
-
-use App\Http\Controllers\Controller;
-use App\Models\Produksi\ProduksiBulanan;
+namespace App\Http\Controllers;
+use App\Models\ProduksiBulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\MasterPetugas\MasterPetugas;
 
 use Illuminate\Http\Request;
 
@@ -129,10 +126,12 @@ class ProduksiBulananController extends Controller
         $field = $request->input('field');
         $query = $request->input('query', '');
 
-        $data = MasterPetugas::query()
-            ->where('nama_petugas', 'LIKE', "%{$query}%")
-            ->limit(10) 
-            ->pluck('nama_petugas');
+        $data = ProduksiBulanan::query()
+            ->select($field)
+            ->where($field, 'LIKE', "%{$query}%")
+            ->distinct() 
+            ->limit(5)  
+            ->pluck($field);
 
         return response()->json($data);
     }

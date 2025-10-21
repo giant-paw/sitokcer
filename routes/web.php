@@ -238,5 +238,6 @@ Route::prefix('master-kegiatan')
         Route::post('/bulk-delete', 'bulkDelete')->name('bulkDelete');
     });
 
+Route::get('/master/kegiatan/search', [MasterKegiatanController::class, 'search'])->name('master.kegiatan.search');
 
 Route::get('/user', fn() => view('user'))->name('user');

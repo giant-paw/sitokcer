@@ -2,6 +2,7 @@
 
 namespace App\Models\Distribusi;
 
+use App\Models\Master\MasterKegiatan;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -12,7 +13,6 @@ class DistribusiTahunan extends Model
     public $timestamps = true; 
 
     protected $fillable = [
-        'id_master_kegiatan',
         'nama_kegiatan',
         'BS_Responden',
         'pencacah',
@@ -23,9 +23,13 @@ class DistribusiTahunan extends Model
         'tanggal_pengumpulan'
     ];
 
-    // Relasi ke MasterKegiatan
     public function masterKegiatan()
     {
-        return $this->belongsTo(MasterKegiatan::class, 'id_master_kegiatan', 'id_master_kegiatan');
+        return $this->belongsTo(MasterKegiatan::class, 'nama_kegiatan', 'nama_kegiatan');
     }
+
+    protected $casts = [
+        'target_penyelesaian' => 'datetime',
+        'tanggal_pengumpulan' => 'datetime',
+    ];
 }
