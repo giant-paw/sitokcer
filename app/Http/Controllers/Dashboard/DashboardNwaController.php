@@ -3,46 +3,91 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardNwaController extends Controller
 {
     public function index()
     {
-        // Menghitung statistik dari tabel tahunan
-        $tahunan = DB::table('nwa_tahunan')
-            ->select(
-                DB::raw("COUNT(*) as total"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Selesai' THEN 1 ELSE 0 END) as selesai"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Proses' THEN 1 ELSE 0 END) as proses"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Belum Mulai' THEN 1 ELSE 0 END) as belum_mulai")
-            )
-            ->first();
+        // 🔹 Cari nama kolom tanggal yang tersedia di masing-masing tabel
+        $columnsTahunan = DB::select("SHOW COLUMNS FROM nwa_tahunan");
+        $columnsTriwulan = DB::select("SHOW COLUMNS FROM nwa_triwulanan");
 
-        // Menghitung statistik dari tabel triwulanan
-        $triwulanan = DB::table('nwa_triwulanan')
-            ->select(
-                DB::raw("COUNT(*) as total"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Selesai' THEN 1 ELSE 0 END) as selesai"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Proses' THEN 1 ELSE 0 END) as proses"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Belum Mulai' THEN 1 ELSE 0 END) as belum_mulai")
-            )
-            ->first();
+        $tanggalTahunan = $this->cariKolomTanggal($columnsTahunan);
+        $tanggalTriwulan = $this->cariKolomTanggal($columnsTriwulan);
 
-        // Menghitung total keseluruhan
-        $total_semua = ($tahunan->total ?? 0) + ($triwulanan->total ?? 0);
-        $total_selesai = ($tahunan->selesai ?? 0) + ($triwulanan->selesai ?? 0);
-        $total_proses = ($tahunan->proses ?? 0) + ($triwulanan->proses ?? 0);
-        $total_belum_mulai = ($tahunan->belum_mulai ?? 0) + ($triwulanan->belum_mulai ?? 0);
+        // 🔹 Gabungkan data (pakai kolom tanggal yang ditemukan)
+        $unionQuery = "
+            SELECT flag_progress, pencacah, $tanggalTahunan AS tanggal FROM nwa_tahunan
+            UNION ALL
+            SELECT flag_progress, pencacah, $tanggalTriwulan AS tanggal FROM nwa_triwulanan
+        ";
 
-        return view('dashboard.nwa', compact(
-            'tahunan',
-            'triwulanan',
-            'total_semua',
-            'total_selesai',
-            'total_proses',
-            'total_belum_mulai'
-        ));
+        $dataGabungan = DB::select($unionQuery);
+
+        // 🔹 Hitung total ringkasan
+        $totalSemua = count($dataGabungan);
+        $totalSelesai = collect($dataGabungan)->where('flag_progress', 'Selesai')->count();
+        $totalProses = collect($dataGabungan)->where('flag_progress', 'Proses')->count();
+        $totalBelum = collect($dataGabungan)->where('flag_progress', 'Belum Mulai')->count();
+
+        // 🔹 Grafik per bulan
+        $kegiatanPerBulan = DB::select("
+            SELECT 
+                DATE_FORMAT(STR_TO_DATE(tanggal, '%Y-%m-%d'), '%b %Y') AS bulan,
+                COUNT(*) AS total
+            FROM ($unionQuery) AS u
+            WHERE 
+                tanggal IS NOT NULL 
+                AND tanggal != '' 
+                AND STR_TO_DATE(tanggal, '%Y-%m-%d') BETWEEN '2020-01-01' AND CURDATE()
+            GROUP BY bulan
+            ORDER BY STR_TO_DATE(CONCAT('01 ', bulan), '%d %b %Y') ASC
+        ");
+
+        // 🔹 Format 12 bulan terakhir
+        $bulanSekarang = Carbon::now();
+        $dataBulan = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $bulan = $bulanSekarang->copy()->subMonths($i)->format('M Y');
+            $dataBulan[$bulan] = 0;
+        }
+        foreach ($kegiatanPerBulan as $row) {
+            if (isset($dataBulan[$row->bulan])) {
+                $dataBulan[$row->bulan] = $row->total;
+            }
+        }
+
+        // 🔹 Top 10 pencacah
+        $kegiatanPerPencacah = DB::select("
+            SELECT pencacah, COUNT(*) AS total
+            FROM ($unionQuery) AS u
+            WHERE pencacah IS NOT NULL AND pencacah != ''
+            GROUP BY pencacah
+            ORDER BY total DESC
+            LIMIT 10
+        ");
+
+        return view('dashboard.nwa', [
+            'dataBulan' => $dataBulan,
+            'kegiatanPerPencacah' => $kegiatanPerPencacah,
+            'totalSemua' => $totalSemua,
+            'totalSelesai' => $totalSelesai,
+            'totalProses' => $totalProses,
+            'totalBelum' => $totalBelum,
+        ]);
+    }
+
+    private function cariKolomTanggal($columns)
+    {
+        $namaKolom = collect($columns)->pluck('Field')->toArray();
+        foreach ($namaKolom as $col) {
+            if (stripos($col, 'tgl') !== false || stripos($col, 'tanggal') !== false) {
+                return $col;
+            }
+        }
+        // fallback kalau tidak ditemukan
+        return 'created_at';
     }
 }

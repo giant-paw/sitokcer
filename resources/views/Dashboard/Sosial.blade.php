@@ -1,102 +1,51 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard Tim Sosial')
-@section('header-title', 'Dashboard Tim Sosial')
+@section('title', 'Dashboard Sosial')
 
 @section('content')
-<div class="container-fluid">
-    {{-- Header Section --}}
+<div class="container-fluid py-4">
+
+    {{-- Header dan Ringkasan --}}
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h3 class="mb-1 fw-bold">Dashboard Tim Sosial</h3>
-                    <p class="text-muted mb-0">Monitoring dan evaluasi kegiatan sosial</p>
-                </div>
-                <div class="text-end">
-                    <small class="text-muted">Total Kegiatan</small>
-                    <h2 class="mb-0 fw-bold text-primary">{{ $total_semua ?? 0 }}</h2>
-                </div>
-            </div>
+        <div class="col">
+            <h4 class="fw-bold text-primary">
+                <i class="bi bi-people-fill me-2"></i>Dashboard Bidang Sosial
+            </h4>
+            <p class="text-muted mb-0">Monitoring dan evaluasi kegiatan sosial</p>
         </div>
     </div>
 
-    {{-- Ringkasan Umum --}}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <h5 class="mb-4 fw-semibold">Ringkasan Keseluruhan</h5>
-                    
-                    {{-- Statistics Cards --}}
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <div class="p-4 bg-light rounded-3">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <span class="text-muted">Selesai</span>
-                                    <i class="bi bi-check-circle text-success fs-4"></i>
-                                </div>
-                                <h3 class="mb-1 fw-bold">{{ $total_selesai ?? 0 }}</h3>
-                                @php
-                                    $persentaseSelesai = $total_semua > 0 ? round(($total_selesai / $total_semua) * 100, 1) : 0;
-                                @endphp
-                                <small class="text-muted">{{ $persentaseSelesai }}% dari total</small>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="p-4 bg-light rounded-3">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <span class="text-muted">Dalam Proses</span>
-                                    <i class="bi bi-hourglass-split text-warning fs-4"></i>
-                                </div>
-                                <h3 class="mb-1 fw-bold">{{ $total_proses ?? 0 }}</h3>
-                                @php
-                                    $persentaseProses = $total_semua > 0 ? round(($total_proses / $total_semua) * 100, 1) : 0;
-                                @endphp
-                                <small class="text-muted">{{ $persentaseProses }}% dari total</small>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="p-4 bg-light rounded-3">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <span class="text-muted">Belum Mulai</span>
-                                    <i class="bi bi-clock text-secondary fs-4"></i>
-                                </div>
-                                <h3 class="mb-1 fw-bold">{{ $total_belum_mulai ?? 0 }}</h3>
-                                @php
-                                    $persentaseBelum = $total_semua > 0 ? round(($total_belum_mulai / $total_semua) * 100, 1) : 0;
-                                @endphp
-                                <small class="text-muted">{{ $persentaseBelum }}% dari total</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Progress Bar --}}
-                    <div class="mt-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="small text-muted">Progress Keseluruhan</span>
-                            <span class="small fw-semibold">{{ $persentaseSelesai ?? 0 }}% Selesai</span>
-                        </div>
-                        <div class="progress" style="height: 8px;">
-                            @php
-                                $persenSelesai = $total_semua > 0 ? ($total_selesai / $total_semua) * 100 : 0;
-                                $persenProses = $total_semua > 0 ? ($total_proses / $total_semua) * 100 : 0;
-                                $persenBelum = $total_semua > 0 ? ($total_belum_mulai / $total_semua) * 100 : 0;
-                            @endphp
-                            <div class="progress-bar bg-success" style="width: {{ $persenSelesai }}%"></div>
-                            <div class="progress-bar bg-warning" style="width: {{ $persenProses }}%"></div>
-                            <div class="progress-bar bg-secondary" style="width: {{ $persenBelum }}%"></div>
-                        </div>
-                    </div>
-                </div>
+    {{-- Ringkasan Total --}}
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center p-3">
+                <h6 class="text-muted">Total Kegiatan</h6>
+                <h3 class="fw-bold text-primary">{{ $total_semua }}</h3>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center p-3">
+                <h6 class="text-muted">Selesai</h6>
+                <h3 class="fw-bold text-success">{{ $total_selesai }}</h3>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center p-3">
+                <h6 class="text-muted">Proses</h6>
+                <h3 class="fw-bold text-warning">{{ $total_proses }}</h3>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center p-3">
+                <h6 class="text-muted">Belum Mulai</h6>
+                <h3 class="fw-bold text-secondary">{{ $total_belum_mulai }}</h3>
             </div>
         </div>
     </div>
 
     {{-- Detail per Periode --}}
     <div class="row g-4">
+
         {{-- Kegiatan Tahunan --}}
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100">
@@ -111,44 +60,22 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        @php
-                            $progressTahunan = ($tahunan->total ?? 0) > 0 ? round((($tahunan->selesai ?? 0) / $tahunan->total) * 100, 1) : 0;
-                        @endphp
-                        <div class="d-flex justify-content-between mb-2">
-                            <small class="text-muted">Progress</small>
-                            <small class="fw-semibold">{{ $progressTahunan }}%</small>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-primary" style="width: {{ $progressTahunan }}%"></div>
-                        </div>
+                    @php
+                        $progressTahunan = ($tahunan->total ?? 0) > 0 ? round((($tahunan->selesai ?? 0) / $tahunan->total) * 100, 1) : 0;
+                    @endphp
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Progress</small>
+                        <small class="fw-semibold">{{ $progressTahunan }}%</small>
+                    </div>
+                    <div class="progress mb-3" style="height: 6px;">
+                        <div class="progress-bar bg-primary" style="width: {{ $progressTahunan }}%"></div>
                     </div>
 
                     <div class="row g-2">
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Total</small>
-                                <h5 class="mb-0 fw-bold">{{ $tahunan->total ?? 0 }}</h5>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Selesai</small>
-                                <h5 class="mb-0 fw-bold text-success">{{ $tahunan->selesai ?? 0 }}</h5>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Proses</small>
-                                <h5 class="mb-0 fw-bold text-warning">{{ $tahunan->proses ?? 0 }}</h5>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Belum Mulai</small>
-                                <h5 class="mb-0 fw-bold text-secondary">{{ $tahunan->belum_mulai ?? 0 }}</h5>
-                            </div>
-                        </div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Total</small><h5 class="fw-bold">{{ $tahunan->total ?? 0 }}</h5></div></div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Selesai</small><h5 class="fw-bold text-success">{{ $tahunan->selesai ?? 0 }}</h5></div></div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Proses</small><h5 class="fw-bold text-warning">{{ $tahunan->proses ?? 0 }}</h5></div></div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Belum Mulai</small><h5 class="fw-bold text-secondary">{{ $tahunan->belum_mulai ?? 0 }}</h5></div></div>
                     </div>
                 </div>
             </div>
@@ -168,44 +95,22 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        @php
-                            $progressSemesteran = ($semesteran->total ?? 0) > 0 ? round((($semesteran->selesai ?? 0) / $semesteran->total) * 100, 1) : 0;
-                        @endphp
-                        <div class="d-flex justify-content-between mb-2">
-                            <small class="text-muted">Progress</small>
-                            <small class="fw-semibold">{{ $progressSemesteran }}%</small>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-primary" style="width: {{ $progressSemesteran }}%"></div>
-                        </div>
+                    @php
+                        $progressSemesteran = ($semesteran->total ?? 0) > 0 ? round((($semesteran->selesai ?? 0) / $semesteran->total) * 100, 1) : 0;
+                    @endphp
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Progress</small>
+                        <small class="fw-semibold">{{ $progressSemesteran }}%</small>
+                    </div>
+                    <div class="progress mb-3" style="height: 6px;">
+                        <div class="progress-bar bg-primary" style="width: {{ $progressSemesteran }}%"></div>
                     </div>
 
                     <div class="row g-2">
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Total</small>
-                                <h5 class="mb-0 fw-bold">{{ $semesteran->total ?? 0 }}</h5>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Selesai</small>
-                                <h5 class="mb-0 fw-bold text-success">{{ $semesteran->selesai ?? 0 }}</h5>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Proses</small>
-                                <h5 class="mb-0 fw-bold text-warning">{{ $semesteran->proses ?? 0 }}</h5>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Belum Mulai</small>
-                                <h5 class="mb-0 fw-bold text-secondary">{{ $semesteran->belum_mulai ?? 0 }}</h5>
-                            </div>
-                        </div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Total</small><h5 class="fw-bold">{{ $semesteran->total ?? 0 }}</h5></div></div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Selesai</small><h5 class="fw-bold text-success">{{ $semesteran->selesai ?? 0 }}</h5></div></div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Proses</small><h5 class="fw-bold text-warning">{{ $semesteran->proses ?? 0 }}</h5></div></div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Belum Mulai</small><h5 class="fw-bold text-secondary">{{ $semesteran->belum_mulai ?? 0 }}</h5></div></div>
                     </div>
                 </div>
             </div>
@@ -225,67 +130,104 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        @php
-                            $progressTriwulanan = ($triwulanan->total ?? 0) > 0 ? round((($triwulanan->selesai ?? 0) / $triwulanan->total) * 100, 1) : 0;
-                        @endphp
-                        <div class="d-flex justify-content-between mb-2">
-                            <small class="text-muted">Progress</small>
-                            <small class="fw-semibold">{{ $progressTriwulanan }}%</small>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-primary" style="width: {{ $progressTriwulanan }}%"></div>
-                        </div>
+                    @php
+                        $progressTriwulanan = ($triwulanan->total ?? 0) > 0 ? round((($triwulanan->selesai ?? 0) / $triwulanan->total) * 100, 1) : 0;
+                    @endphp
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Progress</small>
+                        <small class="fw-semibold">{{ $progressTriwulanan }}%</small>
+                    </div>
+                    <div class="progress mb-3" style="height: 6px;">
+                        <div class="progress-bar bg-primary" style="width: {{ $progressTriwulanan }}%"></div>
                     </div>
 
                     <div class="row g-2">
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Total</small>
-                                <h5 class="mb-0 fw-bold">{{ $triwulanan->total ?? 0 }}</h5>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Selesai</small>
-                                <h5 class="mb-0 fw-bold text-success">{{ $triwulanan->selesai ?? 0 }}</h5>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Proses</small>
-                                <h5 class="mb-0 fw-bold text-warning">{{ $triwulanan->proses ?? 0 }}</h5>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block mb-1">Belum Mulai</small>
-                                <h5 class="mb-0 fw-bold text-secondary">{{ $triwulanan->belum_mulai ?? 0 }}</h5>
-                            </div>
-                        </div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Total</small><h5 class="fw-bold">{{ $triwulanan->total ?? 0 }}</h5></div></div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Selesai</small><h5 class="fw-bold text-success">{{ $triwulanan->selesai ?? 0 }}</h5></div></div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Proses</small><h5 class="fw-bold text-warning">{{ $triwulanan->proses ?? 0 }}</h5></div></div>
+                        <div class="col-6"><div class="p-3 bg-light rounded text-center"><small class="text-muted d-block mb-1">Belum Mulai</small><h5 class="fw-bold text-secondary">{{ $triwulanan->belum_mulai ?? 0 }}</h5></div></div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        {{-- === GRAFIK === --}}
+<div class="row mt-5">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">
+                    <i class="bi bi-bar-chart-fill text-primary me-1"></i>
+                    Grafik Perbandingan Status per Periode
+                </h6>
+                <canvas id="statusChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">
+                    <i class="bi bi-pie-chart-fill text-primary me-1"></i>
+                    Proporsi Total Kegiatan
+                </h6>
+                <canvas id="summaryChart" height="120"></canvas>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .card {
-        transition: all 0.3s ease;
-    }
-    
-    .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.08) !important;
-    }
-    
-    .bg-light {
-        background-color: #f8f9fa !important;
-    }
-    
-    .progress {
-        background-color: #e9ecef;
-    }
-</style>
+{{-- Script Chart.js --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx1 = document.getElementById('statusChart');
+    const statusChart = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: @json($chartData['labels']),
+            datasets: [
+                {
+                    label: 'Selesai',
+                    data: @json($chartData['selesai']),
+                    backgroundColor: '#198754'
+                },
+                {
+                    label: 'Proses',
+                    data: @json($chartData['proses']),
+                    backgroundColor: '#ffc107'
+                },
+                {
+                    label: 'Belum Mulai',
+                    data: @json($chartData['belum']),
+                    backgroundColor: '#6c757d'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    const ctx2 = document.getElementById('summaryChart');
+    const summaryChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Selesai', 'Proses', 'Belum Mulai'],
+            datasets: [{
+                data: [{{ $total_selesai }}, {{ $total_proses }}, {{ $total_belum_mulai }}],
+                backgroundColor: ['#198754', '#ffc107', '#6c757d']
+            }]
+        },
+        options: {
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+</script>
+
+
+    </div>
+</div>
 @endsection

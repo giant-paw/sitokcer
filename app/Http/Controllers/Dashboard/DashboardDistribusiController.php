@@ -3,57 +3,75 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardDistribusiController extends Controller
 {
     public function index()
     {
-        // Menghitung statistik dari tabel tahunan
-        $tahunan = DB::table('distribusi_tahunan')
-            ->select(
-                DB::raw("COUNT(*) as total"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Selesai' THEN 1 ELSE 0 END) as selesai"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Proses' THEN 1 ELSE 0 END) as proses"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Belum Mulai' THEN 1 ELSE 0 END) as belum_mulai")
-            )
-            ->first();
+        // 🔹 Gabungkan data dari ketiga tabel distribusi (kalau ada)
+        $unionQuery = "
+            SELECT flag_progress, pencacah, pengawas, tanggal_pengumpulan FROM distribusi_bulanan
+            UNION ALL
+            SELECT flag_progress, pencacah, pengawas, tanggal_pengumpulan FROM distribusi_triwulanan
+            UNION ALL
+            SELECT flag_progress, pencacah, pengawas, tanggal_pengumpulan FROM distribusi_tahunan
+        ";
 
-        // Menghitung statistik dari tabel triwulanan
-        $triwulanan = DB::table('distribusi_triwulanan')
-            ->select(
-                DB::raw("COUNT(*) as total"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Selesai' THEN 1 ELSE 0 END) as selesai"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Proses' THEN 1 ELSE 0 END) as proses"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Belum Mulai' THEN 1 ELSE 0 END) as belum_mulai")
-            )
-            ->first();
+        $dataGabungan = DB::select($unionQuery);
 
-        // Menghitung statistik dari tabel bulanan
-        $bulanan = DB::table('distribusi_bulanan')
-            ->select(
-                DB::raw("COUNT(*) as total"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Selesai' THEN 1 ELSE 0 END) as selesai"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Proses' THEN 1 ELSE 0 END) as proses"),
-                DB::raw("SUM(CASE WHEN flag_progress = 'Belum Mulai' THEN 1 ELSE 0 END) as belum_mulai")
-            )
-            ->first();
+        // 🔹 Ringkasan total
+        $totalSemua = count($dataGabungan);
+        $totalSelesai = collect($dataGabungan)->where('flag_progress', 'Selesai')->count();
+        $totalProses = collect($dataGabungan)->where('flag_progress', 'Proses')->count();
+        $totalBelum = collect($dataGabungan)->where('flag_progress', 'Belum Mulai')->count();
 
-        // Menghitung total keseluruhan
-        $total_semua = ($tahunan->total ?? 0) + ($triwulanan->total ?? 0) + ($bulanan->total ?? 0);
-        $total_selesai = ($tahunan->selesai ?? 0) + ($triwulanan->selesai ?? 0) + ($bulanan->selesai ?? 0);
-        $total_proses = ($tahunan->proses ?? 0) + ($triwulanan->proses ?? 0) + ($bulanan->proses ?? 0);
-        $total_belum_mulai = ($tahunan->belum_mulai ?? 0) + ($triwulanan->belum_mulai ?? 0) + ($bulanan->belum_mulai ?? 0);
+        // 🔹 Ambil data kegiatan per bulan (12 bulan terakhir)
+        $kegiatanPerBulan = DB::select("
+            SELECT 
+                DATE_FORMAT(STR_TO_DATE(tanggal_pengumpulan, '%Y-%m-%d'), '%b %Y') AS bulan,
+                COUNT(*) AS total
+            FROM ($unionQuery) AS u
+            WHERE 
+                tanggal_pengumpulan IS NOT NULL 
+                AND tanggal_pengumpulan != '' 
+                AND STR_TO_DATE(tanggal_pengumpulan, '%Y-%m-%d') BETWEEN '2020-01-01' AND CURDATE()
+            GROUP BY bulan
+            ORDER BY STR_TO_DATE(CONCAT('01 ', bulan), '%d %b %Y') ASC
+        ");
 
-        return view('dashboard.distribusi', compact(
-            'tahunan',
-            'triwulanan',
-            'bulanan',
-            'total_semua',
-            'total_selesai',
-            'total_proses',
-            'total_belum_mulai'
-        ));
+        // Format agar 12 bulan terakhir tetap tampil meski tidak ada data
+        $bulanSekarang = Carbon::now();
+        $dataBulan = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $bulan = $bulanSekarang->copy()->subMonths($i)->format('M Y');
+            $dataBulan[$bulan] = 0;
+        }
+
+        foreach ($kegiatanPerBulan as $row) {
+            if (isset($dataBulan[$row->bulan])) {
+                $dataBulan[$row->bulan] = $row->total;
+            }
+        }
+
+        // 🔹 Top 10 pencacah
+        $kegiatanPerPencacah = DB::select("
+            SELECT pencacah, COUNT(*) AS total
+            FROM ($unionQuery) AS u
+            WHERE pencacah IS NOT NULL AND pencacah != ''
+            GROUP BY pencacah
+            ORDER BY total DESC
+            LIMIT 10
+        ");
+
+        return view('dashboard.distribusi', [
+            'dataBulan' => $dataBulan,
+            'kegiatanPerPencacah' => $kegiatanPerPencacah,
+            'totalSemua' => $totalSemua,
+            'totalSelesai' => $totalSelesai,
+            'totalProses' => $totalProses,
+            'totalBelum' => $totalBelum,
+        ]);
     }
 }

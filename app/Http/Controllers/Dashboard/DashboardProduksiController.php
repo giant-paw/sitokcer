@@ -3,46 +3,78 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardProduksiController extends Controller
 {
     public function index()
     {
-        // Fungsi untuk mengambil statistik dari tabel
-        $getStats = function ($tableName) {
-            return DB::table($tableName)
-                ->select(
-                    DB::raw("COUNT(*) as total"),
-                    DB::raw("SUM(CASE WHEN flag_progress = 'Selesai' THEN 1 ELSE 0 END) as selesai"),
-                    DB::raw("SUM(CASE WHEN flag_progress = 'Proses' THEN 1 ELSE 0 END) as proses"),
-                    DB::raw("SUM(CASE WHEN flag_progress = 'Belum Mulai' THEN 1 ELSE 0 END) as belum_mulai")
-                )
-                ->first();
-        };
+        // 🔹 Gabungkan data dari semua tabel produksi (pakai tanggal_pengumpulan)
+        $unionQuery = "
+            SELECT flag_progress, pencacah, tanggal_pengumpulan FROM produksi_tahunan
+            UNION ALL
+            SELECT flag_progress, pencacah, tanggal_pengumpulan FROM produksi_caturwulanan
+            UNION ALL
+            SELECT flag_progress, pencacah, tanggal_pengumpulan FROM produksi_triwulanan
+            UNION ALL
+            SELECT flag_progress, pencacah, tanggal_pengumpulan FROM produksi_bulanan
+        ";
 
-        // Mengambil data dari masing-masing tabel
-        $tahunan = $getStats('produksi_tahunan');
-        $caturwulanan = $getStats('produksi_caturwulanan');
-        $triwulanan = $getStats('produksi_triwulanan');
-        $bulanan = $getStats('produksi_bulanan');
+        // 🔹 Ambil semua data
+        $dataGabungan = DB::select($unionQuery);
 
-        // Menghitung total keseluruhan
-        $total_semua = ($tahunan->total ?? 0) + ($caturwulanan->total ?? 0) + ($triwulanan->total ?? 0) + ($bulanan->total ?? 0);
-        $total_selesai = ($tahunan->selesai ?? 0) + ($caturwulanan->selesai ?? 0) + ($triwulanan->selesai ?? 0) + ($bulanan->selesai ?? 0);
-        $total_proses = ($tahunan->proses ?? 0) + ($caturwulanan->proses ?? 0) + ($triwulanan->proses ?? 0) + ($bulanan->proses ?? 0);
-        $total_belum_mulai = ($tahunan->belum_mulai ?? 0) + ($caturwulanan->belum_mulai ?? 0) + ($triwulanan->belum_mulai ?? 0) + ($bulanan->belum_mulai ?? 0);
+        // 🔹 Hitung total statistik
+        $totalSemua = count($dataGabungan);
+        $totalSelesai = collect($dataGabungan)->where('flag_progress', 'Selesai')->count();
+        $totalProses = collect($dataGabungan)->where('flag_progress', 'Proses')->count();
+        $totalBelum = collect($dataGabungan)->where('flag_progress', 'Belum Mulai')->count();
 
-        return view('dashboard.produksi', compact(
-            'tahunan',
-            'caturwulanan',
-            'triwulanan',
-            'bulanan',
-            'total_semua',
-            'total_selesai',
-            'total_proses',
-            'total_belum_mulai'
-        ));
+        // 🔹 Grafik per bulan (12 bulan terakhir)
+        $kegiatanPerBulan = DB::select("
+            SELECT 
+                DATE_FORMAT(STR_TO_DATE(tanggal_pengumpulan, '%Y-%m-%d'), '%b %Y') AS bulan,
+                COUNT(*) AS total
+            FROM ($unionQuery) AS u
+            WHERE 
+                tanggal_pengumpulan IS NOT NULL
+                AND tanggal_pengumpulan != ''
+                AND STR_TO_DATE(tanggal_pengumpulan, '%Y-%m-%d') BETWEEN '2020-01-01' AND CURDATE()
+            GROUP BY bulan
+            ORDER BY STR_TO_DATE(CONCAT('01 ', bulan), '%d %b %Y') ASC
+        ");
+
+        // 🔹 Buat array 12 bulan terakhir untuk menjaga urutan
+        $bulanSekarang = Carbon::now();
+        $dataBulan = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $bulan = $bulanSekarang->copy()->subMonths($i)->format('M Y');
+            $dataBulan[$bulan] = 0;
+        }
+
+        foreach ($kegiatanPerBulan as $row) {
+            if (isset($dataBulan[$row->bulan])) {
+                $dataBulan[$row->bulan] = $row->total;
+            }
+        }
+
+        // 🔹 Top 10 pencacah paling aktif
+        $kegiatanPerPencacah = DB::select("
+            SELECT pencacah, COUNT(*) AS total
+            FROM ($unionQuery) AS u
+            WHERE pencacah IS NOT NULL AND pencacah != ''
+            GROUP BY pencacah
+            ORDER BY total DESC
+            LIMIT 10
+        ");
+
+        return view('dashboard.produksi', [
+            'dataBulan' => $dataBulan,
+            'kegiatanPerPencacah' => $kegiatanPerPencacah,
+            'totalSemua' => $totalSemua,
+            'totalSelesai' => $totalSelesai,
+            'totalProses' => $totalProses,
+            'totalBelum' => $totalBelum,
+        ]);
     }
 }
