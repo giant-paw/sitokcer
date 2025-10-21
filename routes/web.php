@@ -214,6 +214,7 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
     Route::prefix('tahunan')->name('tahunan.')->group(function () {
         Route::get('/search-petugas', [ProduksiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
         Route::post('/bulk-delete', [ProduksiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::get('/tim-produksi/tahunan/{produksi}/edit', [ProduksiTahunanController::class, 'edit'])->name('tim-produksi.tahunan.edit');
         Route::resource('/', ProduksiTahunanController::class)->parameters(['' => 'tahunan']);
     });
 
