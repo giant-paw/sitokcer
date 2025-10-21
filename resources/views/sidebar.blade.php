@@ -188,7 +188,7 @@
                         <!-- Ubinan UTP -->
                         <li
                             class="{{ request()->is('tim-produksi/caturwulanan/uup*') ? 'active-link' : '' }}">
-                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan utp palawija']) }}">Ubinan UTP Palawija</a>
+                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'updating utp palawija']) }}">Updating UTP Palawija</a>
                         </li>
                     </ul>
                 </li>
