@@ -1,79 +1,168 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>@yield('title', 'Sitokcer')</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <link rel="stylesheet" href="{{ asset('css/global.css') }}">
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <style>
+        body {
+            overflow-y: hidden;
+            background-color: #f8f9fa;
+            font-family: sans-serif;
+        }
+
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header-navbar {
+            height: 60px;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .content-body-wrapper {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        #sidebar-wrapper {
+            min-width: 270px;
+            max-width: 270px;
+            transition: margin 0.3s ease-in-out;
+            background-color: white;
+        }
+
+        .content-body-wrapper.sidebar-collapsed #sidebar-wrapper {
+            margin-left: -270px;
+        }
+
+        #content-wrapper {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        @media (max-width: 991.98px) {
+            #sidebar-wrapper {
+                margin-left: -270px;
+                position: fixed;
+                height: 100%;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 1045;
+            }
+
+            .content-body-wrapper.sidebar-collapsed #sidebar-wrapper {
+                margin-left: 0;
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 1040;
+                display: none;
+                opacity: 0;
+                transition: opacity 0.3s ease-linear;
+            }
+
+            .content-body-wrapper.sidebar-collapsed .sidebar-overlay {
+                display: block;
+                opacity: 1;
+            }
+
+            .header-navbar {
+                padding-top: 0.5rem !important;
+                padding-bottom: 0.5rem !important;
+                height: 60px;
+            }
+
+            .navbar-brand img {
+                height: 32px;
+            }
+
+            .navbar-brand span {
+                font-size: 1.1rem;
+            }
+
+        }
+    </style>
+
+    @stack('styles')
 </head>
-<body class="bg-gray-100 font-sans">
 
-    <div class="flex h-screen">
-        
-        @include('sidebar')
-
-        {{-- Area konten utama --}}
-        <div class="flex-1 flex flex-col">
-            
-            {{-- Header / Navbar --}}
-            <header class="bg-white shadow-md w-full p-4 flex justify-between items-center">
-                {{-- Judul halaman yang dinamis --}}
-                <h1 class="text-xl font-semibold text-gray-700">
-                    @yield('header-title', 'Dashboard')
-                </h1>
-
-                <div class="relative">
-                    {{-- Tombol untuk membuka/menutup dropdown --}}
-                    <button id="user-menu-button" class="flex items-center space-x-2 focus:outline-none">
-                        <span class="text-gray-600 font-medium">Nama User</span>
-                        {{-- Icon Avatar Sederhana --}}
-                        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                           U
-                        </div>
-                        {{-- Icon Panah Dropdown --}}
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+<body>
+    <div class="page-wrapper">
+        <header class="navbar navbar-expand navbar-light bg-white shadow-sm header-navbar py-0">
+            <div class="container-fluid">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link text-secondary p-0 me-3" type="button" id="sidebar-toggle-button">
+                        <i class="bi bi-list" style="font-size: 1.9rem;"></i>
                     </button>
+                    <a href="{{ route('home') }}" class="navbar-brand d-flex align-items-center">
+                        <img src="{{ asset('logo.png') }}" alt="Logo Sitokcer" style="height: 32px;">
+                        <span class="fw-bold fs-5 ms-2" style="font-family: 'Poppins', sans-serif;">Sitokcer</span>
+                    </a>
+                </div>
 
-                    {{-- Konten Dropdown --}}
-                    <div id="user-menu-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-200 hidden">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profil</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Pengaturan</a>
-                        <div class="border-t border-gray-100"></div>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
+                <div class="d-flex align-items-center ms-auto">
+                    <div class="h6 fw-semibold text-dark mb-0">
+                        @yield('header-title', 'Dashboard')
                     </div>
                 </div>
-                </header>
+            </div>
+        </header>
 
-            {{-- Konten Utama Halaman --}}
-            <main class="flex-1 p-6 overflow-y-auto">
+
+
+        <div class="content-body-wrapper">
+            <aside id="sidebar-wrapper">
+                @include('sidebar')
+            </aside>
+            <div class="sidebar-overlay" id="sidebar-overlay"></div>
+            <main id="content-wrapper">
                 @yield('content')
             </main>
-
         </div>
-
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
+        </script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuButton = document.getElementById('user-menu-button');
-            const dropdown = document.getElementById('user-menu-dropdown');
-
-            // Toggle dropdown saat tombol diklik
-            menuButton.addEventListener('click', function() {
-                dropdown.classList.toggle('hidden');
-            });
-
-            // Tutup dropdown saat mengklik di luar area menu
-            window.addEventListener('click', function(e) {
-                if (!menuButton.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.classList.add('hidden');
-                }
-            });
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleButton = document.getElementById('sidebar-toggle-button');
+            const wrapper = document.querySelector('.content-body-wrapper');
+            const overlay = document.getElementById('sidebar-overlay');
+            const toggleSidebar = () => wrapper.classList.toggle('sidebar-collapsed');
+            if (toggleButton) toggleButton.addEventListener('click', toggleSidebar);
+            if (overlay) overlay.addEventListener('click', toggleSidebar);
         });
     </script>
+    <script src="{{ asset('js/sidebar.js') }}"></script>
 
+    @stack('scripts')
 </body>
-</html>
 
+</html>
