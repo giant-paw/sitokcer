@@ -16,7 +16,7 @@ class ProduksiCaturwulananController extends Controller
     public function index(Request $request, $jenisKegiatan)
     {
         $lowercaseJenis = strtolower($jenisKegiatan);
-        $validJenis = ['ubinan padi palawija', 'ubinan utp palawija']; 
+        $validJenis = ['ubinan padi palawija', 'updating utp palawija']; 
 
         if (!in_array($lowercaseJenis, $validJenis)) {
             abort(404);

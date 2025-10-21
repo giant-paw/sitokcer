@@ -135,8 +135,18 @@
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
                     <ul class="submenu">
-                       <li class="{{ request()->routeIs('tim-produksi.caturwulanan.index') && request()->route('jenisKegiatan') == 'ubinan padi palawija' ? 'active-link' : '' }}"> <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan padi palawija']) }}">Ubinan Padi Palawija</a></li>
-                       <li class="{{ request()->routeIs('tim-produksi.caturwulanan.index') && request()->route('jenisKegiatan') == 'ubinan utp palawija' ? 'active-link' : '' }}"> <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan utp palawija']) }}">Ubinan UTP Palawija</a></li>
+
+                        <!-- Ubinan Padi -->
+                        <li
+                            class="{{ request()->is('tim-produksi/caturwulanan/upp*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan padi palawija']) }}">Ubinan Padi Palawija</a>
+                        </li>
+
+                        <!-- Ubinan UTP -->
+                        <li
+                            class="{{ request()->is('tim-produksi/caturwulanan/uup*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'updating utp palawija']) }}">Updating UTP Palawija</a>
+                        </li>
                     </ul>
                 </li>
 

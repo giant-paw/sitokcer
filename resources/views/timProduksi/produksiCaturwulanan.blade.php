@@ -32,7 +32,6 @@
                         <button type="button" class="btn btn-danger" data-bs-target="#deleteDataModal" id="bulkDeleteBtn" disabled><i class="bi bi-trash"></i> Hapus Data Terpilih</button>
                     </div>
 
-                    {{-- ===== FILTER TAHUN ===== --}}
                     <div class="d-flex align-items-center gap-2">
                         <div>
                             <label for="perPageSelect" class="form-label me-2 mb-0">Display:</label>
@@ -57,10 +56,8 @@
                             </select>
                         </div>
                     </div>
-                    {{-- ===== AKHIR FILTER TAHUN ===== --}}
                 </div>
 
-                {{-- Alert Sukses/Error --}}
                 @if (session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert"> {{ session('success') }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
                 @endif
@@ -68,10 +65,10 @@
                 <div class="alert alert-danger alert-dismissible fade show" role="alert"> <strong>Error!</strong> Periksa form. <button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
                 @endif
 
-                {{-- ===== TAB KEGIATAN (Filter Tahun Ditambahkan) ===== --}}
                 <ul class="nav nav-pills mb-3 d-flex flex-wrap gap-8" >
-                    {{-- Hapus Link "All Data" karena tab spesifik per jenis --}}
-                    {{-- Pastikan $kegiatanCounts dikirim dari Controller --}}
+                    <li class="nav-item"> 
+                        <a class="nav-link {{ request('kegiatan') == '' ? 'active' : '' }}" href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}">All data</a>
+                    </li>
                     @foreach($kegiatanCounts ?? [] as $kegiatan)
                         <li class="nav-item">
                             <a class="nav-link {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
@@ -82,7 +79,6 @@
                     @endforeach
                 </ul>
 
-                {{-- ===== FORM PENCARIAN (Filter Tahun Ditambahkan) ===== --}}
                 <form action="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET" class="mb-4">
                     <div class="row g-2 align-items-center">
                         <input type="hidden" name="tahun" value="{{ $selectedTahun ?? date('Y') }}">
