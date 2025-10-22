@@ -216,4 +216,5 @@ class ProduksiTriwulananController extends Controller
 
         return response()->json($data);
     }
+    
 }

@@ -9,6 +9,9 @@ use Carbon\Carbon;
 use App\Models\Master\MasterPetugas;
 use App\Models\Master\MasterKegiatan;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpWord\TemplateProcessor;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\DistribusiBulananExport;
 
 use Illuminate\Http\Request;
 
@@ -217,5 +220,23 @@ class DistribusiBulananController extends Controller
             ->pluck('nama_petugas');
 
         return response()->json($data);
+    }
+    public function export(Request $request, $nama_kegiatan)
+    {
+        $dataRange = $request->input('dataRange');
+        $dataFormat = $request->input('dataFormat');
+        $exportFormat = $request->input('exportFormat');
+
+        $exportClass = new DistribusiBulananExport($dataRange, $dataFormat, $nama_kegiatan);
+
+        if ($exportFormat == 'excel') {
+            return Excel::download($exportClass, 'DistribusiTriwulanan.xlsx');
+        } elseif ($exportFormat == 'csv') {
+            return Excel::download($exportClass, 'DistribusiTriwulanan.csv');
+        } elseif ($exportFormat == 'word') {
+            return $exportClass->exportToWord();
+        }
+
+        return back()->with('error', 'Format ekspor tidak didukung.');
     }
 }

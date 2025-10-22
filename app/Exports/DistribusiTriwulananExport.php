@@ -2,33 +2,40 @@
 
 namespace App\Exports;
 
-use App\Models\Distribusi\DistribusiTahunan;
-// Maatwebsite\Excel digunakan untuk Excel, tapi saya biarkan karena class ini mengimplementasikannya
+use App\Models\Distribusi\DistribusiTriwulanan;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpWord\TemplateProcessor;
 
-class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMapping
+class DistribusiTriwulananExport implements FromCollection, WithHeadings
 {
     protected $dataRange;
     protected $dataFormat;
+    protected $jenisKegiatan;
 
-    public function __construct($dataRange, $dataFormat)
+    public function __construct($dataRange, $dataFormat, $jenisKegiatan)
     {
         $this->dataRange = $dataRange;
         $this->dataFormat = $dataFormat;
+        $this->jenisKegiatan = $jenisKegiatan;
     }
 
     // Mengambil data sesuai dengan range yang dipilih
     public function collection()
     {
-        $query = DistribusiTahunan::query();
+        $query = DistribusiTriwulanan::query();
+
+        // Pastikan query membatasi data sesuai dengan jenis_kegiatan yang aktif
+        $query->where('nama_kegiatan', 'LIKE', strtoupper($this->jenisKegiatan) . '%');
+
+        // Filter berdasarkan jangkauan data (current_page atau all)
         if ($this->dataRange == 'current_page') {
             return $query->paginate(20);  // Ambil data sesuai halaman yang sedang aktif
         }
 
-        return $query->get();
+        return $query->get(); // Ambil semua data jika tidak memilih 'current_page'
     }
 
     // Bagian ini hanya relevan jika Anda juga mengekspor ke Excel
@@ -37,63 +44,59 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
         return [
             'ID Kegiatan',
             'Nama Kegiatan',
-            'Blok Sensus/Responden',
+            'Blok Responden',
             'Pencacah',
             'Pengawas',
-            'Tanggal Target Penyelesaian',
+            'Tanggal Penyelesaian',
             'Flag Progress',
-            'Tanggal Pengumpulan',
+            'Tanggal Pengumpulan'
         ];
     }
 
-    // Bagian ini hanya relevan jika Anda juga mengekspor ke Excel
-    public function map($row): array
+    // Ekspor data ke Excel
+    public function exportToExcel()
     {
-        return [
-            $row->id_distribusi,
-            $row->nama_kegiatan,
-            $row->BS_Responden,
-            $row->pencacah,
-            $row->pengawas,
-            $row->target_penyelesaian,
-            $row->flag_progress,
-            $row->tanggal_pengumpulan,
-        ];
+        return Excel::download($this, 'distribusi_triwulanan.xlsx');
     }
 
-    /**
-     * Ekspor data ke Word menggunakan PhpWord\TemplateProcessor.
-     */
+    // Ekspor data ke CSV
+    public function exportToCSV()
+    {
+        return response()->stream(function () {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $this->headings()); // Menulis header kolom
+
+            foreach ($this->collection() as $item) {
+                fputcsv($handle, [
+                    $item->id_distribusi_triwulanan,
+                    $item->nama_kegiatan,
+                    $item->BS_Responden,
+                    $item->pencacah,
+                    $item->pengawas,
+                    $item->target_penyelesaian,
+                    $item->flag_progress,
+                    $item->tanggal_pengumpulan,
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, [
+            "Content-Type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=distribusi_triwulanan.csv"
+        ]);
+    }
+
+    // Ekspor data ke Word menggunakan PhpWord\TemplateProcessor
     public function exportToWord()
     {
-        // **SOLUSI 1: Meningkatkan Batas Waktu Eksekusi**
-        // Memberikan waktu eksekusi hingga 5 menit untuk data besar.
-        set_time_limit(300);
+        $templateProcessor = new TemplateProcessor(storage_path('templates/distribusi_triwulanan_template.docx'));
 
-        $templatePath = storage_path('exports/template.docx');
+        // Isi template dengan data
+        $templateProcessor->setValue('tanggal_cetak', now()->format('d F Y'));
+        $templateProcessor->setValue('judul_laporan', 'Laporan Distribusi Triwulanan');
 
-        if (!file_exists($templatePath)) {
-            return response()->json(['error' => 'File template Word tidak ditemukan di: ' . $templatePath], 404);
-        }
-
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        // --- Mengisi Variabel Statis (Non-Cloning) ---
-        try {
-            $templateProcessor->setValue('tanggal_cetak', now()->format('d F Y'));
-            $templateProcessor->setValue('judul_laporan', 'Laporan Distribusi Tahunan');
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Gagal mengisi variabel statis di template. Pastikan nama placeholder yang Anda gunakan ada dan tidak mengandung markup yang tersembunyi.',
-                'details' => $e->getMessage()
-            ], 500);
-        }
-
-
-        // --- Penanganan Kloning dan Data Kosong ---
         $data = $this->collection();
         $dataCount = $data->count();
-        // **PERUBAHAN DISINI:** Menggunakan id_distribusi sebagai penanda kloning
         $placeholderToClone = 'id_distribusi';
 
         if ($dataCount > 0) {
@@ -101,19 +104,15 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
                 // Kloning baris sebanyak total data
                 $templateProcessor->cloneRow($placeholderToClone, $dataCount);
             } catch (\Exception $e) {
-                // Error ini menunjukkan masalah pada template Word (markup, spasi, atau placeholder tidak ditemukan)
                 return response()->json([
-                    // Pesan error diperbarui untuk mencerminkan variabel yang baru
-                    'error' => 'Gagal mengkloning baris. Pastikan placeholder `' . $placeholderToClone . '` ada di dalam baris tabel template Word dan TIDAK mengandung spasi, enter, atau markup lain di SEL tersebut.',
-                    'details' => 'Can not clone row. template variable not found or variable contains markup.'
+                    'error' => 'Gagal mengkloning baris di template. Pastikan placeholder `' . $placeholderToClone . '` ada di template Word.',
+                    'details' => $e->getMessage()
                 ], 500);
             }
 
-            // --- Mengisi Nilai di Dalam Loop ---
             foreach ($data as $index => $row) {
                 $i = $index + 1;
 
-                // Menggunakan operator null coalescing (?? '') untuk mencegah nilai NULL
                 $templateProcessor->setValue('no#' . $i, $i);
                 $templateProcessor->setValue('id_distribusi#' . $i, $row->id_distribusi ?? '');
                 $templateProcessor->setValue('nama_kegiatan#' . $i, $row->nama_kegiatan ?? '');
@@ -131,7 +130,7 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
         }
 
         // Tentukan path untuk menyimpan file Word
-        $fileName = 'DistribusiTahunan_' . time() . '.docx';
+        $fileName = 'DistribusiTriwulanan_' . time() . '.docx';
         $filePath = storage_path('exports/' . $fileName);
 
         // Pastikan folder 'exports' dapat diakses
@@ -148,7 +147,6 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
                 'details' => $e->getMessage()
             ], 500);
         }
-
 
         // Kembalikan file untuk didownload
         return response()->download($filePath)->deleteFileAfterSend(true);

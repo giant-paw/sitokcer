@@ -91,6 +91,7 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::delete('/{tahunan}', [DistribusiTahunanController::class, 'destroy'])->name('destroy');
         // --- ROUTE TRIWULANAN ---
         Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
+            Route::get('/{jenisKegiatan}/export', [DistribusiTriwulananController::class, 'export'])->name('export');
             Route::get('/search-petugas', [DistribusiTriwulananController::class, 'searchPetugas'])->name('searchPetugas');
             Route::post('/bulk-delete', [DistribusiTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
 
@@ -106,6 +107,7 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
 
         // --- ROUTE Bulanan ---
         Route::prefix('bulanan')->name('bulanan.')->group(function () {
+            Route::get('/{jenisKegiatan}/export', [DistribusiBulananController::class, 'export'])->name('export');
             Route::get('/search-petugas', [DistribusiBulananController::class, 'searchPetugas'])->name('searchPetugas');
             Route::post('/bulk-delete', [DistribusiBulananController::class, 'bulkDelete'])->name('bulkDelete');
 
