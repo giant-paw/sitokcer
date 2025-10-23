@@ -49,11 +49,26 @@ Route::get('/dashboard-sosial', [DashboardSosialController::class, 'index'])->na
 
 /* --- TIM SOSIAL --- */
 Route::prefix('sosial')->name('sosial.')->group(function () {
-    // --- ROUTE PRODUKSI TAHUNAN ---
+    // --- ROUTE SOSIAL TAHUNAN ---
     Route::prefix('tahunan')->name('tahunan.')->group(function () {
+
+        // Rute-rute yang tidak punya parameter / spesifik
+        Route::get('/', [SosialTahunanController::class, 'index'])->name('index');
+        Route::post('/', [SosialTahunanController::class, 'store'])->name('store');
         Route::get('/search-petugas', [SosialTahunanController::class, 'searchPetugas'])->name('searchPetugas');
         Route::post('/bulk-delete', [SosialTahunanController::class, 'bulkDelete'])->name('bulkDelete');
-        Route::resource('/', SosialTahunanController::class)->parameters(['' => 'tahunan']);
+        // Tambahkan searchKegiatan jika ada di controller
+        // Route::get('/search-kegiatan', [SosialTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
+
+
+        // Rute-rute yang menggunakan {id}
+        // Ini akan cocok dengan controller baru ($id)
+        Route::get('/{id}/edit', [SosialTahunanController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [SosialTahunanController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SosialTahunanController::class, 'destroy'])->name('destroy');
+
+        // HAPUS RUTE RESOURCE YANG LAMA
+        // Route::resource('/', SosialTahunanController::class)->parameters(['' => 'tahunan']); // <-- HAPUS/KOMENTARI
     });
 
     Route::resource('seruti', SosialTriwulanController::class);
