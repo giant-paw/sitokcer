@@ -19,7 +19,7 @@ class NwaTahunanController extends Controller
         $selectedTahun = $request->input('tahun', date('Y'));
 
         $availableTahun = NwaTahunan::query()
-            ->select(DB::raw('YEAR(created_at) as tahun')) 
+            ->select(DB::raw('YEAR(created_at) as tahun'))
             ->distinct()
             ->whereNotNull('created_at')
             ->orderBy('tahun', 'desc')
@@ -32,56 +32,47 @@ class NwaTahunanController extends Controller
             $availableTahun = [date('Y')];
         }
 
-        // Kueri Utama dengan filter tahun
         $query = NwaTahunan::query()
-                 ->whereYear('created_at', $selectedTahun); 
-
+            ->whereYear('created_at', $selectedTahun);
 
         $selectedKegiatan = $request->input('kegiatan', '');
         if ($selectedKegiatan !== '') {
             $query->where('nama_kegiatan', $selectedKegiatan);
         }
 
-        // Filter pencarian ('q' diganti 'search')
         $search = $request->input('search', '');
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('BS_Responden', 'like', "%{$search}%")
-                  ->orWhere('pencacah', 'like', "%{$search}%")
-                  ->orWhere('pengawas', 'like', "%{$search}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$search}%") // Tambah search nama kegiatan
-                  ->orWhere('flag_progress', 'like', "%{$search}%");
+                    ->orWhere('pencacah', 'like', "%{$search}%")
+                    ->orWhere('pengawas', 'like', "%{$search}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$search}%")
+                    ->orWhere('flag_progress', 'like', "%{$search}%");
             });
         }
 
-        // Pagination
         $perPage = $request->input('per_page', 20);
         if ($perPage == 'all') {
             $total = (clone $query)->count();
             $perPage = $total > 0 ? $total : 20;
         }
 
-        // Ganti 'rows' menjadi 'listData'
-        $listData = $query->latest('id_nwa')->paginate($perPage)->withQueryString(); // Order by primary key
+        $listData = $query->latest('id_nwa')->paginate($perPage)->withQueryString(); 
 
-        // Hitung jumlah data per kegiatan (untuk Tabs)
-        // Ganti 'katMap' menjadi 'kegiatanCounts'
         $kegiatanCounts = NwaTahunan::query()
-            ->whereYear('created_at', $selectedTahun) // Filter tahun
+            ->whereYear('created_at', $selectedTahun)
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        // Ambil data master kegiatan (untuk autocomplete)
         $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
 
-        // Kirim data ke view (sesuaikan nama variabel)
         return view('timNWA.tahunan.NWAtahunan', compact(
-            'listData',         // Ganti 'rows'
-            'kegiatanCounts',   // Ganti 'kategoris' & 'katMap'
-            'selectedKegiatan', // Ganti 'kategori'
-            'search',           // Ganti 'q'
+            'listData',
+            'kegiatanCounts',
+            'selectedKegiatan',
+            'search',
             'masterKegiatanList',
             'availableTahun',
             'selectedTahun'
@@ -90,14 +81,12 @@ class NwaTahunanController extends Controller
 
     public function store(Request $request)
     {
-        // --- Gunakan Validasi Seperti Produksi ---
         $baseRules = [
-            'nama_kegiatan' => 'required|string|max:100|exists:master_kegiatan,nama_kegiatan', // Max 100 & exists
+            'nama_kegiatan' => 'required|string|max:100|exists:master_kegiatan,nama_kegiatan',
             'BS_Responden' => 'nullable|string|max:150',
-            'pencacah' => 'required|string|max:100|exists:master_petugas,nama_petugas', // Max 100 & exists
-            'pengawas' => 'required|string|max:100|exists:master_petugas,nama_petugas', // Max 100 & exists
+            'pencacah' => 'required|string|max:100|exists:master_petugas,nama_petugas',
+            'pengawas' => 'required|string|max:100|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'nullable|date',
-             // Sesuaikan opsi jika berbeda, pastikan required
             'flag_progress' => ['required', Rule::in(['Belum Mulai', 'Proses', 'Selesai'])],
             'tanggal_pengumpulan' => 'nullable|date',
         ];
@@ -110,7 +99,6 @@ class NwaTahunanController extends Controller
 
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
-        // --- Logika AJAX 422 ---
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -123,37 +111,49 @@ class NwaTahunanController extends Controller
 
         $validatedData = $validator->validated();
 
-        // Hapus format manual tanggal_pengumpulan, biarkan Eloquent handle
-        // if (!empty($validatedData['tanggal_pengumpulan'])) {
-        //     $validatedData['tanggal_pengumpulan'] = Carbon::parse($validatedData['tanggal_pengumpulan'])->format('Y-m-d H:i:s');
-        // }
-
-        // Set tahun_kegiatan jika perlu dan ada kolomnya
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
         }
 
         NwaTahunan::create($validatedData);
 
-        // --- Logika AJAX 200 ---
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data NWA Tahunan berhasil ditambahkan!']);
         }
-        return back()->with('success', 'Data NWA Tahunan ditambahkan.'); // Ganti 'ok' jadi 'success'
+        return back()->with(['success' => 'Data NWA Tahunan ditambahkan.', 'auto_hide' => true]);
     }
 
-    // --- Gunakan Method Edit untuk AJAX ---
-    public function edit(NwaTahunan $tahunan) // Gunakan Route Model Binding
+    /**
+     * PERUBAHAN: Menggunakan $id dan memformat tanggal
+     */
+    public function edit($id)
     {
-        return response()->json($tahunan); // Kirim data sebagai JSON
+        $tahunan = NwaTahunan::findOrFail($id);
+        
+        $data = $tahunan->toArray();
+
+        // INI ADALAH LOGIKA PENTING YANG HILANG
+        $targetPenyelesaian = $tahunan->target_penyelesaian;
+        $tanggalPengumpulan = $tahunan->tanggal_pengumpulan;
+        
+        $data['target_penyelesaian'] = $targetPenyelesaian 
+            ? Carbon::parse($targetPenyelesaian)->toDateString() 
+            : null;
+            
+        $data['tanggal_pengumpulan'] = $tanggalPengumpulan
+            ? Carbon::parse($tanggalPengumpulan)->toDateString()
+            : null;
+
+        return response()->json($data);
     }
 
-    // Fungsi show mungkin tidak diperlukan jika detail via modal/AJAX
-    // public function show(NwaTahunan $tahunan) { ... }
-
-    public function update(Request $request, NwaTahunan $tahunan)
+    /**
+     * PERUBAHAN: Menggunakan $id
+     */
+    public function update(Request $request, $id)
     {
-         // --- Gunakan Validasi Seperti Produksi ---
+        $tahunan = NwaTahunan::findOrFail($id);
+
         $baseRules = [
             'nama_kegiatan' => 'required|string|max:100|exists:master_kegiatan,nama_kegiatan',
             'BS_Responden' => 'nullable|string|max:150',
@@ -166,7 +166,6 @@ class NwaTahunanController extends Controller
         $customMessages = [ /* ... sama seperti store ... */ ];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
-         // --- Logika AJAX 422 ---
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -175,51 +174,50 @@ class NwaTahunanController extends Controller
                 ], 422);
             }
             return back()->withErrors($validator)->withInput()
-                         ->with('error_modal', 'editDataModal')
-                         ->with('edit_id', $tahunan->id_nwa); // Kirim ID untuk JS fallback
+                ->with('error_modal', 'editDataModal')
+                ->with('edit_id', $tahunan->id_nwa); // Kirim ID untuk JS fallback
         }
 
         $validatedData = $validator->validated();
 
-        // Hapus format manual
-        // $validatedData['tanggal_pengumpulan'] = ...
-
-        // Set tahun_kegiatan jika perlu
-         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+        if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
+            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
         }
 
         $tahunan->update($validatedData);
 
-        // --- Logika AJAX 200 ---
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Perubahan berhasil disimpan!']);
         }
-        return back()->with('success', 'Perubahan disimpan.'); // Ganti 'ok' jadi 'success'
+        return back()->with(['success' => 'Perubahan disimpan.', 'auto_hide' => true]);
     }
 
-    public function destroy(NwaTahunan $tahunan)
+    /**
+     * PERUBAHAN: Menggunakan $id
+     */
+    public function destroy($id)
     {
+        $tahunan = NwaTahunan::findOrFail($id);
         $tahunan->delete();
-         // Respons standar (redirect) biasanya cukup untuk delete
-        return back()->with('success', 'Data dihapus.'); // Ganti 'ok' jadi 'success'
+        
+        return back()->with(['success' => 'Data dihapus.', 'auto_hide' => true]);
     }
 
-     // --- TAMBAHKAN FUNGSI BULK DELETE (jika belum ada/perlu disesuaikan) ---
     public function bulkDelete(Request $request)
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:nwa_tahunan,id_nwa' // Sesuaikan nama tabel & primary key
+            'ids.*' => 'exists:nwa_tahunan,id_nwa' 
         ]);
 
         NwaTahunan::whereIn('id_nwa', $request->ids)->delete();
-        return back()->with('success', 'Data yang dipilih berhasil dihapus!');
+        return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
     }
 
-     public function searchPetugas(Request $request)
+    public function searchPetugas(Request $request)
     {
-         $request->validate([+
+        // Perbaikan typo: [ + menjadi [
+         $request->validate([
             'query' => 'nullable|string|max:100',
         ]);
         $query = $request->input('query', '');

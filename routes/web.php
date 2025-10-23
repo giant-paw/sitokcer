@@ -110,12 +110,21 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
 /* --- TIM PRODUKSI --- */
 Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
     
-    // --- ROUTE PRODUKSI TAHUNAN ---
     Route::prefix('tahunan')->name('tahunan.')->group(function () {
+        
+        Route::get('/', [ProduksiTahunanController::class, 'index'])->name('index');
+        Route::post('/', [ProduksiTahunanController::class, 'store'])->name('store');
         Route::get('/search-petugas', [ProduksiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
         Route::post('/bulk-delete', [ProduksiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
 
-        Route::resource('/', ProduksiTahunanController::class)->parameters(['' => 'tahunan']);
+        // Rute-rute yang menggunakan {id}
+        // Ini akan cocok dengan controller baru ($id)
+        Route::get('/{id}/edit', [ProduksiTahunanController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [ProduksiTahunanController::class, 'update'])->name('update');
+        Route::delete('/{id}', [ProduksiTahunanController::class, 'destroy'])->name('destroy');
+        
+        // HAPUS RUTE RESOURCE YANG LAMA
+        // Route::resource('/', ProduksiTahunanController::class)->parameters(['' => 'tahunan']); // <-- HAPUS/KOMENTARI
     });
 
     // --- ROUTE PRODUKSI CATURWULANAN ---
@@ -153,9 +162,9 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
         // Route untuk proses CRUD
         Route::post('/', [ProduksiBulananController::class, 'store'])->name('store');
 
-        Route::get('/{distribusi_bulanan}/edit', [ProduksiBulananController::class, 'edit'])->name('edit');
-        Route::put('/{distribusi_bulanan}', [ProduksiBulananController::class, 'update'])->name('update');
-        Route::delete('/{distribusi_bulanan}', [ProduksiBulananController::class, 'destroy'])->name('destroy');
+        Route::get('/{produksi_bulanan}/edit', [ProduksiBulananController::class, 'edit'])->name('edit');
+        Route::put('/{produksi_bulanan}', [ProduksiBulananController::class, 'update'])->name('update');
+        Route::delete('/{produksi_bulanan}', [ProduksiBulananController::class, 'destroy'])->name('destroy');
         
         // Route utama untuk menampilkan data berdasarkan jenis kegiatan
         Route::get('/{jenisKegiatan}', [ProduksiBulananController::class, 'index'])->name('index');
@@ -164,25 +173,47 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
 
 /* ---  TIM NWA --- */
 Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
-    // Route untuk NWA Tahunan 
+    
+    // --- ROUTE NWA TAHUNAN (DIROMBAK) ---
     Route::prefix('tahunan')->name('tahunan.')->group(function () {
+        
+        // Rute-rute yang tidak punya parameter / spesifik
+        Route::get('/', [NwaTahunanController::class, 'index'])->name('index');
+        Route::post('/', [NwaTahunanController::class, 'store'])->name('store');
         Route::post('/bulk-delete', [NwaTahunanController::class, 'bulkDelete'])->name('bulkDelete');
-        Route::resource('/', NwaTahunanController::class)->parameters(['' => 'tahunan']); 
+        
+        // Rute search (jika ada, tambahkan di sini, misal: search-petugas)
+        // Route::get('/search-petugas', [NwaTahunanController::class, 'searchPetugas'])->name('searchPetugas');
+        
+        // Rute-rute yang menggunakan {id}
+        // Ini akan cocok dengan controller baru ($id)
+        Route::get('/{id}/edit', [NwaTahunanController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [NwaTahunanController::class, 'update'])->name('update');
+        Route::delete('/{id}', [NwaTahunanController::class, 'destroy'])->name('destroy');
+        
+        // JANGAN GUNAKAN Route::resource DI SINI
+        // Route::resource('/', NwaTahunanController::class)->parameters(['' => 'tahunan']); // <-- HAPUS INI
     });
 
+
+    // --- ROUTE NWA TRIWULANAN (DIROMBAK) ---
     Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
 
+        // Rute-rute yang tidak punya parameter / spesifik
+        Route::post('/', [NwaTriwulananController::class, 'store'])->name('store');
         Route::post('/bulk-delete', [NwaTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
 
-        // Rute CRUD (Standar AJAX)
-        Route::post('/', [NwaTriwulananController::class, 'store'])->name('store');
-        Route::get('/{triwulanan}/edit', [NwaTriwulananController::class, 'edit'])->name('edit'); // Gunakan 'triwulanan'
-        Route::put('/{triwulanan}', [NwaTriwulananController::class, 'update'])->name('update');
-        Route::delete('/{triwulanan}', [NwaTriwulananController::class, 'destroy'])->name('destroy');
+        // Rute-rute yang menggunakan {id}
+        // Menggunakan {id} polos agar cocok dengan controller yang dirombak
+        Route::get('/{id}/edit', [NwaTriwulananController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [NwaTriwulananController::class, 'update'])->name('update');
+        Route::delete('/{id}', [NwaTriwulananController::class, 'destroy'])->name('destroy');
 
-        // Rute index (tetap menggunakan {jenisKegiatan})
+        // Rute index HARUS diletakkan PALING AKHIR
+        // agar tidak "menangkap" request untuk 'bulk-delete' atau '{id}/edit'
         Route::get('/{jenisKegiatan}', [NwaTriwulananController::class, 'index'])->name('index');
     });
+
 });
 
 /* --- REKAPITULASI --- */

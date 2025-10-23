@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 {{-- Sesuaikan Title --}}
-@section('title', strtoupper($jenisKegiatan) . ' - NWA Triwulanan - Sitokcer') 
+@section('title', strtoupper($jenisKegiatan) . ' - NWA Triwulanan - Sitokcer')
 @section('header-title', 'List Target Survei ' . ucwords($jenisKegiatan))
 
 {{-- STYLES UNTUK AUTOCOMPLETE --}}
@@ -28,7 +28,7 @@
             <div class="card-body">
                 <div class="mb-4 d-flex flex-wrap justify-content-between align-items-center">
                     <div class="d-flex flex-wrap gap-2">
-                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahDataModal"><i class="bi bi-plus-circle"></i> Tambah Baru</button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahDataModal"><i class="bi bi-plus-circle"></i> Tambah Baru</button>
                         <button type="button" class="btn btn-secondary"><i class="bi bi-upload"></i> Import</button>
                         <button type="button" class="btn btn-success"><i class="bi bi-download"></i> Ekspor Hasil</button>
                         <button type="button" class="btn btn-danger" data-bs-target="#deleteDataModal" id="bulkDeleteBtn" disabled><i class="bi bi-trash"></i> Hapus Data Terpilih</button>
@@ -71,16 +71,15 @@
 
                 {{-- ===== TAB KEGIATAN (Filter Tahun Ditambahkan) ===== --}}
                 <ul class="nav nav-pills mb-3 d-flex flex-wrap gap-2" >
-                    {{-- Tab 'All' (Semua kegiatan untuk jenis ini) --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ ($selectedKegiatan ?? '') == '' ? 'active' : '' }}" 
+                        <a class="nav-link {{ request('kegiatan') == '' ? 'active' : '' }}" 
                            href="{{ route('nwa.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
                            Semua
                         </a>
                     </li>
                     @foreach($kegiatanCounts ?? [] as $kegiatan)
                         <li class="nav-item">
-                            <a class="nav-link {{ ($selectedKegiatan ?? '') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
+                            <a class="nav-link {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
                                href="{{ route('nwa.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'kegiatan' => $kegiatan->nama_kegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
                                 {{ $kegiatan->nama_kegiatan }} <span class="badge bg-secondary">{{ $kegiatan->total }}</span>
                             </a>
@@ -92,11 +91,11 @@
                 <form action="{{ route('nwa.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET" class="mb-4">
                     <div class="row g-2 align-items-center">
                         <input type="hidden" name="tahun" value="{{ $selectedTahun ?? date('Y') }}">
-                        @if($selectedKegiatan ?? '' !== '')
-                            <input type="hidden" name="kegiatan" value="{{ $selectedKegiatan }}">
+                        @if(request('kegiatan'))
+                            <input type="hidden" name="kegiatan" value="{{ request('kegiatan') }}">
                         @endif
                         <div class="col-md-9 col-12">
-                            <input type="text" class="form-control" placeholder="Cari..." name="search" value="{{ $search ?? '' }}">
+                            <input type="text" class="form-control" placeholder="Cari..." name="search" value="{{ request('search') }}">
                         </div>
                         <div class="col-md-3 col-12">
                             <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i> Cari</button>
@@ -134,6 +133,7 @@
                                             $badgeClass = 'bg-secondary';
                                             if ($flag === 'Selesai') $badgeClass = 'bg-success';
                                             elseif ($flag === 'Proses') $badgeClass = 'bg-warning text-dark';
+                                            elseif ($flag === 'Belum Mulai') $badgeClass = 'bg-danger'; // Contoh
                                         @endphp
                                         <span class="badge {{ $badgeClass }}">{{ $flag ?? '-' }}</span>
                                     </td>
@@ -161,14 +161,14 @@
         </div>
     </div>
 
+    {{-- MODAL TAMBAH DATA --}}
     <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <form action="{{ route('nwa.triwulanan.store') }}" method="POST" id="tambahForm"> {{-- Rute disesuaikan --}}
+            <form action="{{ route('nwa.triwulanan.store') }}" method="POST" id="tambahForm">
             @csrf
             <div class="modal-content">
                 <div class="modal-header"> <h5 class="modal-title">Tambah Data NWA Triwulanan</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button> </div>
                 <div class="modal-body">
-                    <input type="hidden" name="_form" value="tambahForm">
                     <div class="mb-3 autocomplete-container">
                         <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror" id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" placeholder="Ketik untuk mencari..." required autocomplete="off">
@@ -177,8 +177,9 @@
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6 mb-3">
-                            <label for="BS_Responden" class="form-label">Blok Sensus/Responden</label>
-                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror" id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}">
+                            {{-- PERUBAHAN: Dibuat required --}}
+                            <label for="BS_Responden" class="form-label">Blok Sensus/Responden <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror" id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
                             <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden'){{ $message }}@enderror</div>
                         </div>
                         <div class="col-md-6 mb-3 autocomplete-container">
@@ -194,13 +195,14 @@
                             <div class="invalid-feedback" data-field="pengawas">@error('pengawas'){{ $message }}@enderror</div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="target_penyelesaian" class="form-label">Target Penyelesaian</label>
+                            <label for="target_penyelesaian" class="form-label">Target Penyelesaian <span class="text-danger">*</span></label>
                             <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror" id="target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required>
                             <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian'){{ $message }}@enderror</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="flag_progress" class="form-label">Flag Progress <span class="text-danger">*</span></label>
                             <select class="form-select @error('flag_progress') is-invalid @enderror" id="flag_progress" name="flag_progress" required>
+                                {{-- Ini adalah opsi yang konsisten --}}
                                 @php $oldFlag = old('flag_progress', 'Belum Mulai'); @endphp
                                 @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt)
                                     <option value="{{ $opt }}" @selected($oldFlag === $opt)>{{ $opt }}</option>
@@ -209,8 +211,9 @@
                             <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress'){{ $message }}@enderror</div>
                         </div>
                         <div class="col-md-6 mb-3">
+                            {{-- PERUBAHAN: required dihapus (nullable) --}}
                             <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
-                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror" id="tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}" required>
+                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror" id="tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}">
                             <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan'){{ $message }}@enderror</div>
                         </div>
                     </div>
@@ -224,73 +227,94 @@
         </div>
     </div>
 
+    {{-- MODAL EDIT DATA --}}
     <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <form id="editForm" method="POST"> {{-- Action diatur oleh JS --}}
+            <form id="editForm" method="POST"> {{-- Action akan di-set oleh JS --}}
                 @csrf
-                @method('PUT')
-                <input type="hidden" name="_form" value="editForm">
-                <input type="hidden" name="edit_id_fallback" id="edit_id_fallback" value="{{ old('edit_id_fallback', session('edit_id')) }}">
-
+                @method('PUT') 
                 <div class="modal-content">
-                    <div class="modal-header"> <h5 class="modal-title">Edit Data NWA Triwulanan</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button> </div>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editDataModalLabel">Edit Data</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
                     <div class="modal-body">
-                         <div class="mb-3 autocomplete-container">
+                        <input type="hidden" id="edit_id_fallback" value="{{ session('edit_id') ?? '' }}">
+                        <div class="mb-3 autocomplete-container">
                             <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror" id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off">
+                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror" 
+                                id="edit_nama_kegiatan" name="nama_kegiatan" 
+                                value="{{ old('nama_kegiatan') }}" required autocomplete="off">
                             <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
                             <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6 mb-3">
-                                <label for="edit_BS_Responden" class="form-label">Blok Sensus/Responden</label>
-                                <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror" id="edit_BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}">
+                                <label for="edit_BS_Responden" class="form-label">Blok Sensus/Responden <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror" 
+                                    id="edit_BS_Responden" name="BS_Responden" 
+                                    value="{{ old('BS_Responden') }}" required>
                                 <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden'){{ $message }}@enderror</div>
                             </div>
-                            <div class="col-md-6 mb-3 autocomplete-container">
+                            <div class="col-md-6 mb-3 autocomplete-container"> 
                                 <label for="edit_pencacah" class="form-label">Pencacah <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('pencacah') is-invalid @enderror" id="edit_pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off">
+                                <input type="text" class="form-control @error('pencacah') is-invalid @enderror" 
+                                    id="edit_pencacah" name="pencacah" 
+                                    value="{{ old('pencacah') }}" required autocomplete="off">
                                 <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
                                 <div class="invalid-feedback" data-field="pencacah">@error('pencacah'){{ $message }}@enderror</div>
                             </div>
                             <div class="col-md-6 mb-3 autocomplete-container">
                                 <label for="edit_pengawas" class="form-label">Pengawas <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('pengawas') is-invalid @enderror" id="edit_pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off">
+                                <input type="text" class="form-control @error('pengawas') is-invalid @enderror" 
+                                    id="edit_pengawas" name="pengawas" 
+                                    value="{{ old('pengawas') }}" required autocomplete="off">
                                 <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div>
                                 <div class="invalid-feedback" data-field="pengawas">@error('pengawas'){{ $message }}@enderror</div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="edit_target_penyelesaian" class="form-label">Target Penyelesaian</label>
-                                <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror" id="edit_target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}">
+                                <label for="edit_target_penyelesaian" class="form-label">Tanggal Target Penyelesaian <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror" 
+                                    id="edit_target_penyelesaian" name="target_penyelesaian" 
+                                    value="{{ old('target_penyelesaian') }}" required>
                                 <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian'){{ $message }}@enderror</div>
                             </div>
+                            
                             <div class="col-md-6 mb-3">
                                 <label for="edit_flag_progress" class="form-label">Flag Progress <span class="text-danger">*</span></label>
-                                <select class="form-select @error('flag_progress') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required>
-                                    @php $oldFlagE = old('flag_progress'); @endphp
-                                    @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt)
-                                        <option value="{{ $opt }}" @selected($oldFlagE === $opt)>{{ $opt }}</option>
-                                    @endforeach
+                                <select class="form-select @error('flag_progress') is-invalid @enderror" 
+                                        id="edit_flag_progress" name="flag_progress" required>
+                                    
+                                    {{-- PERUBAHAN: Opsi disamakan dengan Modal Tambah --}}
+                                    <option value="Belum Mulai">Belum Mulai</option>
+                                    <option value="Proses">Proses</option>
+                                    <option value="Selesai">Selesai</option>
+                                
                                 </select>
                                 <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress'){{ $message }}@enderror</div>
                             </div>
+                            
                             <div class="col-md-6 mb-3">
                                 <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
-                                <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror" id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}">
+                                <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror" 
+                                    id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan"
+                                    value="{{ old('tanggal_pengumpulan') }}">
                                 <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan'){{ $message }}@enderror</div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary"> <span class="spinner-border spinner-border-sm d-none"></span> Simpan Perubahan </button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            Simpan Perubahan
+                        </button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal Konfirmasi Hapus -->
     <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true">
         <div class="modal-dialog">
              <form id="deleteForm" method="POST"> @csrf @method('DELETE') <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title">Konfirmasi Hapus</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button> </div> <div class="modal-body" id="deleteModalBody"> Hapus data ini? </div> <div class="modal-footer"> <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button> <button type="submit" class="btn btn-danger" id="confirmDeleteButton">Hapus</button> </div> </div> </form>
@@ -301,26 +325,40 @@
 
 @push('scripts')
 <script>
+    // URL global untuk rute (diasumsikan ada)
+    const autocompleteUrls = {
+        kegiatan: '{{ Route::has("master.kegiatan.search") ? route("master.kegiatan.search") : "" }}',
+        petugas: '{{ Route::has("master.petugas.search") ? route("master.petugas.search") : "" }}'
+    };
+
+    // URL basis untuk NWA Triwulanan (sesuai web.php baru)
+    const nwaTriwulananBaseUrl = '/nwa/triwulanan'; 
+
     /** Autocomplete */
-    function initAutocomplete(inputId, suggestionsId, searchUrl) { const input = document.getElementById(inputId); if (!input) return; const suggestionsContainer = document.getElementById(suggestionsId); let debounceTimer; let activeSuggestionIndex = -1; input.addEventListener('input', function() { const query = this.value; clearTimeout(debounceTimer); if (query.length < 1) { if (suggestionsContainer) suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; return; } debounceTimer = setTimeout(() => { const finalSearchUrl = `${searchUrl}?query=${encodeURIComponent(query)}`; fetch(finalSearchUrl).then(response => { if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } return response.json(); }).then(data => { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; if (Array.isArray(data)) { data.forEach((item, index) => { const div = document.createElement('div'); div.textContent = item; div.classList.add('autocomplete-suggestion-item'); div.onclick = () => { input.value = item; suggestionsContainer.innerHTML = ''; }; div.onmouseover = () => { document.querySelectorAll(`#${suggestionsId} .autocomplete-suggestion-item`).forEach(el => el.classList.remove('active')); div.classList.add('active'); activeSuggestionIndex = index; }; suggestionsContainer.appendChild(div); }); } else { console.error('Autocomplete data is not an array:', data); } }).catch(error => console.error('Autocomplete error:', error)); }, 300); }); input.addEventListener('keydown', function(e) { const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item'); if (suggestions.length === 0) return; if (e.key === 'ArrowDown') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'ArrowUp') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'Enter') { if (activeSuggestionIndex > -1) { e.preventDefault(); input.value = suggestions[activeSuggestionIndex].textContent; suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } } else if (e.key === 'Escape') { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); function updateActiveSuggestion(suggestions, index) { suggestions.forEach(el => el.classList.remove('active')); if (suggestions[index]) suggestions[index].classList.add('active'); } document.addEventListener('click', (e) => { if (e.target.id !== inputId && suggestionsContainer) { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); }
+    function initAutocomplete(inputId, suggestionsId, searchUrl) { /* ... (fungsi ini tidak perlu diubah) ... */ const input = document.getElementById(inputId); if (!input || !searchUrl) return; const suggestionsContainer = document.getElementById(suggestionsId); let debounceTimer; let activeSuggestionIndex = -1; input.addEventListener('input', function() { const query = this.value; clearTimeout(debounceTimer); if (query.length < 1) { if (suggestionsContainer) suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; return; } debounceTimer = setTimeout(() => { const finalSearchUrl = `${searchUrl}?query=${encodeURIComponent(query)}`; fetch(finalSearchUrl).then(response => { if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } return response.json(); }).then(data => { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; if (Array.isArray(data)) { data.forEach((item, index) => { const div = document.createElement('div'); div.textContent = item; div.classList.add('autocomplete-suggestion-item'); div.onclick = () => { input.value = item; suggestionsContainer.innerHTML = ''; }; div.onmouseover = () => { document.querySelectorAll(`#${suggestionsId} .autocomplete-suggestion-item`).forEach(el => el.classList.remove('active')); div.classList.add('active'); activeSuggestionIndex = index; }; suggestionsContainer.appendChild(div); }); } else { console.error('Autocomplete data is not an array:', data); } }).catch(error => console.error('Autocomplete error:', error)); }, 300); }); input.addEventListener('keydown', function(e) { const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item'); if (suggestions.length === 0) return; if (e.key === 'ArrowDown') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'ArrowUp') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'Enter') { if (activeSuggestionIndex > -1) { e.preventDefault(); input.value = suggestions[activeSuggestionIndex].textContent; suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } } else if (e.key === 'Escape') { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); function updateActiveSuggestion(suggestions, index) { suggestions.forEach(el => el.classList.remove('active')); if (suggestions[index]) suggestions[index].classList.add('active'); } document.addEventListener('click', (e) => { if (e.target.id !== inputId && suggestionsContainer) { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); }
 
     /** Edit Data */
     function editData(id) {
         const editModalEl = document.getElementById('editDataModal'); if (!editModalEl) return;
         const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl); const editForm = document.getElementById('editForm');
-        editForm.action = `/nwa/triwulanan/${id}`; // <-- URL NWA Triwulanan
+        
+        // PERUBAHAN: URL disesuaikan dengan web.php baru (PUT /nwa/triwulanan/{id})
+        editForm.action = `${nwaTriwulananBaseUrl}/${id}`; 
+        
         clearFormErrors(editForm);
-         document.getElementById('edit_id_fallback').value = id; // Set ID for fallback
-        fetch(`/nwa/triwulanan/${id}/edit`) // <-- URL NWA Triwulanan
+        document.getElementById('edit_id_fallback').value = id; 
+        
+        // PERUBAHAN: URL disesuaikan dengan web.php baru (GET /nwa/triwulanan/{id}/edit)
+        fetch(`${nwaTriwulananBaseUrl}/${id}/edit`) 
             .then(response => { if (!response.ok) { return response.text().then(text => { throw new Error(text || 'Data tidak ditemukan'); }); } return response.json(); })
             .then(data => {
                 document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
                 document.getElementById('edit_BS_Responden').value = data.BS_Responden || '';
                 document.getElementById('edit_pencacah').value = data.pencacah || '';
                 document.getElementById('edit_pengawas').value = data.pengawas || '';
-                document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian ? data.target_penyelesaian.split(' ')[0] : '';
-                document.getElementById('edit_flag_progress').value = data.flag_progress || 'Belum Mulai'; // Default sesuai opsi
-                document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan ? data.tanggal_pengumpulan.split(' ')[0] : '';
+                document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian || ''; // Disederhanakan
+                document.getElementById('edit_flag_progress').value = data.flag_progress || 'Belum Mulai';
+                document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan || ''; // Disederhanakan
                 editModal.show();
             })
             .catch(error => { console.error("Error loading edit data:", error); alert('Tidak dapat memuat data. Error: ' + error.message); });
@@ -330,7 +368,10 @@
     function deleteData(id) {
         const deleteModalEl = document.getElementById('deleteDataModal'); if (!deleteModalEl) return;
         const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl); const deleteForm = document.getElementById('deleteForm');
-        deleteForm.action = `/nwa/triwulanan/${id}`; // <-- URL NWA Triwulanan
+        
+        // PERUBAHAN: URL disesuaikan dengan web.php baru (DELETE /nwa/triwulanan/{id})
+        deleteForm.action = `${nwaTriwulananBaseUrl}/${id}`;
+        
         let methodInput = deleteForm.querySelector('input[name="_method"]'); if (!methodInput) { methodInput = document.createElement('input'); methodInput.type = 'hidden'; methodInput.name = '_method'; deleteForm.appendChild(methodInput); } methodInput.value = 'DELETE';
         deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove()); document.getElementById('deleteModalBody').innerText = 'Hapus data ini?';
         const newConfirmButton = document.getElementById('confirmDeleteButton').cloneNode(true); document.getElementById('confirmDeleteButton').parentNode.replaceChild(newConfirmButton, document.getElementById('confirmDeleteButton')); newConfirmButton.addEventListener('click', (e) => { e.preventDefault(); deleteForm.submit(); });
@@ -345,8 +386,8 @@
     /** DOM Ready */
     document.addEventListener('DOMContentLoaded', function() {
         // Init Autocomplete
-        @if(Route::has('master.kegiatan.search')) initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', '{{ route("master.kegiatan.search") }}'); initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', '{{ route("master.kegiatan.search") }}'); @else console.warn('Rute kegiatan search tidak ada.'); @endif
-        @if(Route::has('master.petugas.search')) initAutocomplete('pencacah', 'pencacah-suggestions', '{{ route("master.petugas.search") }}'); initAutocomplete('pengawas', 'pengawas-suggestions', '{{ route("master.petugas.search") }}'); initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', '{{ route("master.petugas.search") }}'); initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', '{{ route("master.petugas.search") }}'); @else console.warn('Rute petugas search tidak ada.'); @endif
+        if(autocompleteUrls.kegiatan) { initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', autocompleteUrls.kegiatan); initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', autocompleteUrls.kegiatan); } else { console.warn('Rute master.kegiatan.search tidak ada.'); }
+        if(autocompleteUrls.petugas) { initAutocomplete('pencacah', 'pencacah-suggestions', autocompleteUrls.petugas); initAutocomplete('pengawas', 'pengawas-suggestions', autocompleteUrls.petugas); initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', autocompleteUrls.petugas); initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', autocompleteUrls.petugas); } else { console.warn('Rute master.petugas.search tidak ada.'); }
 
         // Init AJAX Form Handlers
         const tme = document.getElementById('tambahDataModal'); const tf = document.getElementById('tambahForm'); if (tme && tf) { const tm = bootstrap.Modal.getOrCreateInstance(tme); tf.addEventListener('submit', (e) => handleFormSubmitAjax(e, tf, tm)); tme.addEventListener('hidden.bs.modal', () => { clearFormErrors(tf); tf.reset(); }); }
@@ -360,7 +401,7 @@
 
         // Fallback Error Modals
         @if (session('error_modal') == 'tambahDataModal' && $errors->any()) const tmef = document.getElementById('tambahDataModal'); if (tmef) bootstrap.Modal.getOrCreateInstance(tmef).show(); @endif
-        @if (session('error_modal') == 'editDataModal' && $errors->any()) const eid_fb = document.getElementById('edit_id_fallback')?.value; if (eid_fb) { const emef = document.getElementById('editDataModal'); if(emef) { const edf = document.getElementById('editForm'); edf.action = `/nwa/triwulanan/${eid_fb}`; bootstrap.Modal.getOrCreateInstance(emef).show(); setTimeout(() => { @foreach ($errors->keys() as $f) const fel = edf.querySelector('[name="{{ $f }}"]'); if (fel) fel.classList.add('is-invalid'); const erel = edf.querySelector(`.invalid-feedback[data-field="{{ $f }}"]`); if (erel) erel.textContent = '{{ $errors->first($f) }}'; @endforeach }, 500); } } @endif
+        @if (session('error_modal') == 'editDataModal' && $errors->any()) const eid_fb = document.getElementById('edit_id_fallback')?.value; if (eid_fb) { const emef = document.getElementById('editDataModal'); if(emef) { const edf = document.getElementById('editForm'); edf.action = `${nwaTriwulananBaseUrl}/${eid_fb}`; bootstrap.Modal.getOrCreateInstance(emef).show(); setTimeout(() => { @foreach ($errors->keys() as $f) const fel = edf.querySelector('[name="{{ $f }}"]'); if (fel) fel.classList.add('is-invalid'); const erel = edf.querySelector(`.invalid-feedback[data-field="{{ $f }}"]`); if (erel) erel.textContent = '{{ $errors->first($f) }}'; @endforeach }, 500); } } @endif
 
         // Auto-hide Alerts
         const aha = document.querySelectorAll('.alert-dismissible[role="alert"]'); aha.forEach(a => { if (!a.closest('.modal')) { setTimeout(() => { const bsa = bootstrap.Alert.getOrCreateInstance(a); if (bsa) bsa.close(); }, 5000); } });

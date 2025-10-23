@@ -323,9 +323,9 @@
     function editData(id) {
         const editModalEl = document.getElementById('editDataModal'); if (!editModalEl) return;
         const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl); const editForm = document.getElementById('editForm');
-        editForm.action = `/tim-produksi/triwulanan/${id}`; // <-- URL Triwulanan
+        editForm.action = `/tim-produksi/triwulanan/${id}`; 
         clearFormErrors(editForm);
-        fetch(`/tim-produksi/triwulanan/${id}/edit`) // <-- URL Triwulanan
+        fetch(`/tim-produksi/triwulanan/${id}/edit`) 
             .then(response => { if (!response.ok) { return response.text().then(text => { throw new Error(text || 'Data tidak ditemukan'); }); } return response.json(); })
             .then(data => {
                 document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
@@ -344,7 +344,7 @@
     function deleteData(id) {
         const deleteModalEl = document.getElementById('deleteDataModal'); if (!deleteModalEl) return;
         const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl); const deleteForm = document.getElementById('deleteForm');
-        deleteForm.action = `/tim-produksi/triwulanan/${id}`; // <-- URL Triwulanan
+        deleteForm.action = `/tim-produksi/triwulanan/${id}`; 
         let methodInput = deleteForm.querySelector('input[name="_method"]'); if (!methodInput) { methodInput = document.createElement('input'); methodInput.type = 'hidden'; methodInput.name = '_method'; deleteForm.appendChild(methodInput); } methodInput.value = 'DELETE';
         deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove()); document.getElementById('deleteModalBody').innerText = 'Hapus data ini?';
         const newConfirmButton = document.getElementById('confirmDeleteButton').cloneNode(true); document.getElementById('confirmDeleteButton').parentNode.replaceChild(newConfirmButton, document.getElementById('confirmDeleteButton')); newConfirmButton.addEventListener('click', (e) => { e.preventDefault(); deleteForm.submit(); });

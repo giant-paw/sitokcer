@@ -342,15 +342,8 @@
         const input = document.getElementById(inputId); if (!input) return; const suggestionsContainer = document.getElementById(suggestionsId); let debounceTimer; let activeSuggestionIndex = -1; input.addEventListener('input', function() { const query = this.value; clearTimeout(debounceTimer); if (query.length < 1) { if (suggestionsContainer) suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; return; } debounceTimer = setTimeout(() => { const finalSearchUrl = `${searchUrl}?query=${query}`; fetch(finalSearchUrl).then(response => response.json()).then(data => { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; data.forEach((item, index) => { const div = document.createElement('div'); div.textContent = item; div.classList.add('autocomplete-suggestion-item'); div.onclick = () => { input.value = item; suggestionsContainer.innerHTML = ''; }; div.onmouseover = () => { document.querySelectorAll(`#${suggestionsId} .autocomplete-suggestion-item`).forEach(el => el.classList.remove('active')); div.classList.add('active'); activeSuggestionIndex = index; }; suggestionsContainer.appendChild(div); }); }).catch(error => console.error('Autocomplete error:', error)); }, 300); }); input.addEventListener('keydown', function(e) { const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item'); if (suggestions.length === 0) return; if (e.key === 'ArrowDown') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'ArrowUp') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'Enter') { if (activeSuggestionIndex > -1) { e.preventDefault(); input.value = suggestions[activeSuggestionIndex].textContent; suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } } else if (e.key === 'Escape') { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); function updateActiveSuggestion(suggestions, index) { suggestions.forEach(el => el.classList.remove('active')); if (suggestions[index]) suggestions[index].classList.add('active'); } document.addEventListener('click', (e) => { if (e.target.id !== inputId && suggestionsContainer) { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } });
     }
 
-    /* |--------------------------------------------------------------------------
-    | Variabel Global (diambil dari `document.addEventListener`)
-    |--------------------------------------------------------------------------
-    | Kita deklarasikan di scope global agar bisa diakses oleh
-    | fungsi editData() dan deleteData()
-    */
-    let baseUrlEdit = '';
-    let baseUrlUpdate = '';
-    let baseUrlDestroy = '';
+    // --- PERBAIKAN 1: Tentukan URL basis baru ---
+    const produksiTahunanBaseUrl = '/tim-produksi/tahunan';
 
     /** Edit Data */
     function editData(id) {
@@ -358,12 +351,12 @@
         const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
         const editForm = document.getElementById('editForm');
         
-        // --- PERBAIKAN 1: Gunakan variabel rute ---
-        editForm.action = baseUrlUpdate.replace(':id', id); 
+        // --- PERBAIKAN 2: Gunakan URL baru ---
+        editForm.action = `${produksiTahunanBaseUrl}/${id}`; 
         clearFormErrors(editForm);
 
-        // --- PERBAIKAN 1: Gunakan variabel rute ---
-        fetch(baseUrlEdit.replace(':id', id)) 
+        // --- PERBAIKAN 2: Gunakan URL baru ---
+        fetch(`${produksiTahunanBaseUrl}/${id}/edit`) 
             .then(response => { if (!response.ok) { return response.text().then(text => { throw new Error(text || 'Data tidak ditemukan'); }); } return response.json(); })
             .then(data => {
                 document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
@@ -371,7 +364,7 @@
                 document.getElementById('edit_pencacah').value = data.pencacah || '';
                 document.getElementById('edit_pengawas').value = data.pengawas || '';
                 
-                // --- PERBAIKAN 2: Sederhanakan (karena controller sudah kirim Y-m-d) ---
+                // --- PERBAIKAN 3: Sederhanakan (karena controller sudah kirim Y-m-d) ---
                 document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian || '';
                 document.getElementById('edit_flag_progress').value = data.flag_progress || 'Belum Selesai';
                 document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan || '';
@@ -387,10 +380,9 @@
         const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
         const deleteForm = document.getElementById('deleteForm');
         
-        // --- PERBAIKAN 1: Gunakan variabel rute ---
-        deleteForm.action = baseUrlDestroy.replace(':id', id); 
+        // --- PERBAIKAN 2: Gunakan URL baru ---
+        deleteForm.action = `${produksiTahunanBaseUrl}/${id}`; 
 
-        // Sisa logika Anda sudah benar
         let methodInput = deleteForm.querySelector('input[name="_method"]'); if (!methodInput) { methodInput = document.createElement('input'); methodInput.type = 'hidden'; methodInput.name = '_method'; deleteForm.appendChild(methodInput); } methodInput.value = 'DELETE';
         deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
         document.getElementById('deleteModalBody').innerText = 'Apakah Anda yakin ingin menghapus data ini?';
@@ -407,15 +399,18 @@
     /** DOM Ready */
     document.addEventListener('DOMContentLoaded', function() {
 
-        baseUrlEdit = '{{ route("tim-produksi.tahunan.edit", ["tahunan" => ":id"]) }}';
-        baseUrlUpdate = '{{ route("tim-produksi.tahunan.update", ["tahunan" => ":id"]) }}';
-        baseUrlDestroy = '{{ route("tim-produksi.tahunan.destroy", ["tahunan" => ":id"]) }}';
-
-
         // --- Init Autocomplete ---
-        // (Logika ini sudah benar)
         @if(Route::has('master.kegiatan.search')) initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', '{{ route("master.kegiatan.search") }}'); initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', '{{ route("master.kegiatan.search") }}'); @else console.warn('Rute kegiatan search tidak ada.'); @endif
-        @if(Route::has('master.petugas.search')) initAutocomplete('pencacah', 'pencacah-suggestions', '{{ route("master.petugas.search") }}'); initAutocomplete('pengawas', 'pengawas-suggestions', '{{ route("master.petugas.search") }}'); initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', '{{ route("master.petugas.search") }}'); initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', '{{ route("master.petugas.search") }}'); @else console.warn('Rute petugas search tidak ada.'); @endif
+        @if(Route::has('tim-produksi.tahunan.searchPetugas')) 
+            // Gunakan rute searchPetugas yang benar
+            const petugasSearchUrl = '{{ route("tim-produksi.tahunan.searchPetugas") }}';
+            initAutocomplete('pencacah', 'pencacah-suggestions', petugasSearchUrl); 
+            initAutocomplete('pengawas', 'pengawas-suggestions', petugasSearchUrl); 
+            initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', petugasSearchUrl); 
+            initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', petugasSearchUrl); 
+        @else 
+            console.warn('Rute tim-produksi.tahunan.searchPetugas tidak ada.'); 
+        @endif
 
         // --- Init AJAX Form Handlers ---
         // (Logika ini sudah benar)
@@ -423,7 +418,7 @@
         const eme = document.getElementById('editDataModal'); const ef = document.getElementById('editForm'); if (eme && ef) { const em = bootstrap.Modal.getOrCreateInstance(eme); ef.addEventListener('submit', (e) => handleFormSubmitAjax(e, ef, em)); eme.addEventListener('hidden.bs.modal', () => clearFormErrors(ef)); }
 
         // --- Select All & Bulk Delete ---
-        // (Logika ini sudah benar)
+        // (Logika ini sudah benar, pastikan route() helper-nya)
         const sa = document.getElementById('selectAll'); const rcb = document.querySelectorAll('.row-checkbox'); const bdb = document.getElementById('bulkDeleteBtn'); const df = document.getElementById('deleteForm'); function ubdbs() { const cc = document.querySelectorAll('.row-checkbox:checked').length; if (bdb) bdb.disabled = cc === 0; } sa?.addEventListener('change', () => { rcb.forEach(cb => cb.checked = sa.checked); ubdbs(); }); rcb.forEach(cb => cb.addEventListener('change', ubdbs)); ubdbs(); bdb?.addEventListener('click', () => { const count = document.querySelectorAll('.row-checkbox:checked').length; if (count === 0) return; const dme = document.getElementById('deleteDataModal'); if (!dme || !df) return; const dm = bootstrap.Modal.getOrCreateInstance(dme); df.action = '{{ route("tim-produksi.tahunan.bulkDelete") }}'; let mi = df.querySelector('input[name="_method"]'); if (mi) mi.value = 'POST'; df.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove()); document.querySelectorAll('.row-checkbox:checked').forEach(cb => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'ids[]'; i.value = cb.value; df.appendChild(i); }); document.getElementById('deleteModalBody').innerText = `Hapus ${count} data?`; const ncb = document.getElementById('confirmDeleteButton').cloneNode(true); document.getElementById('confirmDeleteButton').parentNode.replaceChild(ncb, document.getElementById('confirmDeleteButton')); ncb.addEventListener('click', (e) => { e.preventDefault(); df.submit(); }); dm.show(); });
 
         // --- Filters Per Page & Tahun ---
@@ -431,15 +426,13 @@
         const pps = document.getElementById('perPageSelect'); const ts = document.getElementById('tahunSelect'); function hfc() { const cu = new URL(window.location.href); const p = cu.searchParams; if (pps) p.set('per_page', pps.value); if (ts) p.set('tahun', ts.value); p.set('page', 1); window.location.href = cu.pathname + '?' + p.toString(); } if (pps) pps.addEventListener('change', hfc); if (ts) ts.addEventListener('change', hfc);
 
         
-        // --- PERBAIKAN 3: Fallback Error Modals ---
+        // --- PERBAIKAN 4: Fallback Error Modals ---
         
-        // Logika 'tambahDataModal' sudah benar
         @if (session('error_modal') == 'tambahDataModal' && $errors->any()) 
             const tmef = document.getElementById('tambahDataModal'); 
             if (tmef) bootstrap.Modal.getOrCreateInstance(tmef).show(); 
         @endif
 
-        // Logika 'editDataModal' yang BARU
         @if (session('error_modal') == 'editDataModal' && $errors->any() && session('edit_id'))
         const eid = {{ session('edit_id') }};
         if (eid) {
@@ -448,10 +441,9 @@
             
             if (editForm) {
                 // 1. Set action form ke URL update yang benar
-                editForm.action = baseUrlUpdate.replace(':id', eid);
+                editForm.action = `${produksiTahunanBaseUrl}/${eid}`;
                 
                 // 2. Terapkan error classes & messages dari Blade
-                // (Kita tidak perlu setTimeout, bisa langsung)
                 @foreach ($errors->keys() as $f)
                     const fel = editForm.querySelector('[name="{{ $f }}"]');
                     if (fel) fel.classList.add('is-invalid');
@@ -462,7 +454,6 @@
             }
             
             // 3. Tampilkan modal. 
-            // JANGAN panggil editData(eid), karena form sudah diisi oleh old()
             if (editModalEl) {
                 bootstrap.Modal.getOrCreateInstance(editModalEl).show();
             }
@@ -471,22 +462,6 @@
 
 
         // --- Auto-hide Alerts ---
-        // (Logika ini sudah benar)
-        const aha = document.querySelectorAll('.alert.alert-dismissible[role="alert"]'); 
-        aha.forEach(a => { 
-            // Cek jika alert BUKAN di dalam modal
-            if (!a.closest('.modal')) { 
-                const autoHide = {{ session('auto_hide', 'false') ? 'true' : 'false' }};
-                if(autoHide) {
-                    setTimeout(() => { 
-                        const bsa = bootstrap.Alert.getOrCreateInstance(a); 
-                        if (bsa) bsa.close(); 
-                    }, 5000); 
-                }
-            } 
-        });
-        
-        // Perbaikan kecil: Ambil auto_hide dari session
         @if(session('success') && session('auto_hide'))
             const successAlert = document.querySelector('.alert-success.alert-dismissible');
             if(successAlert && !successAlert.closest('.modal')) {
