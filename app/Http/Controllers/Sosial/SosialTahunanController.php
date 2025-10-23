@@ -204,23 +204,14 @@ class SosialTahunanController extends Controller
         return redirect()->route('sosial.tahunan.index')->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
-    /**
-     * PERBAIKAN KUNCI:
-     * 1. Ambil $id manual.
-     */
     public function destroy($id)
     {
-        // Pastikan primary key 'id_sosial' benar
         $sosial_tahunan = SosialTahunan::findOrFail($id);
         $sosial_tahunan->delete();
 
-        // Redirect ke index setelah delete sukses (sesuaikan nama route)
         return redirect()->route('sosial.tahunan.index')->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 
-    /**
-     * Hapus banyak data.
-     */
     public function bulkDelete(Request $request)
     {
         $request->validate([

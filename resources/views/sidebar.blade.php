@@ -44,17 +44,16 @@
                 </li>
                 
                 <!-- SOSIAL TRIWULAN -->
-                <li class="menu-item has-dropdown {{ request()->is('sosial/kegiatan-triwulanan*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
-                        <span>Kegiatan Triwulan</span>
-
-                    </a>
-                    <ul class="submenu">
-                        <li class="{{ request()->is('sosial/kegiatan-triwulanan*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.seruti.index') }}">Seruti</a>
+                <li class="menu-item has-dropdown {{ request()->is('sosial/triwulanan*') ? 'active' : '' }}">
+                            <a href="#" class="dropdown-toggle">
+                                <span>Kegiatan Triwulan</span>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{{ request()->is('sosial/triwulanan/seruti*') ? 'active-link' : '' }}">
+                                    <a href="{{ route('sosial.triwulanan.index', ['jenisKegiatan' => 'seruti']) }}">Seruti</a>
+                                </li>
+                            </ul>
                         </li>
-                    </ul>
-                </li>
 
                 <!-- SOSIAL SEMESTERAN -->
                 <li class="menu-item has-dropdown {{ request()->is('sosial/semesteran*') ? 'active' : '' }}">

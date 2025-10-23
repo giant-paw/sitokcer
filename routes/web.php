@@ -70,8 +70,29 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         // HAPUS RUTE RESOURCE YANG LAMA
         // Route::resource('/', SosialTahunanController::class)->parameters(['' => 'tahunan']); // <-- HAPUS/KOMENTARI
     });
+    
+    Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
 
-    Route::resource('seruti', SosialTriwulanController::class);
+        // Rute-rute yang tidak punya parameter / spesifik
+        Route::post('/', [SosialTriwulanController::class, 'store'])->name('store');
+        Route::post('/bulk-delete', [SosialTriwulanController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::get('/search-petugas', [SosialTriwulanController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::get('/search-kegiatan', [SosialTriwulanController::class, 'searchKegiatan'])->name('searchKegiatan');
+
+        // Rute-rute yang menggunakan {id}
+        Route::get('/{id}/edit', [SosialTriwulanController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [SosialTriwulanController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SosialTriwulanController::class, 'destroy'])->name('destroy');
+
+        // Rute index HARUS diletakkan PALING AKHIR
+        // Menerima parameter {jenisKegiatan}, default 'seruti' akan ditangani controller
+        Route::get('/{jenisKegiatan?}', [SosialTriwulanController::class, 'index'])->name('index'); 
+
+        // HAPUS RUTE RESOURCE YANG LAMA UNTUK SERUTI
+        // Route::resource('seruti', SosialTriwulanController::class); // <-- HAPUS/KOMENTARI
+    });
+
+
     Route::resource('semesteran', SosialSemesteranController::class);
 
     Route::get('/semesteran/{kategori?}', [SosialSemesteranController::class, 'index'])->name('semesteran.index');
