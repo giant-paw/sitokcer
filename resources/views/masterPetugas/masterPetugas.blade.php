@@ -180,7 +180,7 @@
 
 {{-- Modal Tambah --}}
 <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <form action="{{ route('master.petugas.store') }}" method="POST">
             @csrf
             <div class="modal-content modern-modal">
@@ -193,14 +193,15 @@
                         </svg>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
+                <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                    <div class="form-grid">
+                        <div class="form-group-full">
                             <label class="form-label">Nama Petugas <span class="required">*</span></label>
                             <input type="text" class="form-input @error('nama_petugas') is-invalid @enderror" name="nama_petugas" value="{{ old('nama_petugas') }}" required>
                             @error('nama_petugas') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+                        
+                        <div class="form-group-full">
                             <label class="form-label">Kategori</label>
                             <select class="form-select @error('kategori') is-invalid @enderror" name="kategori">
                                 <option value="">-- Pilih Kategori --</option>
@@ -209,47 +210,56 @@
                             </select>
                             @error('kategori') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">NIK</label>
                             <input type="text" class="form-input @error('nik') is-invalid @enderror" name="nik" value="{{ old('nik') }}">
                             @error('nik') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">No HP</label>
                             <input type="text" class="form-input @error('no_hp') is-invalid @enderror" name="no_hp" value="{{ old('no_hp') }}" placeholder="+62 8xx...">
                             @error('no_hp') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Email</label>
                             <input type="email" class="form-input @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}">
                             @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Posisi</label>
                             <input type="text" class="form-input @error('posisi') is-invalid @enderror" name="posisi" value="{{ old('posisi') }}">
                             @error('posisi') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-12">
+
+                        <div class="form-group-full">
                             <label class="form-label">Alamat</label>
                             <textarea class="form-input @error('alamat') is-invalid @enderror" name="alamat" rows="2">{{ old('alamat') }}</textarea>
                             @error('alamat') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Pendidikan Terakhir</label>
                             <input type="text" class="form-input @error('pendidikan') is-invalid @enderror" name="pendidikan" value="{{ old('pendidikan') }}">
                             @error('pendidikan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Tanggal Lahir</label>
                             <input type="date" class="form-input @error('tgl_lahir') is-invalid @enderror" name="tgl_lahir" value="{{ old('tgl_lahir') }}">
                             @error('tgl_lahir') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Kecamatan</label>
                             <input type="text" class="form-input @error('kecamatan') is-invalid @enderror" name="kecamatan" value="{{ old('kecamatan') }}">
                             @error('kecamatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Pekerjaan</label>
                             <input type="text" class="form-input @error('pekerjaan') is-invalid @enderror" name="pekerjaan" value="{{ old('pekerjaan') }}">
                             @error('pekerjaan') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -267,7 +277,7 @@
 
 {{-- Modal Edit --}}
 <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <form id="editForm" method="POST">
             @csrf
             @method('PUT')
@@ -281,14 +291,15 @@
                         </svg>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
+                <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                    <div class="form-grid">
+                        <div class="form-group-full">
                             <label class="form-label">Nama Petugas <span class="required">*</span></label>
                             <input type="text" class="form-input @error('nama_petugas', 'edit_error') is-invalid @enderror" id="edit_nama_petugas" name="nama_petugas" required>
                             @error('nama_petugas', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+                        
+                        <div class="form-group-full">
                             <label class="form-label">Kategori</label>
                             <select class="form-select @error('kategori', 'edit_error') is-invalid @enderror" id="edit_kategori" name="kategori">
                                 <option value="">-- Pilih Kategori --</option>
@@ -297,47 +308,56 @@
                             </select>
                             @error('kategori', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">NIK</label>
                             <input type="text" class="form-input @error('nik', 'edit_error') is-invalid @enderror" id="edit_nik" name="nik">
                             @error('nik', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">No HP</label>
                             <input type="text" class="form-input @error('no_hp', 'edit_error') is-invalid @enderror" id="edit_no_hp" name="no_hp">
                             @error('no_hp', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Email</label>
                             <input type="email" class="form-input @error('email', 'edit_error') is-invalid @enderror" id="edit_email" name="email">
                             @error('email', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Posisi</label>
                             <input type="text" class="form-input @error('posisi', 'edit_error') is-invalid @enderror" id="edit_posisi" name="posisi">
                             @error('posisi', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-12">
+
+                        <div class="form-group-full">
                             <label class="form-label">Alamat</label>
                             <textarea class="form-input @error('alamat', 'edit_error') is-invalid @enderror" id="edit_alamat" name="alamat" rows="2"></textarea>
                             @error('alamat', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Pendidikan Terakhir</label>
                             <input type="text" class="form-input @error('pendidikan', 'edit_error') is-invalid @enderror" id="edit_pendidikan" name="pendidikan">
                             @error('pendidikan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Tanggal Lahir</label>
                             <input type="date" class="form-input @error('tgl_lahir', 'edit_error') is-invalid @enderror" id="edit_tgl_lahir" name="tgl_lahir">
                             @error('tgl_lahir', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Kecamatan</label>
                             <input type="text" class="form-input @error('kecamatan', 'edit_error') is-invalid @enderror" id="edit_kecamatan" name="kecamatan">
                             @error('kecamatan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="form-group-full">
                             <label class="form-label">Pekerjaan</label>
                             <input type="text" class="form-input @error('pekerjaan', 'edit_error') is-invalid @enderror" id="edit_pekerjaan" name="pekerjaan">
                             @error('pekerjaan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -524,7 +544,7 @@
 <style>
 /* Page Header */
 .page-header {
-    margin-bottom: 32px;
+    margin-bottom: 24px;
 }
 
 .page-title {
@@ -550,13 +570,13 @@
 
 /* Toolbar */
 .toolbar {
-    padding: 24px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f3f4f6;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
     flex-wrap: wrap;
-    border-bottom: 1px solid #f3f4f6;
 }
 
 .toolbar-left {
@@ -577,11 +597,11 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 18px;
-    border: none;
+    padding: 10px 16px;
     border-radius: 10px;
     font-size: 0.875rem;
     font-weight: 500;
+    border: none;
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
@@ -592,13 +612,13 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.btn-action svg {
+    flex-shrink: 0;
+}
+
 .btn-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #ffffff;
-}
-
-.btn-primary:hover {
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .btn-success {
@@ -606,23 +626,9 @@
     color: #ffffff;
 }
 
-.btn-success:hover {
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-}
-
 .btn-danger {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: #ffffff;
-}
-
-.btn-danger:hover {
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-
-.btn-danger:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
 }
 
 .btn-secondary {
@@ -632,6 +638,13 @@
 
 .btn-secondary:hover {
     background: #e5e7eb;
+    color: #4b5563;
+}
+
+.btn-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
 }
 
 /* Filter Group */
@@ -653,7 +666,7 @@
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     font-size: 0.875rem;
-    color: #1f2937;
+    color: #374151;
     background: #ffffff;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -690,9 +703,9 @@
 .search-btn {
     padding: 10px 16px;
     background: #667eea;
+    color: #ffffff;
     border: none;
     border-radius: 10px;
-    color: #ffffff;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -710,11 +723,11 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 20px 24px;
-    padding: 16px;
+    padding: 16px 24px;
     background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    border: 1px solid rgba(16, 185, 129, 0.2);
     border-radius: 12px;
+    margin: 20px 24px;
     color: #059669;
     font-size: 0.875rem;
 }
@@ -722,22 +735,28 @@
 .alert-icon {
     display: flex;
     align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(16, 185, 129, 0.2);
+    border-radius: 8px;
     flex-shrink: 0;
 }
 
 .alert-close {
     margin-left: auto;
-    padding: 4px;
     background: none;
     border: none;
     color: #059669;
     cursor: pointer;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.2s ease;
 }
 
 .alert-close:hover {
-    background: rgba(16, 185, 129, 0.15);
+    opacity: 0.7;
 }
 
 /* Table */
@@ -750,9 +769,8 @@
     border-collapse: collapse;
 }
 
-.data-table thead tr {
+.data-table thead {
     background: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
 }
 
 .data-table th {
@@ -763,21 +781,22 @@
     color: #374151;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-}
-
-.data-table tbody tr {
-    border-bottom: 1px solid #f3f4f6;
-    transition: all 0.2s ease;
-}
-
-.data-table tbody tr:hover {
-    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .data-table td {
     padding: 16px 20px;
     font-size: 0.875rem;
     color: #1f2937;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.data-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.data-table tbody tr:hover {
+    background: #f9fafb;
 }
 
 .th-checkbox,
@@ -796,7 +815,13 @@
     width: 18px;
     height: 18px;
     cursor: pointer;
-    accent-color: #667eea;
+    border-radius: 4px;
+    border: 2px solid #d1d5db;
+}
+
+.table-checkbox:checked {
+    background-color: #667eea;
+    border-color: #667eea;
 }
 
 /* User Name */
@@ -811,11 +836,11 @@
 
 /* Badge */
 .badge {
-    display: inline-block;
+    display: inline-flex;
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -838,47 +863,49 @@
 }
 
 .btn-icon {
-    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    border: none;
     border-radius: 8px;
+    border: none;
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
 }
 
-.btn-icon:hover {
-    transform: translateY(-2px);
-}
-
 .btn-icon-view {
     background: rgba(107, 114, 128, 0.1);
-    color: #4b5563;
+    color: #6b7280;
 }
 
 .btn-icon-view:hover {
     background: rgba(107, 114, 128, 0.2);
+    color: #4b5563;
+    transform: translateY(-2px);
 }
 
 .btn-icon-edit {
     background: rgba(245, 158, 11, 0.1);
-    color: #d97706;
+    color: #f59e0b;
 }
 
 .btn-icon-edit:hover {
     background: rgba(245, 158, 11, 0.2);
+    color: #d97706;
+    transform: translateY(-2px);
 }
 
 .btn-icon-delete {
     background: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
+    color: #ef4444;
 }
 
 .btn-icon-delete:hover {
     background: rgba(239, 68, 68, 0.2);
+    color: #dc2626;
+    transform: translateY(-2px);
 }
 
 /* Empty State */
@@ -888,8 +915,8 @@
 }
 
 .empty-icon {
-    margin-bottom: 16px;
     color: #d1d5db;
+    margin-bottom: 16px;
 }
 
 .empty-text {
@@ -902,6 +929,7 @@
     color: #667eea;
     text-decoration: none;
     font-weight: 500;
+    font-size: 0.875rem;
 }
 
 .empty-link:hover {
@@ -910,12 +938,11 @@
 
 /* Table Footer */
 .table-footer {
+    padding: 20px 24px;
+    border-top: 1px solid #f3f4f6;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
-    background: #f9fafb;
-    border-top: 1px solid #e5e7eb;
     flex-wrap: wrap;
     gap: 16px;
 }
@@ -932,12 +959,38 @@
     overflow: hidden;
 }
 
-.modal-header {
-    padding: 24px;
+.modern-modal .modal-header {
+    padding: 20px 300px;
     border-bottom: 1px solid #e5e7eb;
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.modern-modal .modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #9ca3af;
+    padding: 0;
+}
+
+.modal-close:hover {
+    background: #f3f4f6;
+    color: #6b7280;
 }
 
 .modal-header-danger {
@@ -946,62 +999,89 @@
     border-bottom: none;
 }
 
-.modal-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0;
-}
-
 .modal-header-danger .modal-title {
     color: #ffffff;
 }
 
-.modal-close {
-    padding: 8px;
-    background: #f3f4f6;
-    border: none;
-    border-radius: 8px;
-    color: #6b7280;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-close:hover {
-    background: #e5e7eb;
-}
-
 .modal-close-white {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
     color: #ffffff;
 }
 
 .modal-close-white:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.25);
 }
 
-.modal-body {
+.modern-modal .modal-body {
     padding: 24px;
 }
 
-.modal-footer {
-    padding: 20px 24px;
+.modern-modal .modal-footer {
+    padding: 16px 24px;
     border-top: 1px solid #e5e7eb;
     display: flex;
+    gap: 10px;
     justify-content: flex-end;
-    gap: 12px;
+    background: #fafafa;
 }
 
-/* Form Inputs */
-.form-label {
-    display: block;
+/* Button Styles in Modal */
+.modal-footer .btn-secondary,
+.modal-footer .btn-primary,
+.modal-footer .btn-danger {
+    padding: 9px 18px;
+    border-radius: 8px;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #374151;
-    margin-bottom: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+}
+
+.modal-footer .btn-secondary {
+    background: #ffffff;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+.modal-footer .btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(102, 126, 234, 0.3);
+}
+
+.modal-footer .btn-primary:hover {
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+    transform: translateY(-1px);
+}
+
+.modal-footer .btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(239, 68, 68, 0.3);
+}
+
+.modal-footer .btn-danger:hover {
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Form Elements */
+.form-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #4b5563;
+    margin-bottom: 6px;
 }
 
 .required {
@@ -1011,19 +1091,20 @@
 .form-input,
 .form-select {
     width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
     font-size: 0.875rem;
     color: #1f2937;
     transition: all 0.2s ease;
+    background: #ffffff;
 }
 
 .form-input:focus,
 .form-select:focus {
     outline: none;
     border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.08);
 }
 
 .form-input.is-invalid,
@@ -1031,19 +1112,23 @@
     border-color: #ef4444;
 }
 
+.form-input.is-invalid:focus,
+.form-select.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+}
+
 .invalid-feedback {
     display: block;
-    margin-top: 6px;
-    font-size: 0.8125rem;
+    margin-top: 4px;
+    font-size: 0.75rem;
     color: #ef4444;
 }
 
 /* Delete Modal */
 .delete-icon {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 16px;
+    text-align: center;
     color: #ef4444;
+    margin-bottom: 16px;
 }
 
 .delete-text {
@@ -1051,6 +1136,36 @@
     font-size: 0.9375rem;
     color: #6b7280;
     margin: 0;
+}
+
+/* Form Grid for Single Column Layout */
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group-full {
+    width: 100%;
+}
+
+/* Modal Scrollbar Styling */
+.modal-body::-webkit-scrollbar {
+    width: 5px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f9fafb;
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
 }
 
 /* Responsive */
@@ -1063,26 +1178,39 @@
     .toolbar-left,
     .toolbar-right {
         width: 100%;
-        justify-content: stretch;
     }
     
     .toolbar-right {
         flex-direction: column;
     }
     
-    .filter-group,
     .search-form {
-        width: 100%;
+        min-width: 100%;
     }
     
-    .btn-action {
-        flex: 1;
-        justify-content: center;
+    .filter-group {
+        justify-content: space-between;
     }
     
     .table-footer {
         flex-direction: column;
-        text-align: center;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 12px 16px;
+    }
+    
+    .btn-action {
+        width: 100%;
+        justify-content: center;
     }
 }
 </style>
