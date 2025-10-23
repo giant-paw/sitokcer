@@ -130,10 +130,23 @@ class ProduksiTriwulananController extends Controller
 
     public function edit(ProduksiTriwulanan $produksi_triwulanan)
     {
-        return response()->json($produksi_triwulanan);
+        $data = $produksi_triwulanan->toArray();
+
+        $targetPenyelesaian = $produksi_triwulanan->target_penyelesaian;
+        $tanggalPengumpulan = $produksi_triwulanan->tanggal_pengumpulan;
+        
+        $data['target_penyelesaian'] = $targetPenyelesaian 
+            ? Carbon::parse($targetPenyelesaian)->toDateString() 
+            : null;
+            
+        $data['tanggal_pengumpulan'] = $tanggalPengumpulan
+            ? Carbon::parse($tanggalPengumpulan)->toDateString()
+            : null;
+
+        return response()->json($data);
     }
 
-    public function update(Request $request, ProduksiTriwulanan $distribusi_triwulanan)
+    public function update(Request $request, ProduksiTriwulanan $produksi_triwulanan)
     {
         $baseRules = [
             'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
@@ -165,13 +178,13 @@ class ProduksiTriwulananController extends Controller
                     ->withErrors($validator)
                     ->withInput()
                     ->with('error_modal', 'editDataModal')
-                    ->with('edit_id', $distribusi_triwulanan->id_distribusi_triwulanan);
+                    ->with('edit_id', $produksi_triwulanan->id_produksi_triwulanan);
         }
 
         $validatedData = $validator->validated();
         $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
 
-        $distribusi_triwulanan->update($validatedData);
+        $produksi_triwulanan->update($validatedData);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil diperbarui!']);
@@ -199,21 +212,4 @@ class ProduksiTriwulananController extends Controller
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 
-    public function searchPetugas(Request $request)
-    {
-        $request->validate([
-            'field' => 'required|in:pencacah,pengawas',
-            'query' => 'nullable|string|max:100',
-        ]);
-
-        $field = $request->input('field');
-        $query = $request->input('query', '');
-
-        $data = MasterPetugas::query()
-            ->where('nama_petugas', 'LIKE', "%{$query}%")
-            ->limit(10) 
-            ->pluck('nama_petugas');
-
-        return response()->json($data);
-    }
 }

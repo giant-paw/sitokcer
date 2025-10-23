@@ -2,21 +2,28 @@
 
 namespace App\Models\Nwa;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class NwaTriwulanan extends Model
 {
+    use hasfactory;
     protected $table = 'nwa_triwulanan';
     protected $primaryKey = 'id_nwa_triwulanan';
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
-        'nama_kegiatan',        // contoh: "SKLNP-TW1", "Snaper-TW2", "SKTNP-TW3"
+        'nama_kegiatan',       
         'BS_Responden',
         'pencacah',
         'pengawas',
-        'target_penyelesaian',  // date / datetime (nullable)
-        'flag_progress',        // Belum Mulai / Proses / Selesai
-        'tanggal_pengumpulan',  // date / datetime (nullable)
+        'target_penyelesaian',  
+        'flag_progress',       
+        'tanggal_pengumpulan',  
+    ];
+
+    protected $casts = [
+        'target_penyelesaian' => 'date',
+        'tanggal_pengumpulan' => 'date',
     ];
 }

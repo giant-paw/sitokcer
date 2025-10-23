@@ -115,7 +115,7 @@ class ProduksiTahunanController extends Controller
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
             try {
                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
-            } catch (\Exception $e) { /* Abaikan jika parse gagal */ }
+            } catch (\Exception $e) { }
         }
 
         ProduksiTahunan::create($validatedData);
@@ -127,11 +127,23 @@ class ProduksiTahunanController extends Controller
         // Fallback respons non-AJAX
         return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
-    // --- AKHIR PERBAIKAN STORE ---
-
-    public function edit(ProduksiTahunan $produksi) // Sudah menggunakan Route Model Binding
+    
+    public function edit(ProduksiTahunan $produksi)
     {
-        return response()->json($produksi);
+        $data = $produksi->toArray();
+
+        $targetPenyelesaian = $produksi->target_penyelesaian;
+        $tanggalPengumpulan = $produksi->tanggal_pengumpulan;
+        
+        $data['target_penyelesaian'] = $targetPenyelesaian 
+            ? Carbon::parse($targetPenyelesaian)->toDateString()
+            : null;
+            
+        $data['tanggal_pengumpulan'] = $tanggalPengumpulan
+            ? Carbon::parse($tanggalPengumpulan)->toDateString()
+            : null;
+
+        return response()->json($data);
     }
 
     public function update(Request $request, ProduksiTahunan $produksi)
@@ -195,9 +207,7 @@ class ProduksiTahunanController extends Controller
             return response()->json(['success' => 'Data berhasil diperbarui!']);
         }
 
-        // Fallback non-AJAX: Lakukan redirect
-        return redirect()->route('tim-produksi.tahunan.index')->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
-        // --- AKHIR PERUBAHAN ---
+        return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
     // Fungsi bulkDelete sudah benar
@@ -215,10 +225,10 @@ class ProduksiTahunanController extends Controller
     public function destroy(ProduksiTahunan $produksi)
     {
         $produksi->delete();
-        return redirect()->route('tim-produksi.tahunan.index')->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
+        return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 
-    // Fungsi searchPetugas sudah benar
+    // Fungsi striarchPetugas sudah benar
      public function searchPetugas(Request $request)
     {
          $request->validate([

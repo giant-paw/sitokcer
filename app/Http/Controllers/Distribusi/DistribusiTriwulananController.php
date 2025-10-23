@@ -106,7 +106,20 @@ class DistribusiTriwulananController extends Controller
 
     public function edit(DistribusiTriwulanan $distribusi_triwulanan)
     {
-        return response()->json($distribusi_triwulanan);
+        $data = $distribusi_triwulanan->toArray();
+
+        $targetPenyelesaian = $distribusi_triwulanan->target_penyelesaian;
+        $tanggalPengumpulan = $distribusi_triwulanan->tanggal_pengumpulan;
+        
+        $data['target_penyelesaian'] = $targetPenyelesaian 
+            ? Carbon::parse($targetPenyelesaian)->toDateString() // toDateString() menghasilkan 'Y-m-d'
+            : null;
+            
+        $data['tanggal_pengumpulan'] = $tanggalPengumpulan
+            ? Carbon::parse($tanggalPengumpulan)->toDateString()
+            : null;
+
+        return response()->json($data);
     }
 
     public function update(Request $request, DistribusiTriwulanan $distribusi_triwulanan)

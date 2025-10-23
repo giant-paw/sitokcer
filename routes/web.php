@@ -49,7 +49,13 @@ Route::get('/dashboard-sosial', [DashboardSosialController::class, 'index'])->na
 
 /* --- TIM SOSIAL --- */
 Route::prefix('sosial')->name('sosial.')->group(function () {
-    Route::resource('tahunan', SosialTahunanController::class);
+    // --- ROUTE PRODUKSI TAHUNAN ---
+    Route::prefix('tahunan')->name('tahunan.')->group(function () {
+        Route::get('/search-petugas', [SosialTahunanController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::post('/bulk-delete', [SosialTahunanController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::resource('/', SosialTahunanController::class)->parameters(['' => 'tahunan']);
+    });
+
     Route::resource('seruti', SosialTriwulanController::class);
     Route::resource('semesteran', SosialSemesteranController::class);
 
@@ -108,13 +114,12 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
     Route::prefix('tahunan')->name('tahunan.')->group(function () {
         Route::get('/search-petugas', [ProduksiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
         Route::post('/bulk-delete', [ProduksiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
-        Route::get('/tim-produksi/tahunan/{produksi}/edit', [ProduksiTahunanController::class, 'edit'])->name('tim-produksi.tahunan.edit');
+
         Route::resource('/', ProduksiTahunanController::class)->parameters(['' => 'tahunan']);
     });
 
     // --- ROUTE PRODUKSI CATURWULANAN ---
     Route::prefix('caturwulanan')->name('caturwulanan.')->group(function () {
-        Route::get('/search-petugas', [ProduksiCaturwulananController::class, 'searchPetugas'])->name('searchPetugas');
         Route::post('/bulk-delete', [ProduksiCaturwulananController::class, 'bulkDelete'])->name('bulkDelete');
         
         // Route untuk proses CRUD
@@ -129,7 +134,6 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
 
     // --- ROUTE PRODUKSI TRIWULANAN ---
     Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
-        Route::get('/search-petugas', [ProduksiTriwulananController::class, 'searchPetugas'])->name('searchPetugas');
         Route::post('/bulk-delete', [ProduksiTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
         
         // Route untuk proses CRUD
@@ -160,21 +164,25 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
 
 /* ---  TIM NWA --- */
 Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
-    // Route untuk NWA Tahunan (sudah benar)
-    Route::resource('tahunan', NwaTahunanController::class);
+    // Route untuk NWA Tahunan 
+    Route::prefix('tahunan')->name('tahunan.')->group(function () {
+        Route::post('/bulk-delete', [NwaTahunanController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::resource('/', NwaTahunanController::class)->parameters(['' => 'tahunan']); 
+    });
 
-    // Route untuk menampilkan halaman utama dan tabel data (method index)
-    Route::get('/triwulanan/{jenis}', [NwaTriwulananController::class, 'index'])->name('triwulanan.index');
+    Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
 
-    // Route untuk menyimpan data baru dari modal 'Tambah' (method store)
-    Route::post('/triwulanan/{jenis}', [NwaTriwulananController::class, 'store'])->name('triwulanan.store');
+        Route::post('/bulk-delete', [NwaTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
 
-    // Route untuk memperbarui data dari modal 'Edit' (method update)
-    // {nwa_triwulanan} adalah parameter untuk ID data yang akan di-update
-    Route::put('/triwulanan/{jenis}/{nwa_triwulanan}', [NwaTriwulananController::class, 'update'])->name('triwulanan.update');
+        // Rute CRUD (Standar AJAX)
+        Route::post('/', [NwaTriwulananController::class, 'store'])->name('store');
+        Route::get('/{triwulanan}/edit', [NwaTriwulananController::class, 'edit'])->name('edit'); // Gunakan 'triwulanan'
+        Route::put('/{triwulanan}', [NwaTriwulananController::class, 'update'])->name('update');
+        Route::delete('/{triwulanan}', [NwaTriwulananController::class, 'destroy'])->name('destroy');
 
-    // Route untuk menghapus data (method destroy)
-    Route::delete('/triwulanan/{jenis}/{nwa_triwulanan}', [NwaTriwulananController::class, 'destroy'])->name('triwulanan.destroy');
+        // Rute index (tetap menggunakan {jenisKegiatan})
+        Route::get('/{jenisKegiatan}', [NwaTriwulananController::class, 'index'])->name('index');
+    });
 });
 
 /* --- REKAPITULASI --- */
