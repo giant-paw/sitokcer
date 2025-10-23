@@ -70,7 +70,7 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         // HAPUS RUTE RESOURCE YANG LAMA
         // Route::resource('/', SosialTahunanController::class)->parameters(['' => 'tahunan']); // <-- HAPUS/KOMENTARI
     });
-    
+
     Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
 
         // Rute-rute yang tidak punya parameter / spesifik
@@ -92,13 +92,25 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         // Route::resource('seruti', SosialTriwulanController::class); // <-- HAPUS/KOMENTARI
     });
 
+    // --- ROUTE SOSIAL SEMESTERAN (SAKERNAS/SUSENAS) (SUDAH BENAR) ---
+    Route::prefix('semesteran')->name('semesteran.')->group(function () {
 
-    Route::resource('semesteran', SosialSemesteranController::class);
+        // Rute-rute yang tidak punya parameter / spesifik
+        Route::post('/', [SosialSemesteranController::class, 'store'])->name('store');
+        Route::post('/bulk-delete', [SosialSemesteranController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::get('/search-petugas', [SosialSemesteranController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::get('/search-kegiatan', [SosialSemesteranController::class, 'searchKegiatan'])->name('searchKegiatan');
 
-    Route::get('/semesteran/{kategori?}', [SosialSemesteranController::class, 'index'])->name('semesteran.index');
-    Route::post('/semesteran', [SosialSemesteranController::class, 'store'])->name('semesteran.store');
-    Route::put('/semesteran/{id}', [SosialSemesteranController::class, 'update'])->name('semesteran.update');
-    Route::delete('/semesteran/{id}', [SosialSemesteranController::class, 'destroy'])->name('semesteran.destroy');
+        // Rute-rute yang menggunakan {id}
+        Route::get('/{id}/edit', [SosialSemesteranController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [SosialSemesteranController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SosialSemesteranController::class, 'destroy'])->name('destroy');
+
+        // Rute index HARUS diletakkan PALING AKHIR
+        Route::get('/{jenisKegiatan}', [SosialSemesteranController::class, 'index'])
+             ->where('jenisKegiatan', 'sakernas|susenas')
+             ->name('index');
+    });
 });
 
 /* --- TIM DISTRIBUSI --- */
@@ -141,6 +153,7 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         // Route utama untuk menampilkan data berdasarkan jenis kegiatan
         Route::get('/{jenisKegiatan}', [DistribusiBulananController::class, 'index'])->name('index');
     });
+    
 });
 
 /* --- TIM PRODUKSI --- */

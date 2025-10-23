@@ -59,16 +59,15 @@
                 <li class="menu-item has-dropdown {{ request()->is('sosial/semesteran*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Semesteran</span>
-
                     </a>
                     <ul class="submenu">
+                        {{-- Link ke route index baru, passing 'sakernas' atau 'susenas' sebagai jenisKegiatan --}}
                         <li class="{{ request()->is('sosial/semesteran/sakernas*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.semesteran.index', ['kategori' => 'Sakernas']) }}">Sakernas</a>
+                            <a href="{{ route('sosial.semesteran.index', ['jenisKegiatan' => 'sakernas']) }}">Sakernas</a>
                         </li>
                         <li class="{{ request()->is('sosial/semesteran/susenas*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.semesteran.index', ['kategori' => 'Susenas']) }}">Susenas</a>
+                            <a href="{{ route('sosial.semesteran.index', ['jenisKegiatan' => 'susenas']) }}">Susenas</a>
                         </li>
-
                     </ul>
                 </li>
             </ul>
