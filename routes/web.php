@@ -38,6 +38,9 @@ use App\Http\Controllers\Master\MasterPetugasController;
 // MASTER KEGIATAN
 use App\Http\Controllers\Master\MasterKegiatanController;
 
+// USER
+use App\Http\Controllers\User\UserController;
+
 // HOME
 Route::get('/', fn() => view('home'))->name('home');
 
@@ -318,4 +321,16 @@ Route::prefix('master-kegiatan')
 
 Route::get('/master/kegiatan/search', [MasterKegiatanController::class, 'search'])->name('master.kegiatan.search');
 
-Route::get('/user', fn() => view('user'))->name('user');
+Route::prefix('users')->name('users.')->group(function () {
+
+    // Rute-rute yang tidak punya parameter / spesifik
+    Route::get('/', [App\Http\Controllers\UserController::class, 'index'])->name('index');
+    Route::post('/', [App\Http\Controllers\UserController::class, 'store'])->name('store');
+    Route::post('/bulk-delete', [App\Http\Controllers\UserController::class, 'bulkDelete'])->name('bulkDelete');
+
+    // Rute-rute yang menggunakan {id}
+    Route::get('/{id}/edit', [App\Http\Controllers\UserController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
+    Route::delete('/{id}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
+
+});

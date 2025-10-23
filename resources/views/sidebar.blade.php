@@ -323,8 +323,8 @@
 
         <!-- USER -->
 
-        <li class="{{ request()->is('user*') ? 'active-link' : '' }}">
-            <a href="{{ route('user') }}">
+        <li class="{{ request()->is('users*') ? 'active' : '' }}">
+            <a href="{{ route('users.index') }}"">
                 <i class="bi bi-person-fill-gear menu-icon"></i>
                 <span>User</span>
             </a>
