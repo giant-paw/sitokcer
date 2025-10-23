@@ -187,7 +187,7 @@ class SosialTriwulanController extends Controller
             'pencacah'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'pengawas'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'nullable|date',
-            'flag_progress' => ['required', Rule::in(['Belum Mulai', 'Proses', 'Selesai'])],
+            'flag_progress'       => ['required', Rule::in(['Belum Mulai', 'Proses', 'Selesai'])],
             'tanggal_pengumpulan' => 'nullable|date',
         ];
 
@@ -298,23 +298,5 @@ class SosialTriwulanController extends Controller
     private function extractTW(string $nama): string
     {
         return preg_match('/Seruti\-(TW[1-4])/', $nama, $m) ? $m[1] : 'TW1';
-    }
-
-    public function bulkDelete(Request $request)
-    {
-        // 1. Validasi request
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'integer|exists:sosial_triwulanan,id_sosial_triwulanan' // Pastikan nama tabel dan PK benar
-        ]);
-
-        $ids = $request->input('ids');
-
-        // 2. Hapus data berdasarkan ID yang dipilih
-        SosialTriwulanan::whereIn('id_sosial_triwulanan', $ids)->delete(); // Pastikan PK benar
-
-        // 3. Redirect kembali dengan pesan sukses
-        // Redirect ke halaman sebelumnya untuk menjaga state filter (tw, q, dll)
-        return back()->with('ok', count($ids) . ' data berhasil dihapus.');
     }
 }

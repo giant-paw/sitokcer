@@ -33,4 +33,3 @@ class SosialSemesteran extends Model
         'tanggal_pengumpulan' => 'datetime', 
     ];
 }
-
