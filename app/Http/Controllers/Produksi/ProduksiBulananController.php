@@ -145,8 +145,20 @@ class ProduksiBulananController extends Controller
 
     public function edit(ProduksiBulanan $produksi_bulanan)
     {
-        // Route Model Binding sudah otomatis fetch data
-        return response()->json($produksi_bulanan);
+        $data = $produksi_bulanan->toArray();
+
+        $targetPenyelesaian = $produksi_bulanan->target_penyelesaian;
+        $tanggalPengumpulan = $produksi_bulanan->tanggal_pengumpulan;
+        
+        $data['target_penyelesaian'] = $targetPenyelesaian 
+            ? Carbon::parse($targetPenyelesaian)->toDateString() 
+            : null;
+            
+        $data['tanggal_pengumpulan'] = $tanggalPengumpulan
+            ? Carbon::parse($tanggalPengumpulan)->toDateString()
+            : null;
+
+        return response()->json($data);
     }
 
     

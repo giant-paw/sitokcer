@@ -7,120 +7,258 @@ use App\Models\Nwa\NwaTriwulanan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use App\Models\Master\MasterPetugas;
+use App\Models\Master\MasterKegiatan;     
+use Illuminate\Support\Facades\Validator;
 
 class NwaTriwulananController extends Controller
 {
-    private const JENIS_MAP = [
-        'sklnp'  => 'SKLNP',
-        'snaper' => 'Snaper',
-        'sktnp'  => 'SKTNP',
-    ];
-
-    /** List halaman (satu view untuk semua jenis) */
-    public function index(Request $request, string $jenis)
+    public function index(Request $request, $jenisKegiatan)
     {
-        $prefix = self::prefixOf($jenis);          // SKLNP / Snaper / SKTNP
-        $tw     = strtoupper($request->get('tw', 'TW1'));  // TW1..TW4
-        $q      = trim($request->get('q', ''));
+        // 1. Validasi jenis kegiatan (diambil dari NWA lama)
+        $validJenis = ['sklnp', 'snaper', 'sktnp'];
+        if (!in_array(strtolower($jenisKegiatan), $validJenis)) {
+            abort(404);
+        }
 
+        // 2. Logika Filter Tahun (diambil dari template Produksi)
+        $selectedTahun = $request->input('tahun', date('Y'));
+
+        $availableTahun = NwaTriwulanan::query()
+            // 3. Logika Query (diambil dari template Produksi)
+            ->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan) . '%')
+            ->select(DB::raw('YEAR(created_at) as tahun'))
+            ->distinct()
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun')
+            ->toArray();
+
+        if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
+            array_unshift($availableTahun, date('Y'));
+        }
+
+        // 4. Kueri Utama (diambil dari template Produksi)
         $query = NwaTriwulanan::query()
-            ->where('nama_kegiatan', 'LIKE', "%{$prefix}-{$tw}%");
+            ->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan) . '%')
+            ->whereYear('created_at', $selectedTahun);
 
-        if ($q !== '') {
-            $query->where(function ($w) use ($q) {
-                $w->where('BS_Responden', 'LIKE', "%$q%")
-                    ->orWhere('pencacah', 'LIKE', "%$q%")
-                    ->orWhere('pengawas', 'LIKE', "%$q%")
-                    ->orWhere('flag_progress', 'LIKE', "%$q%");
+        if ($request->filled('kegiatan')) {
+            $query->where('nama_kegiatan', $request->kegiatan);
+        }
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
+                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
 
-
-        $rows = $query->orderBy('id_nwa_triwulanan', 'asc')
-            ->paginate(20)
-            ->appends(['tw' => $tw, 'q' => $q]);
-
-        return view('timNWA.triwulanan.index', [
-            'rows'   => $rows,
-            'jenis'  => $jenis,      // slug
-            'prefix' => $prefix,     // label
-            'tw'     => $tw,
-            'q'      => $q,
-        ]);
-    }
-
-    /** Simpan data baru */
-    public function store(Request $r, string $jenis)
-    {
-        $prefix = self::prefixOf($jenis);
-
-        $data = $r->validate([
-            'nama_kegiatan'       => ['required', 'string', 'max:100', "regex:/^{$prefix}\-(TW1|TW2|TW3|TW4)/"],
-            'BS_Responden'        => ['nullable', 'string', 'max:150'],
-            'pencacah'            => ['required', 'string', 'max:100'],
-            'pengawas'            => ['required', 'string', 'max:100'],
-            'target_penyelesaian' => ['nullable', 'date'],
-            'flag_progress'       => ['required', Rule::in(['Belum Mulai', 'Proses', 'Selesai'])],
-            'tanggal_pengumpulan' => ['nullable', 'date'],
-        ]);
-
-        if (!empty($data['tanggal_pengumpulan'])) {
-            $data['tanggal_pengumpulan'] = Carbon::parse($data['tanggal_pengumpulan'])->format('Y-m-d H:i:s');
+        // 5. Logika Pagination (diambil dari template Produksi)
+        $perPage = $request->input('per_page', 20);
+        if ($perPage == 'all') {
+            $total = (clone $query)->count();
+            $perPage = $total > 0 ? $total : 20;
         }
 
-        NwaTriwulanan::create($data);
+        // 6. Ganti Primary Key
+        $listData = $query->latest('id_nwa_triwulanan')->paginate($perPage)->withQueryString();
 
-        $tw = self::extractTW($data['nama_kegiatan']);
-        return redirect()->route('nwa.triwulanan.index', [$jenis, 'tw' => $tw])
-            ->with('ok', 'Data NWA Triwulanan ditambahkan.');
+        // 7. Logika Hitung Tab (diambil dari template Produksi)
+        $kegiatanCounts = NwaTriwulanan::query()
+            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan) . '%')
+            ->whereYear('created_at', $selectedTahun)
+            ->select('nama_kegiatan', DB::raw('count(*) as total'))
+            ->groupBy('nama_kegiatan')
+            ->orderBy('nama_kegiatan')
+            ->get();
+
+
+        $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
+
+        // 8. Ganti path view
+        return view('timNWA.triwulanan.NWATriwulanan', compact(
+            'listData',
+            'kegiatanCounts',
+            'jenisKegiatan',
+            'masterKegiatanList',
+            'availableTahun',
+            'selectedTahun'
+        ));
     }
 
-    /** Update data */
-    public function update(Request $r, string $jenis, NwaTriwulanan $triwulanan)
+    /**
+     * Simpan data baru.
+     */
+    public function store(Request $request)
     {
-        $prefix = self::prefixOf($jenis);
+        // 1. Validasi (diambil dari template Produksi)
+        $baseRules = [
+            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
+            'BS_Responden' => 'required|string|max:255', // Diubah jadi required
+            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'target_penyelesaian' => 'required|date',
+            'flag_progress' => 'required|string', // Diubah jadi string simpel
+            'tanggal_pengumpulan' => 'nullable|date',
+        ];
 
-        $data = $r->validate([
-            'nama_kegiatan'       => ['required', 'string', 'max:100', "regex:/^{$prefix}\-(TW1|TW2|TW3|TW4)/"],
-            'BS_Responden'        => ['nullable', 'string', 'max:150'],
-            'pencacah'            => ['required', 'string', 'max:100'],
-            'pengawas'            => ['required', 'string', 'max:100'],
-            'target_penyelesaian' => ['nullable', 'date'],
-            'flag_progress'       => ['required', Rule::in(['Belum Mulai', 'Proses', 'Selesai'])],
-            'tanggal_pengumpulan' => ['nullable', 'date'],
-        ]);
+        $customMessages = [
+            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar di master kegiatan.',
+            'pencacah.exists' => 'Nama pencacah tidak terdaftar di master petugas.',
+            'pengawas.exists' => 'Nama pengawas tidak terdaftar di master petugas.',
+        ];
 
-        $data['tanggal_pengumpulan'] = !empty($data['tanggal_pengumpulan'])
-            ? Carbon::parse($data['tanggal_pengumpulan'])->format('Y-m-d H:i:s')
+        $validator = Validator::make($request->all(), $baseRules, $customMessages);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Data yang diberikan tidak valid.',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            return back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_modal', 'tambahDataModal');
+        }
+
+        $validatedData = $validator->validated();
+        
+        // 2. Logika Tahun (diambil dari template Produksi)
+        if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
+            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+        }
+
+        // 3. Ganti Model
+        NwaTriwulanan::create($validatedData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data berhasil ditambahkan!']);
+        }
+
+        return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
+    }
+
+    /**
+     * Ambil data untuk modal edit.
+     * MENGGUNAKAN $id MANUAL, BUKAN MODEL BINDING.
+     */
+    public function edit($id)
+    {
+        // 1. Cari data secara manual
+        $nwa_triwulanan = NwaTriwulanan::findOrFail($id);
+        
+        $data = $nwa_triwulanan->toArray();
+
+        // 2. Logika format tanggal (diambil dari template Produksi)
+        $targetPenyelesaian = $nwa_triwulanan->target_penyelesaian;
+        $tanggalPengumpulan = $nwa_triwulanan->tanggal_pengumpulan;
+
+        $data['target_penyelesaian'] = $targetPenyelesaian
+            ? Carbon::parse($targetPenyelesaian)->toDateString()
             : null;
 
-        $triwulanan->update($data);
+        $data['tanggal_pengumpulan'] = $tanggalPengumpulan
+            ? Carbon::parse($tanggalPengumpulan)->toDateString()
+            : null;
 
-        $tw = self::extractTW($data['nama_kegiatan']);
-        return redirect()->route('nwa.triwulanan.index', [$jenis, 'tw' => $tw])
-            ->with('ok', 'Perubahan disimpan.');
+        return response()->json($data);
     }
 
-    /** Hapus data */
-    public function destroy(string $jenis, NwaTriwulanan $triwulanan)
+    /**
+     * Update data yang ada.
+     * MENGGUNAKAN $id MANUAL, BUKAN MODEL BINDING.
+     */
+    public function update(Request $request, $id)
     {
-        $tw = self::extractTW($triwulanan->nama_kegiatan);
-        $triwulanan->delete();
+        // 1. Cari data secara manual
+        $nwa_triwulanan = NwaTriwulanan::findOrFail($id);
 
-        return redirect()->route('nwa.triwulanan.index', [$jenis, 'tw' => $tw])
-            ->with('ok', 'Data dihapus.');
+        // 2. Validasi (diambil dari template Produksi)
+        $baseRules = [
+            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
+            'BS_Responden' => 'required|string|max:255', // Diubah jadi required
+            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'target_penyelesaian' => 'required|date',
+            'flag_progress' => 'required|string', // Diubah jadi string simpel
+            'tanggal_pengumpulan' => 'nullable|date',
+        ];
+
+        $customMessages = [
+            // ... (sama seperti store)
+        ];
+
+        $validator = Validator::make($request->all(), $baseRules, $customMessages);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Data yang diberikan tidak valid.',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            return back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_modal', 'editDataModal')
+                // 3. Ganti Primary Key
+                ->with('edit_id', $nwa_triwulanan->id_nwa_triwulanan);
+        }
+
+        $validatedData = $validator->validated();
+        
+        // 4. Logika Tahun (diambil dari template Produksi)
+        if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
+             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+        }
+        
+        // 5. Update data
+        $nwa_triwulanan->update($validatedData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data berhasil diperbarui!']);
+        }
+
+        return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
-    /* ===== Helpers ===== */
-
-    private static function prefixOf(string $jenis): string
+    /**
+     * Hapus banyak data.
+     */
+    public function bulkDelete(Request $request)
     {
-        $jenis = strtolower($jenis);
-        return self::JENIS_MAP[$jenis] ?? 'SKLNP';
+        $request->validate([
+            'ids' => 'required|array',
+            // 1. Ganti tabel dan primary key
+            'ids.*' => 'exists:nwa_triwulanan,id_nwa_triwulanan'
+        ]);
+
+        // 2. Ganti Model
+        NwaTriwulanan::whereIn('id_nwa_triwulanan', $request->ids)->delete();
+
+        return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
     }
 
-    private static function extractTW(string $nama): string
+    /**
+     * Hapus satu data.
+     * MENGGUNAKAN $id MANUAL, BUKAN MODEL BINDING.
+     */
+    public function destroy($id)
     {
-        return preg_match('/\-(TW[1-4])/', $nama, $m) ? $m[1] : 'TW1';
+        // 1. Cari data secara manual
+        $nwa_triwulanan = NwaTriwulanan::findOrFail($id);
+        
+        // 2. Hapus data
+        $nwa_triwulanan->delete();
+
+        return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 }

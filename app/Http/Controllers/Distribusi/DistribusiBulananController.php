@@ -131,7 +131,20 @@ class DistribusiBulananController extends Controller
 
     public function edit(DistribusiBulanan $distribusi_bulanan)
     {
-        return response()->json($distribusi_bulanan);
+        $data = $distribusi_bulanan->toArray();
+
+        $targetPenyelesaian = $distribusi_bulanan->target_penyelesaian;
+        $tanggalPengumpulan = $distribusi_bulanan->tanggal_pengumpulan;
+        
+        $data['target_penyelesaian'] = $targetPenyelesaian 
+            ? Carbon::parse($targetPenyelesaian)->toDateString()
+            : null;
+            
+        $data['tanggal_pengumpulan'] = $tanggalPengumpulan
+            ? Carbon::parse($tanggalPengumpulan)->toDateString()
+            : null;
+
+        return response()->json($data);
     }
 
     public function update(Request $request, DistribusiBulanan $distribusi_bulanan)

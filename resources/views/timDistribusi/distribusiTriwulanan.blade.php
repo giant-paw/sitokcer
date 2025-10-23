@@ -249,7 +249,7 @@
 
     <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <form id="editForm" method="POST"> {{-- ID sudah ada --}}
+            <form id="editForm" method="POST">
                 @csrf
                 @method('PUT') 
                 <div class="modal-content">
@@ -259,53 +259,74 @@
                     </div>
                     <div class="modal-body">
                         
-                        {{-- UBAH INPUT NAMA KEGIATAN --}}
+                        {{-- Nama Kegiatan --}}
                         <div class="mb-3 autocomplete-container">
                             <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror" 
-                                   id="edit_nama_kegiatan" name="nama_kegiatan" required autocomplete="off">
+                                id="edit_nama_kegiatan" name="nama_kegiatan" 
+                                value="{{ old('nama_kegiatan') }}" required autocomplete="off">
                             <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
                             <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
                         </div>
 
+                        {{-- BS Responden --}}
                         <div class="mb-3">
                             <label for="edit_BS_Responden" class="form-label">Blok Sensus/Responden <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror" id="edit_BS_Responden" name="BS_Responden" required>
+                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror" 
+                                id="edit_BS_Responden" name="BS_Responden" 
+                                value="{{ old('BS_Responden') }}" required>
                             <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden'){{ $message }}@enderror</div>
                         </div>
 
+                        {{-- Pencacah --}}
                         <div class="mb-3 autocomplete-container"> 
                             <label for="edit_pencacah" class="form-label">Pencacah <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror" id="edit_pencacah" name="pencacah" required autocomplete="off">
+                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror" 
+                                id="edit_pencacah" name="pencacah" 
+                                value="{{ old('pencacah') }}" required autocomplete="off">
                             <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
                             <div class="invalid-feedback" data-field="pencacah">@error('pencacah'){{ $message }}@enderror</div>
                         </div>
 
+                        {{-- Pengawas --}}
                         <div class="mb-3 autocomplete-container">
                             <label for="edit_pengawas" class="form-label">Pengawas <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror" id="edit_pengawas" name="pengawas" required autocomplete="off">
+                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror" 
+                                id="edit_pengawas" name="pengawas" 
+                                value="{{ old('pengawas') }}" required autocomplete="off">
                             <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div>
                             <div class="invalid-feedback" data-field="pengawas">@error('pengawas'){{ $message }}@enderror</div>
                         </div>
 
+                        {{-- Target Penyelesaian --}}
                         <div class="mb-3">
                             <label for="edit_target_penyelesaian" class="form-label">Tanggal Target Penyelesaian <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror" id="edit_target_penyelesaian" name="target_penyelesaian" required>
+                            <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror" 
+                                id="edit_target_penyelesaian" name="target_penyelesaian" 
+                                value="{{ old('target_penyelesaian') }}" required>
                             <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian'){{ $message }}@enderror</div>
                         </div>
                         
+                        {{-- Flag Progress --}}
                         <div class="mb-3">
                             <label for="edit_flag_progress" class="form-label">Flag Progress <span class="text-danger">*</span></label>
-                            <select class="form-select @error('flag_progress') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required>
-                                <option value="Belum Selesai">Belum Selesai</option>
-                                <option value="Selesai">Selesai</option>
+                            <select class="form-select @error('flag_progress') is-invalid @enderror" 
+                                    id="edit_flag_progress" name="flag_progress" required>
+                                
+                                {{-- Tambahkan logic 'selected' di sini --}}
+                                <option value="Belum Selesai" {{ old('flag_progress') == 'Belum Selesai' ? 'selected' : '' }}>Belum Selesai</option>
+                                <option value="Selesai" {{ old('flag_progress') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
+                            
                             </select>
                             <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress'){{ $message }}@enderror</div>
                         </div>
                         
+                        {{-- Tanggal Pengumpulan --}}
                         <div class="mb-3">
                             <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
-                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror" id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan">
+                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror" 
+                                id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan"
+                                value="{{ old('tanggal_pengumpulan') }}">
                             <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan'){{ $message }}@enderror</div>
                         </div>
                     </div>
@@ -424,7 +445,6 @@
             }
         });
 
-        /** Helper untuk update suggestion yg aktif (highlight) */
         function updateActiveSuggestion(suggestions, index) {
             suggestions.forEach(el => el.classList.remove('active'));
             if (suggestions[index]) {
@@ -441,10 +461,6 @@
         });
     }
 
-    /**
-     * Tampilkan modal edit dan isi datanya dari server
-     * @param {number} id - ID data yang akan diedit
-     */
     function editData(id) {
         const editModalEl = document.getElementById('editDataModal');
         if (!editModalEl) return;
