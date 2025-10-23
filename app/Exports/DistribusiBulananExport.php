@@ -36,13 +36,13 @@ class DistribusiBulananExport implements FromCollection, WithHeadings
     {
         $query = DistribusiBulanan::query();
 
-        // Filter berdasarkan jenis kegiatan
+        // Filter berdasarkan jenis kegiatan (VHTS, HKD, dll)
         $query->where('nama_kegiatan', 'LIKE', strtoupper($this->jenisKegiatan) . '%');
 
         // Filter berdasarkan tahun
         $query->whereYear('created_at', $this->tahun);
 
-        // Filter berdasarkan kegiatan spesifik
+        // Filter berdasarkan kegiatan spesifik (misal: VHTS Bulan 5)
         if (!empty($this->kegiatan)) {
             $query->where('nama_kegiatan', $this->kegiatan);
         }
@@ -58,16 +58,16 @@ class DistribusiBulananExport implements FromCollection, WithHeadings
             });
         }
 
-        // Urutkan
+        // Urutkan berdasarkan terbaru
         $query->latest('id_distribusi_bulanan');
 
-        // Jika current_page, ambil data halaman terkini
+        // Jika dataRange = 'current_page', ambil data halaman terkini saja
         if ($this->dataRange == 'current_page') {
             $offset = ($this->currentPage - 1) * $this->perPage;
             return $query->offset($offset)->limit($this->perPage)->get();
         }
 
-        // Jika all, ambil semua data dengan filter
+        // Jika dataRange = 'all', ambil semua data (dengan filter yang diterapkan)
         return $query->get();
     }
 
@@ -98,8 +98,10 @@ class DistribusiBulananExport implements FromCollection, WithHeadings
 
         $templateProcessor = new TemplateProcessor($templatePath);
 
+        // Set tanggal cetak
         $templateProcessor->setValue('tanggal_cetak', now()->format('d F Y'));
 
+        // Set judul laporan dengan filter yang aktif
         $judulLaporan = 'Laporan Distribusi Bulanan ' . strtoupper($this->jenisKegiatan) . ' Tahun ' . $this->tahun;
         if (!empty($this->kegiatan)) {
             $judulLaporan .= ' - ' . $this->kegiatan;
@@ -118,7 +120,7 @@ class DistribusiBulananExport implements FromCollection, WithHeadings
                 $templateProcessor->cloneRow($placeholderToClone, $dataCount);
             } catch (\Exception $e) {
                 return response()->json([
-                    'error' => 'Gagal mengkloning baris di template.',
+                    'error' => 'Gagal mengkloning baris di template. Pastikan placeholder `' . $placeholderToClone . '` ada di template Word.',
                     'details' => $e->getMessage()
                 ], 500);
             }
@@ -137,6 +139,7 @@ class DistribusiBulananExport implements FromCollection, WithHeadings
                 $templateProcessor->setValue('tahun_kegiatan#' . $i, $row->tahun_kegiatan ?? '');
             }
         } else {
+            // Jika data kosong, tambahkan baris "Tidak ada data"
             try {
                 $templateProcessor->cloneRow($placeholderToClone, 1);
                 $templateProcessor->setValue('no#1', '-');
@@ -150,22 +153,25 @@ class DistribusiBulananExport implements FromCollection, WithHeadings
                 $templateProcessor->setValue('tanggal_pengumpulan#1', '-');
                 $templateProcessor->setValue('tahun_kegiatan#1', '-');
             } catch (\Exception $e) {
-                // Ignore
+                // Ignore jika gagal
             }
         }
 
+        // Generate nama file dengan filter
         $fileName = 'DistribusiBulanan_' . strtoupper($this->jenisKegiatan);
         if (!empty($this->kegiatan)) {
             $fileName .= '_' . str_replace(' ', '_', $this->kegiatan);
         }
-        $fileName .= '_' . time() . '.docx';
+        $fileName .= '_' . date('Ymd_His') . '.docx';
 
         $filePath = storage_path('exports/' . $fileName);
 
+        // Pastikan folder exports ada
         if (!is_dir(storage_path('exports'))) {
             mkdir(storage_path('exports'), 0775, true);
         }
 
+        // Simpan file Word
         try {
             $templateProcessor->saveAs($filePath);
         } catch (\Exception $e) {
@@ -175,6 +181,7 @@ class DistribusiBulananExport implements FromCollection, WithHeadings
             ], 500);
         }
 
+        // Download file dan hapus setelah download
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
 }

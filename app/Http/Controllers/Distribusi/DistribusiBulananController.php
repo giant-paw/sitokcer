@@ -234,7 +234,7 @@ class DistribusiBulananController extends Controller
         $currentPage = $request->input('page', 1);
         $perPage = $request->input('per_page', 20);
 
-        // Kirim semua parameter
+        // Kirim semua parameter ke export class
         $exportClass = new DistribusiBulananExport(
             $dataRange,
             $dataFormat,
@@ -247,9 +247,9 @@ class DistribusiBulananController extends Controller
         );
 
         if ($exportFormat == 'excel') {
-            return Excel::download($exportClass, 'DistribusiBulanan_' . strtoupper($jenisKegiatan) . '.xlsx');
+            return Excel::download($exportClass, 'DistribusiBulanan_' . strtoupper($jenisKegiatan) . '_' . date('Ymd_His') . '.xlsx');
         } elseif ($exportFormat == 'csv') {
-            return Excel::download($exportClass, 'DistribusiBulanan_' . strtoupper($jenisKegiatan) . '.csv');
+            return Excel::download($exportClass, 'DistribusiBulanan_' . strtoupper($jenisKegiatan) . '_' . date('Ymd_His') . '.csv');
         } elseif ($exportFormat == 'word') {
             return $exportClass->exportToWord();
         }

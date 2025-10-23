@@ -83,7 +83,7 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::get('/export', [DistribusiTahunanController::class, 'export'])->name('export');
     }); // ← TUTUP group tahunan di sini!
 
-    // ============ TRIWULANAN (KELUAR dari group tahunan) ============
+    // ============ TRIWULANAN============
     Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
         Route::get('/search-petugas', [DistribusiTriwulananController::class, 'searchPetugas'])
             ->name('searchPetugas');
@@ -109,35 +109,41 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
 
         Route::get('/{jenisKegiatan}', [DistribusiTriwulananController::class, 'index'])
             ->name('index')
-            ->where('jenisKegiatan', 'spunp|shkk');
+            ->where('jenisKegiatan', 'spunp|shkk'); //zamm
     });
 
     // ============ BULANAN ============
     Route::prefix('bulanan')->name('bulanan.')->group(function () {
+
+        // Route statis tanpa parameter (PALING ATAS)
         Route::get('/search-petugas', [DistribusiBulananController::class, 'searchPetugas'])
             ->name('searchPetugas');
 
         Route::post('/bulk-delete', [DistribusiBulananController::class, 'bulkDelete'])
             ->name('bulkDelete');
 
-        // PERBAIKAN: Export menggunakan GET (bukan POST seperti triwulanan)
+        Route::post('/store', [DistribusiBulananController::class, 'store'])
+            ->name('store');
+
+        // Route dengan jenis kegiatan (LEBIH SPESIFIK DULU)
         Route::get('/{jenisKegiatan}/export', [DistribusiBulananController::class, 'export'])
             ->name('export')
             ->where('jenisKegiatan', 'vhts|hkd|shpb|shp|shpj|shpbg');
 
+        // Route CRUD dengan ID angka (HARUS PAKAI CONSTRAINT)
         Route::get('/{distribusi_bulanan}/edit', [DistribusiBulananController::class, 'edit'])
-            ->name('edit');
+            ->name('edit')
+            ->where('distribusi_bulanan', '[0-9]+');
 
         Route::put('/{distribusi_bulanan}', [DistribusiBulananController::class, 'update'])
-            ->name('update');
+            ->name('update')
+            ->where('distribusi_bulanan', '[0-9]+');
 
         Route::delete('/{distribusi_bulanan}', [DistribusiBulananController::class, 'destroy'])
-            ->name('destroy');
+            ->name('destroy')
+            ->where('distribusi_bulanan', '[0-9]+');
 
-        Route::post('/', [DistribusiBulananController::class, 'store'])
-            ->name('store');
-
-        // PENTING: Index harus di paling bawah
+        // Route index (PALING BAWAH - catch all)
         Route::get('/{jenisKegiatan}', [DistribusiBulananController::class, 'index'])
             ->name('index')
             ->where('jenisKegiatan', 'vhts|hkd|shpb|shp|shpj|shpbg');
