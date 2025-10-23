@@ -43,32 +43,30 @@
                 <li class="{{ request()->routeIs('sosial.tahunan.*') ? 'active-link' : '' }}">
                     <a href="{{ route('sosial.tahunan.index') }}">Sosial Tahunan</a>
                 </li>
-
-                <li class="menu-item has-dropdown {{ request()->routeIs('sosial.seruti.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
-                        <span>Kegiatan Triwulan</span>
-                        <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
-                    </a>
-                    <ul class="submenu">
-                        <li class="{{ request()->routeIs('sosial.seruti.*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.seruti.index') }}">Seruti</a>
+                
+                <!-- SOSIAL TRIWULAN -->
+                <li class="menu-item has-dropdown {{ request()->is('sosial/triwulanan*') ? 'active' : '' }}">
+                            <a href="#" class="dropdown-toggle">
+                                <span>Kegiatan Triwulan</span>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{{ request()->is('sosial/triwulanan/seruti*') ? 'active-link' : '' }}">
+                                    <a href="{{ route('sosial.triwulanan.index', ['jenisKegiatan' => 'seruti']) }}">Seruti</a>
+                                </li>
+                            </ul>
                         </li>
-                    </ul>
-                </li>
 
                 <li class="menu-item has-dropdown {{ request()->routeIs('sosial.semesteran.*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Semesteran</span>
-                        <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
                     <ul class="submenu">
-                        <li
-                            class="{{ request()->routeIs('sosial.semesteran.*') && request()->route('kategori') == 'Sakernas' ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.semesteran.index', 'Sakernas') }}">Sakernas</a>
+                        {{-- Link ke route index baru, passing 'sakernas' atau 'susenas' sebagai jenisKegiatan --}}
+                        <li class="{{ request()->is('sosial/semesteran/sakernas*') ? 'active-link' : '' }}">
+                            <a href="{{ route('sosial.semesteran.index', ['jenisKegiatan' => 'sakernas']) }}">Sakernas</a>
                         </li>
-                        <li
-                            class="{{ request()->routeIs('sosial.semesteran.*') && request()->route('kategori') == 'Susenas' ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.semesteran.index', 'Susenas') }}">Susenas</a>
+                        <li class="{{ request()->is('sosial/semesteran/susenas*') ? 'active-link' : '' }}">
+                            <a href="{{ route('sosial.semesteran.index', ['jenisKegiatan' => 'susenas']) }}">Susenas</a>
                         </li>
                     </ul>
                 </li>
@@ -315,9 +313,10 @@
             </a>
         </li>
 
-        {{-- User --}}
-        <li class="{{ request()->routeIs('user') ? 'active-link' : '' }}">
-            <a href="{{ route('user') }}">
+        <!-- USER -->
+
+        <li class="{{ request()->is('users*') ? 'active' : '' }}">
+            <a href="{{ route('users.index') }}"">
                 <i class="bi bi-person-fill-gear menu-icon"></i>
                 <span>User</span>
             </a>

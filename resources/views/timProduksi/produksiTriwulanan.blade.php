@@ -1,10 +1,8 @@
 @extends('layouts.app')
 
-{{-- Sesuaikan Title --}}
 @section('title', strtoupper($jenisKegiatan) . ' - Produksi Triwulanan - Sitokcer')
 @section('header-title', 'List Target Survei ' . ucwords($jenisKegiatan))
 
-{{-- STYLES UNTUK AUTOCOMPLETE --}}
 @push('styles')
 <style>
     .autocomplete-container { position: relative; }
@@ -216,56 +214,91 @@
         <div class="modal-dialog">
             <form id="editForm" method="POST">
                 @csrf
-                @method('PUT')
+                @method('PUT') 
                 <div class="modal-content">
-                    <div class="modal-header"> <h5 class="modal-title">Edit Data</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button> </div>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editDataModalLabel">Edit Data</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
                     <div class="modal-body">
-                         <div class="mb-3 autocomplete-container">
+                        
+                        {{-- Nama Kegiatan --}}
+                        <div class="mb-3 autocomplete-container">
                             <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror" id="edit_nama_kegiatan" name="nama_kegiatan" required autocomplete="off">
+                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror" 
+                                id="edit_nama_kegiatan" name="nama_kegiatan" 
+                                value="{{ old('nama_kegiatan') }}" required autocomplete="off">
                             <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
                             <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
                         </div>
+
+                        {{-- BS Responden --}}
                         <div class="mb-3">
                             <label for="edit_BS_Responden" class="form-label">Blok Sensus/Responden <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror" id="edit_BS_Responden" name="BS_Responden" required>
+                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror" 
+                                id="edit_BS_Responden" name="BS_Responden" 
+                                value="{{ old('BS_Responden') }}" required>
                             <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden'){{ $message }}@enderror</div>
                         </div>
-                        <div class="mb-3 autocomplete-container">
+
+                        {{-- Pencacah --}}
+                        <div class="mb-3 autocomplete-container"> 
                             <label for="edit_pencacah" class="form-label">Pencacah <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror" id="edit_pencacah" name="pencacah" required autocomplete="off">
+                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror" 
+                                id="edit_pencacah" name="pencacah" 
+                                value="{{ old('pencacah') }}" required autocomplete="off">
                             <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
                             <div class="invalid-feedback" data-field="pencacah">@error('pencacah'){{ $message }}@enderror</div>
                         </div>
+
+                        {{-- Pengawas --}}
                         <div class="mb-3 autocomplete-container">
                             <label for="edit_pengawas" class="form-label">Pengawas <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror" id="edit_pengawas" name="pengawas" required autocomplete="off">
+                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror" 
+                                id="edit_pengawas" name="pengawas" 
+                                value="{{ old('pengawas') }}" required autocomplete="off">
                             <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div>
                             <div class="invalid-feedback" data-field="pengawas">@error('pengawas'){{ $message }}@enderror</div>
                         </div>
+
+                        {{-- Target Penyelesaian --}}
                         <div class="mb-3">
-                            <label for="edit_target_penyelesaian" class="form-label">Target Penyelesaian <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror" id="edit_target_penyelesaian" name="target_penyelesaian" required>
+                            <label for="edit_target_penyelesaian" class="form-label">Tanggal Target Penyelesaian <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror" 
+                                id="edit_target_penyelesaian" name="target_penyelesaian" 
+                                value="{{ old('target_penyelesaian') }}" required>
                             <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian'){{ $message }}@enderror</div>
                         </div>
+                        
+                        {{-- Flag Progress --}}
                         <div class="mb-3">
                             <label for="edit_flag_progress" class="form-label">Flag Progress <span class="text-danger">*</span></label>
-                            <select class="form-select @error('flag_progress') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required>
-                                <option value="Belum Selesai">Belum Selesai</option>
-                                <option value="Selesai">Selesai</option>
+                            <select class="form-select @error('flag_progress') is-invalid @enderror" 
+                                    id="edit_flag_progress" name="flag_progress" required>
+                                
+                                {{-- Tambahkan logic 'selected' di sini --}}
+                                <option value="Belum Selesai" {{ old('flag_progress') == 'Belum Selesai' ? 'selected' : '' }}>Belum Selesai</option>
+                                <option value="Selesai" {{ old('flag_progress') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
+                            
                             </select>
                             <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress'){{ $message }}@enderror</div>
                         </div>
+                        
+                        {{-- Tanggal Pengumpulan --}}
                         <div class="mb-3">
-                             {{-- Sesuaikan label dan required jika perlu --}}
-                             <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label> 
-                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror" id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan"> {{-- Hapus 'required' jika nullable --}}
+                            <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
+                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror" 
+                                id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan"
+                                value="{{ old('tanggal_pengumpulan') }}">
                             <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan'){{ $message }}@enderror</div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary"> <span class="spinner-border spinner-border-sm d-none"></span> Simpan Perubahan </button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            Simpan Perubahan
+                        </button>
                     </div>
                 </div>
             </form>
@@ -281,9 +314,7 @@
 @endsection
 
 @push('scripts')
-{{-- ====================================================================== --}}
-{{-- ============= SCRIPT LENGKAP (URL SUDAH DISESUAIKAN) ============ --}}
-{{-- ====================================================================== --}}
+
 <script>
     /** Autocomplete */
     function initAutocomplete(inputId, suggestionsId, searchUrl) { const input = document.getElementById(inputId); if (!input) return; const suggestionsContainer = document.getElementById(suggestionsId); let debounceTimer; let activeSuggestionIndex = -1; input.addEventListener('input', function() { const query = this.value; clearTimeout(debounceTimer); if (query.length < 1) { if (suggestionsContainer) suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; return; } debounceTimer = setTimeout(() => { const finalSearchUrl = `${searchUrl}?query=${query}`; fetch(finalSearchUrl).then(response => response.json()).then(data => { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; data.forEach((item, index) => { const div = document.createElement('div'); div.textContent = item; div.classList.add('autocomplete-suggestion-item'); div.onclick = () => { input.value = item; suggestionsContainer.innerHTML = ''; }; div.onmouseover = () => { document.querySelectorAll(`#${suggestionsId} .autocomplete-suggestion-item`).forEach(el => el.classList.remove('active')); div.classList.add('active'); activeSuggestionIndex = index; }; suggestionsContainer.appendChild(div); }); }).catch(error => console.error('Autocomplete error:', error)); }, 300); }); input.addEventListener('keydown', function(e) { const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item'); if (suggestions.length === 0) return; if (e.key === 'ArrowDown') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'ArrowUp') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'Enter') { if (activeSuggestionIndex > -1) { e.preventDefault(); input.value = suggestions[activeSuggestionIndex].textContent; suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } } else if (e.key === 'Escape') { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); function updateActiveSuggestion(suggestions, index) { suggestions.forEach(el => el.classList.remove('active')); if (suggestions[index]) suggestions[index].classList.add('active'); } document.addEventListener('click', (e) => { if (e.target.id !== inputId && suggestionsContainer) { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); }
@@ -292,9 +323,9 @@
     function editData(id) {
         const editModalEl = document.getElementById('editDataModal'); if (!editModalEl) return;
         const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl); const editForm = document.getElementById('editForm');
-        editForm.action = `/tim-produksi/triwulanan/${id}`; // <-- URL Triwulanan
+        editForm.action = `/tim-produksi/triwulanan/${id}`; 
         clearFormErrors(editForm);
-        fetch(`/tim-produksi/triwulanan/${id}/edit`) // <-- URL Triwulanan
+        fetch(`/tim-produksi/triwulanan/${id}/edit`) 
             .then(response => { if (!response.ok) { return response.text().then(text => { throw new Error(text || 'Data tidak ditemukan'); }); } return response.json(); })
             .then(data => {
                 document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
@@ -313,7 +344,7 @@
     function deleteData(id) {
         const deleteModalEl = document.getElementById('deleteDataModal'); if (!deleteModalEl) return;
         const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl); const deleteForm = document.getElementById('deleteForm');
-        deleteForm.action = `/tim-produksi/triwulanan/${id}`; // <-- URL Triwulanan
+        deleteForm.action = `/tim-produksi/triwulanan/${id}`; 
         let methodInput = deleteForm.querySelector('input[name="_method"]'); if (!methodInput) { methodInput = document.createElement('input'); methodInput.type = 'hidden'; methodInput.name = '_method'; deleteForm.appendChild(methodInput); } methodInput.value = 'DELETE';
         deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove()); document.getElementById('deleteModalBody').innerText = 'Hapus data ini?';
         const newConfirmButton = document.getElementById('confirmDeleteButton').cloneNode(true); document.getElementById('confirmDeleteButton').parentNode.replaceChild(newConfirmButton, document.getElementById('confirmDeleteButton')); newConfirmButton.addEventListener('click', (e) => { e.preventDefault(); deleteForm.submit(); });

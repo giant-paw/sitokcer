@@ -3,13 +3,14 @@
 namespace App\Models\Sosial;
 
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SosialSemesteran extends Model
 {
+    use HasFactory;
     protected $table = 'sosial_semesteran';
     protected $primaryKey = 'id_sosial_semesteran';
-    public $timestamps = false;
+    public $timestamps = true; // Perbaiki typo
 
     protected $fillable = [
         'nama_kegiatan',
@@ -19,33 +20,17 @@ class SosialSemesteran extends Model
         'target_penyelesaian',
         'flag_progress',
         'tanggal_pengumpulan',
+        'tahun_kegiatan', // Tambahkan jika ada kolom ini
     ];
 
     /**
-     * [PERBAIKAN] Accessor untuk mengkonversi 'target_penyelesaian'
-     * dari format string 'd/m/Y' menjadi objek Carbon saat diakses.
-     * Ini akan memperbaiki error parsing secara permanen.
+     * The attributes that should be cast.
      *
-     * @param  string|null  $value
-     * @return \Carbon\Carbon|null
+     * @var array<string, string>
      */
-    public function getTargetPenyelesaianAttribute($value)
-    {
-        if (empty($value)) {
-            return null;
-        }
-
-        try {
-            return Carbon::createFromFormat('d/m/Y', $value);
-        } catch (\Exception $e) {
-
-            return Carbon::parse($value);
-        }
-    }
-
-
     protected $casts = [
-        'tanggal_pengumpulan' => 'datetime',
+        'target_penyelesaian' => 'datetime', 
+        'tanggal_pengumpulan' => 'datetime', 
     ];
 }
 

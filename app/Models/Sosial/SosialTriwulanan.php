@@ -3,20 +3,27 @@
 namespace App\Models\Sosial;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SosialTriwulanan extends Model
 {
+    use HasFactory;
     protected $table = 'sosial_triwulanan';
     protected $primaryKey = 'id_sosial_triwulanan';
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
-        'nama_kegiatan',        // contoh: "Seruti-TW1"
-        'BS_Responden',         // contoh: "002B"
+        'nama_kegiatan',        
+        'BS_Responden',         
         'pencacah',
         'pengawas',
-        'target_penyelesaian',  // tanggal (nullable)
-        'flag_progress',        // "Selesai" / dst
-        'tanggal_pengumpulan',  // datetime (nullable)
+        'target_penyelesaian',  
+        'flag_progress',        
+        'tanggal_pengumpulan',  
+    ];
+
+    protected $casts = [
+        'target_penyelesaian' => 'datetime',
+        'tanggal_pengumpulan' => 'datetime',
     ];
 }

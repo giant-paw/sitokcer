@@ -131,7 +131,20 @@ class ProduksiCaturwulananController extends Controller
 
     public function edit(ProduksiCaturwulanan $produksi_caturwulanan)
     {
-        return response()->json($produksi_caturwulanan);
+        $data = $produksi_caturwulanan->toArray();
+
+        $targetPenyelesaian = $produksi_caturwulanan->target_penyelesaian;
+        $tanggalPengumpulan = $produksi_caturwulanan->tanggal_pengumpulan;
+        
+        $data['target_penyelesaian'] = $targetPenyelesaian 
+            ? Carbon::parse($targetPenyelesaian)->toDateString() 
+            : null;
+            
+        $data['tanggal_pengumpulan'] = $tanggalPengumpulan
+            ? Carbon::parse($tanggalPengumpulan)->toDateString()
+            : null;
+
+        return response()->json($data);
     }
 
     public function update(Request $request, ProduksiCaturwulanan $produksi_caturwulanan)
@@ -196,23 +209,5 @@ class ProduksiCaturwulananController extends Controller
         $produksi_caturwulanan->delete();
         
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
-    }
-
-    public function searchPetugas(Request $request)
-    {
-        $request->validate([
-            'field' => 'required|in:pencacah,pengawas',
-            'query' => 'nullable|string|max:100',
-        ]);
-    
-        $field = $request->input('field');
-        $query = $request->input('query', '');
-
-        $data = MasterPetugas::query()
-            ->where('nama_petugas', 'LIKE', "%{$query}%")
-            ->limit(10) 
-            ->pluck('nama_petugas');
-
-        return response()->json($data);
     }
 }

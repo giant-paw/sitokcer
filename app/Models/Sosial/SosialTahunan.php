@@ -3,13 +3,15 @@
 namespace App\Models\Sosial;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Carbon\Carbon;
 
 class SosialTahunan extends Model
 {
+    use HasFactory;
     protected $table = 'sosial_tahunan';
     protected $primaryKey = 'id_sosial';
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'nama_kegiatan',
@@ -21,21 +23,8 @@ class SosialTahunan extends Model
         'tanggal_pengumpulan',
     ];
 
-    private function fmt($v)
-    {
-        if (!$v) return null;
-        try {
-            return Carbon::createFromFormat('d/m/Y', $v)->format('d/m/Y');
-        } catch (\Throwable $e) {
-            return $v;
-        }
-    }
-    public function getTargetPenyelesaianFormattedAttribute()
-    {
-        return $this->fmt($this->target_penyelesaian);
-    }
-    public function getTanggalPengumpulanFormattedAttribute()
-    {
-        return $this->fmt($this->tanggal_pengumpulan);
-    }
+    protected $casts = [
+        'target_penyelesaian' => 'date',
+        'tanggal_pengumpulan' => 'date',
+    ];
 }
