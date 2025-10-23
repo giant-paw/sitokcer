@@ -130,13 +130,26 @@ class DistribusiTahunanController extends Controller
 
         return response()->json($data);
     }
+    // PERBAIKAN 4: Method export yang benar
     public function export(Request $request)
     {
-        $dataRange = $request->input('dataRange');
+        $dataRange = $request->input('dataRange', 'all'); // default 'all'
         $dataFormat = $request->input('dataFormat');
         $exportFormat = $request->input('exportFormat');
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+        $currentPage = $request->input('page', 1); // Ambil halaman aktif
+        $perPage = $request->input('per_page', 20);
 
-        $exportClass = new DistribusiTahunanExport($dataRange, $dataFormat);
+        // Kirim semua parameter yang diperlukan
+        $exportClass = new DistribusiTahunanExport(
+            $dataRange,
+            $dataFormat,
+            $kegiatan,
+            $search,
+            $currentPage,
+            $perPage
+        );
 
         if ($exportFormat == 'excel') {
             return Excel::download($exportClass, 'DistribusiTahunan.xlsx');

@@ -14,86 +14,100 @@ class DistribusiTriwulananExport implements FromCollection, WithHeadings
     protected $dataRange;
     protected $dataFormat;
     protected $jenisKegiatan;
+    protected $kegiatan; // Filter kegiatan spesifik (misal: SHKK TW 3)
+    protected $search;
+    protected $currentPage;
+    protected $perPage;
 
-    public function __construct($dataRange, $dataFormat, $jenisKegiatan)
+    public function __construct($dataRange, $dataFormat, $jenisKegiatan, $kegiatan = null, $search = null, $currentPage = 1, $perPage = 20)
     {
         $this->dataRange = $dataRange;
         $this->dataFormat = $dataFormat;
         $this->jenisKegiatan = $jenisKegiatan;
+        $this->kegiatan = $kegiatan;
+        $this->search = $search;
+        $this->currentPage = $currentPage;
+        $this->perPage = $perPage;
     }
 
-    // Mengambil data sesuai dengan range yang dipilih
+    // Mengambil data sesuai dengan range dan filter yang dipilih
     public function collection()
     {
         $query = DistribusiTriwulanan::query();
 
-        // Pastikan query membatasi data sesuai dengan jenis_kegiatan yang aktif
+        // Filter berdasarkan jenis kegiatan (SPUNP atau SHKK)
         $query->where('nama_kegiatan', 'LIKE', strtoupper($this->jenisKegiatan) . '%');
 
-        // Filter berdasarkan jangkauan data (current_page atau all)
-        if ($this->dataRange == 'current_page') {
-            return $query->paginate(20);  // Ambil data sesuai halaman yang sedang aktif
+        // Filter berdasarkan kegiatan spesifik jika ada (misal: SHKK TW 3, BUMD, K3, dll)
+        if (!empty($this->kegiatan)) {
+            $query->where('nama_kegiatan', $this->kegiatan);
         }
 
-        return $query->get(); // Ambil semua data jika tidak memilih 'current_page'
+        // Filter berdasarkan search jika ada
+        if (!empty($this->search)) {
+            $searchTerm = $this->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
+                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        // Urutkan berdasarkan terbaru
+        $query->latest();
+
+        // Jika dataRange = 'current_page', ambil data halaman terkini saja
+        if ($this->dataRange == 'current_page') {
+            $offset = ($this->currentPage - 1) * $this->perPage;
+            return $query->offset($offset)->limit($this->perPage)->get();
+        }
+
+        // Jika dataRange = 'all', ambil semua data (dengan filter yang diterapkan)
+        return $query->get();
     }
 
-    // Bagian ini hanya relevan jika Anda juga mengekspor ke Excel
     public function headings(): array
     {
         return [
-            'ID Kegiatan',
+            'ID Distribusi',
             'Nama Kegiatan',
-            'Blok Responden',
+            'BS Responden',
             'Pencacah',
             'Pengawas',
-            'Tanggal Penyelesaian',
+            'Target Penyelesaian',
             'Flag Progress',
-            'Tanggal Pengumpulan'
+            'Tanggal Pengumpulan',
+            'Tahun Kegiatan'
         ];
-    }
-
-    // Ekspor data ke Excel
-    public function exportToExcel()
-    {
-        return Excel::download($this, 'distribusi_triwulanan.xlsx');
-    }
-
-    // Ekspor data ke CSV
-    public function exportToCSV()
-    {
-        return response()->stream(function () {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, $this->headings()); // Menulis header kolom
-
-            foreach ($this->collection() as $item) {
-                fputcsv($handle, [
-                    $item->id_distribusi_triwulanan,
-                    $item->nama_kegiatan,
-                    $item->BS_Responden,
-                    $item->pencacah,
-                    $item->pengawas,
-                    $item->target_penyelesaian,
-                    $item->flag_progress,
-                    $item->tanggal_pengumpulan,
-                ]);
-            }
-
-            fclose($handle);
-        }, 200, [
-            "Content-Type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=distribusi_triwulanan.csv"
-        ]);
     }
 
     // Ekspor data ke Word menggunakan PhpWord\TemplateProcessor
     public function exportToWord()
     {
-        $templateProcessor = new TemplateProcessor(storage_path('templates/distribusi_triwulanan_template.docx'));
+        $templatePath = storage_path('templates/distribusi_triwulanan_template.docx');
+
+        // Cek apakah template ada
+        if (!file_exists($templatePath)) {
+            return response()->json([
+                'error' => 'Template Word tidak ditemukan di: ' . $templatePath
+            ], 404);
+        }
+
+        $templateProcessor = new TemplateProcessor($templatePath);
 
         // Isi template dengan data
         $templateProcessor->setValue('tanggal_cetak', now()->format('d F Y'));
-        $templateProcessor->setValue('judul_laporan', 'Laporan Distribusi Triwulanan');
+
+        // Judul laporan disesuaikan dengan filter
+        $judulLaporan = 'Laporan Distribusi Triwulanan ' . strtoupper($this->jenisKegiatan);
+        if (!empty($this->kegiatan)) {
+            $judulLaporan .= ' - ' . $this->kegiatan;
+        }
+        if ($this->dataRange == 'current_page') {
+            $judulLaporan .= ' (Halaman ' . $this->currentPage . ')';
+        }
+        $templateProcessor->setValue('judul_laporan', $judulLaporan);
 
         $data = $this->collection();
         $dataCount = $data->count();
@@ -112,9 +126,8 @@ class DistribusiTriwulananExport implements FromCollection, WithHeadings
 
             foreach ($data as $index => $row) {
                 $i = $index + 1;
-
                 $templateProcessor->setValue('no#' . $i, $i);
-                $templateProcessor->setValue('id_distribusi#' . $i, $row->id_distribusi ?? '');
+                $templateProcessor->setValue('id_distribusi#' . $i, $row->id_distribusi_triwulanan ?? '');
                 $templateProcessor->setValue('nama_kegiatan#' . $i, $row->nama_kegiatan ?? '');
                 $templateProcessor->setValue('blok_sensus#' . $i, $row->BS_Responden ?? '');
                 $templateProcessor->setValue('pencacahan#' . $i, $row->pencacah ?? '');
@@ -125,12 +138,31 @@ class DistribusiTriwulananExport implements FromCollection, WithHeadings
                 $templateProcessor->setValue('tahun_kegiatan#' . $i, $row->tahun_kegiatan ?? '');
             }
         } else {
-            // Jika data kosong: Hapus baris kloning sepenuhnya.
-            $templateProcessor->deleteBlock($placeholderToClone);
+            // Jika data kosong: tambahkan baris kosong
+            try {
+                $templateProcessor->cloneRow($placeholderToClone, 1);
+                $templateProcessor->setValue('no#1', '-');
+                $templateProcessor->setValue('id_distribusi#1', 'Tidak ada data');
+                $templateProcessor->setValue('nama_kegiatan#1', '-');
+                $templateProcessor->setValue('blok_sensus#1', '-');
+                $templateProcessor->setValue('pencacahan#1', '-');
+                $templateProcessor->setValue('pengawas#1', '-');
+                $templateProcessor->setValue('tanggal_target#1', '-');
+                $templateProcessor->setValue('flag_progress#1', '-');
+                $templateProcessor->setValue('tanggal_pengumpulan#1', '-');
+                $templateProcessor->setValue('tahun_kegiatan#1', '-');
+            } catch (\Exception $e) {
+                // Jika gagal, coba delete block
+            }
         }
 
         // Tentukan path untuk menyimpan file Word
-        $fileName = 'DistribusiTriwulanan_' . time() . '.docx';
+        $fileName = 'DistribusiTriwulanan_' . strtoupper($this->jenisKegiatan);
+        if (!empty($this->kegiatan)) {
+            $fileName .= '_' . str_replace(' ', '_', $this->kegiatan);
+        }
+        $fileName .= '_' . time() . '.docx';
+
         $filePath = storage_path('exports/' . $fileName);
 
         // Pastikan folder 'exports' dapat diakses
@@ -143,7 +175,7 @@ class DistribusiTriwulananExport implements FromCollection, WithHeadings
             $templateProcessor->saveAs($filePath);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Gagal menyimpan file Word. Kemungkinan besar disebabkan oleh korupsi XML di template Anda.',
+                'error' => 'Gagal menyimpan file Word.',
                 'details' => $e->getMessage()
             ], 500);
         }

@@ -180,6 +180,8 @@
                                 </select>
                             </div>
 
+                            <!-- Filter Kegiatan -->
+                            <input type="hidden" name="kegiatan" value="{{ request('kegiatan') }}">
 
                             <!-- Format Data -->
                             <div class="mb-3">
@@ -189,6 +191,7 @@
                                     <option value="raw_values">Raw Values</option>
                                 </select>
                             </div>
+
                             <!-- Format Keluaran -->
                             <div class="mb-3">
                                 <label for="exportFormat" class="form-label">Format Keluaran</label>
@@ -516,7 +519,71 @@
                         updateBulkDeleteState();
                     });
                 }
+                // Export All Data
+                document.getElementById('exportAllBtn')?.addEventListener('click', function(e) {
+                    e.preventDefault();
 
+                    let form = document.createElement('form');
+                    form.method = 'GET';
+                    form.action = '{{ route('tim-distribusi.tahunan.export') }}';
+
+                    // PENTING: Set dataRange = 'all'
+                    let inputs = {
+                        'dataRange': 'all',
+                        'exportFormat': document.getElementById('exportFormat')?.value || 'excel',
+                        'kegiatan': document.querySelector('[name="kegiatan"]')?.value || '',
+                        'search': document.querySelector('[name="search"]')?.value || ''
+                    };
+
+                    Object.keys(inputs).forEach(key => {
+                        if (inputs[key]) {
+                            let input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = key;
+                            input.value = inputs[key];
+                            form.appendChild(input);
+                        }
+                    });
+
+                    document.body.appendChild(form);
+                    form.submit();
+                });
+                // Export Current Page
+                document.getElementById('exportCurrentBtn')?.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    let form = document.createElement('form');
+                    form.method = 'GET';
+                    form.action = '{{ route('tim-distribusi.tahunan.export') }}';
+
+                    // Ambil semua parameter dari URL saat ini
+                    let urlParams = new URLSearchParams(window.location.search);
+
+                    // PENTING: Set dataRange = 'current_page'
+                    let inputs = {
+                        'dataRange': 'current_page',
+                        'exportFormat': document.getElementById('exportFormat')?.value || 'excel',
+                        'kegiatan': urlParams.get('kegiatan') || document.querySelector('[name="kegiatan"]')
+                            ?.value || '',
+                        'search': urlParams.get('search') || document.querySelector('[name="search"]')
+                            ?.value || '',
+                        'page': urlParams.get('page') || '1', // PENTING: Kirim halaman aktif
+                        'per_page': urlParams.get('per_page') || '20'
+                    };
+
+                    Object.keys(inputs).forEach(key => {
+                        if (inputs[key]) {
+                            let input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = key;
+                            input.value = inputs[key];
+                            form.appendChild(input);
+                        }
+                    });
+
+                    document.body.appendChild(form);
+                    form.submit();
+                });
                 // Inisialisasi awal
                 updateBulkDeleteState();
 

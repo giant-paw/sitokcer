@@ -197,18 +197,37 @@ class DistribusiTriwulananController extends Controller
         return response()->json($data);
     }
 
-    public function export(Request $request, $nama_kegiatan)
+    // PERBAIKAN 4: Method export yang benar
+    public function export(Request $request, $jenisKegiatan)
     {
-        $dataRange = $request->input('dataRange');
+        // Validasi jenis kegiatan
+        if (!in_array(strtolower($jenisKegiatan), ['spunp', 'shkk'])) {
+            abort(404);
+        }
+
+        $dataRange = $request->input('dataRange', 'all'); // default 'all'
         $dataFormat = $request->input('dataFormat');
         $exportFormat = $request->input('exportFormat');
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+        $currentPage = $request->input('page', 1); // Ambil halaman aktif
+        $perPage = $request->input('per_page', 20);
 
-        $exportClass = new DistribusiTriwulananExport($dataRange, $dataFormat, $nama_kegiatan);
+        // Kirim semua parameter yang diperlukan
+        $exportClass = new DistribusiTriwulananExport(
+            $dataRange,
+            $dataFormat,
+            $jenisKegiatan,
+            $kegiatan,
+            $search,
+            $currentPage,
+            $perPage
+        );
 
         if ($exportFormat == 'excel') {
-            return Excel::download($exportClass, 'DistribusiTriwulanan.xlsx');
+            return Excel::download($exportClass, 'DistribusiTriwulanan_' . strtoupper($jenisKegiatan) . '.xlsx');
         } elseif ($exportFormat == 'csv') {
-            return Excel::download($exportClass, 'DistribusiTriwulanan.csv');
+            return Excel::download($exportClass, 'DistribusiTriwulanan_' . strtoupper($jenisKegiatan) . '.csv');
         } elseif ($exportFormat == 'word') {
             return $exportClass->exportToWord();
         }

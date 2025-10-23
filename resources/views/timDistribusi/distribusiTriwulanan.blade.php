@@ -183,8 +183,15 @@
     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-               <form action="{{ route('tim-distribusi.tahunan.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET">
+                <form action="{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}"
+                    method="GET">
                     @csrf
+                    <!-- HIDDEN: Agar filter, search, page, per_page terkirim saat export -->
+                    <input type="hidden" name="kegiatan" value="{{ request('kegiatan') }}">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <input type="hidden" name="page" value="{{ request('page', 1) }}">
+                    <input type="hidden" name="per_page" value="{{ request('per_page', 20) }}">
+
                     <div class="modal-header">
                         <h5 class="modal-title" id="exportModalLabel">Ekspor Data</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -745,184 +752,339 @@
         // --- SCRIPT UTAMA SETELAH DOKUMEN SIAP (DOM Ready) ---
         document.addEventListener('DOMContentLoaded', function() {
 
-            // --- Inisialisasi Autocomplete ---
-            // Pastikan rute ini ada di web.php dan controllernya ada fungsi search
-            @if (Route::has('master.kegiatan.search'))
-                initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', '{{ route('master.kegiatan.search') }}');
-                initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions',
-                    '{{ route('master.kegiatan.search') }}');
-            @else
-                console.warn('Rute "master.kegiatan.search" tidak ditemukan.');
-            @endif
+        });
+        // --- Inisialisasi Autocomplete ---
+        // Pastikan rute ini ada di web.php dan controllernya ada fungsi search
+        @if (Route::has('master.kegiatan.search'))
+            initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', '{{ route('master.kegiatan.search') }}');
+            initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions',
+                '{{ route('master.kegiatan.search') }}');
+        @else
+            console.warn('Rute "master.kegiatan.search" tidak ditemukan.');
+        @endif
 
-            // Pastikan rute ini ada di web.php dan controllernya ada fungsi search
-            @if (Route::has('master.petugas.search'))
-                initAutocomplete('pencacah', 'pencacah-suggestions', '{{ route('master.petugas.search') }}');
-                initAutocomplete('pengawas', 'pengawas-suggestions', '{{ route('master.petugas.search') }}');
-                initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions',
-                    '{{ route('master.petugas.search') }}');
-                initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions',
-                    '{{ route('master.petugas.search') }}');
-            @else
-                console.warn('Rute "master.petugas.search" tidak ditemukan.');
-            @endif
-
-
-            // --- Inisialisasi Handler AJAX Form ---
-            const tambahModalEl = document.getElementById('tambahDataModal');
-            const tambahForm = document.getElementById('tambahForm');
-            if (tambahModalEl && tambahForm) {
-                // PERBAIKAN BUG MODAL: Gunakan getOrCreateInstance
-                const tambahModal = bootstrap.Modal.getOrCreateInstance(tambahModalEl);
-                tambahForm.addEventListener('submit', (event) => {
-                    handleFormSubmitAjax(event, tambahForm, tambahModal);
-                });
-                tambahModalEl.addEventListener('hidden.bs.modal', () => {
-                    clearFormErrors(tambahForm);
-                    tambahForm.reset();
-                });
-            }
-
-            const editModalEl = document.getElementById('editDataModal');
-            const editForm = document.getElementById('editForm');
-            if (editModalEl && editForm) {
-                // PERBAIKAN BUG MODAL: Gunakan getOrCreateInstance
-                const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
-                editForm.addEventListener('submit', (event) => {
-                    handleFormSubmitAjax(event, editForm, editModal);
-                });
-                editModalEl.addEventListener('hidden.bs.modal', () => {
-                    clearFormErrors(editForm);
-                });
-            }
+        // Pastikan rute ini ada di web.php dan controllernya ada fungsi search
+        @if (Route::has('master.petugas.search'))
+            initAutocomplete('pencacah', 'pencacah-suggestions', '{{ route('master.petugas.search') }}');
+            initAutocomplete('pengawas', 'pengawas-suggestions', '{{ route('master.petugas.search') }}');
+            initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions',
+                '{{ route('master.petugas.search') }}');
+            initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions',
+                '{{ route('master.petugas.search') }}');
+        @else
+            console.warn('Rute "master.petugas.search" tidak ditemukan.');
+        @endif
 
 
-            // --- Logika Select All & Bulk Delete ---
-            const selectAll = document.getElementById('selectAll');
-            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-            const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-            const deleteForm = document.getElementById('deleteForm');
-
-            function updateBulkDeleteBtnState() {
-                const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
-                if (bulkDeleteBtn) bulkDeleteBtn.disabled = checkedCount === 0;
-            }
-
-            selectAll?.addEventListener('change', () => {
-                rowCheckboxes.forEach(cb => cb.checked = selectAll.checked);
-                updateBulkDeleteBtnState();
+        // --- Inisialisasi Handler AJAX Form ---
+        const tambahModalEl = document.getElementById('tambahDataModal');
+        const tambahForm = document.getElementById('tambahForm');
+        if (tambahModalEl && tambahForm) {
+            // PERBAIKAN BUG MODAL: Gunakan getOrCreateInstance
+            const tambahModal = bootstrap.Modal.getOrCreateInstance(tambahModalEl);
+            tambahForm.addEventListener('submit', (event) => {
+                handleFormSubmitAjax(event, tambahForm, tambahModal);
             });
-            rowCheckboxes.forEach(cb => cb.addEventListener('change', updateBulkDeleteBtnState));
+            tambahModalEl.addEventListener('hidden.bs.modal', () => {
+                clearFormErrors(tambahForm);
+                tambahForm.reset();
+            });
+        }
+
+        const editModalEl = document.getElementById('editDataModal');
+        const editForm = document.getElementById('editForm');
+        if (editModalEl && editForm) {
+            // PERBAIKAN BUG MODAL: Gunakan getOrCreateInstance
+            const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
+            editForm.addEventListener('submit', (event) => {
+                handleFormSubmitAjax(event, editForm, editModal);
+            });
+            editModalEl.addEventListener('hidden.bs.modal', () => {
+                clearFormErrors(editForm);
+            });
+        }
+
+
+        // --- Logika Select All & Bulk Delete ---
+        const selectAll = document.getElementById('selectAll');
+        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+        const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+        const deleteForm = document.getElementById('deleteForm');
+
+        function updateBulkDeleteBtnState() {
+            const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+            if (bulkDeleteBtn) bulkDeleteBtn.disabled = checkedCount === 0;
+        }
+
+        selectAll?.addEventListener('change', () => {
+            rowCheckboxes.forEach(cb => cb.checked = selectAll.checked);
             updateBulkDeleteBtnState();
+        });
+        rowCheckboxes.forEach(cb => cb.addEventListener('change', updateBulkDeleteBtnState));
+        updateBulkDeleteBtnState();
 
-            bulkDeleteBtn?.addEventListener('click', () => {
-                const count = document.querySelectorAll('.row-checkbox:checked').length;
-                if (count === 0) return;
+        bulkDeleteBtn?.addEventListener('click', () => {
+            const count = document.querySelectorAll('.row-checkbox:checked').length;
+            if (count === 0) return;
 
-                const deleteModalEl = document.getElementById('deleteDataModal');
-                if (!deleteModalEl || !deleteForm) return;
+            const deleteModalEl = document.getElementById('deleteDataModal');
+            if (!deleteModalEl || !deleteForm) return;
 
-                // PERBAIKAN BUG MODAL: Gunakan getOrCreateInstance
-                const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
+            // PERBAIKAN BUG MODAL: Gunakan getOrCreateInstance
+            const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
 
-                deleteForm.action = '{{ route('tim-distribusi.triwulanan.bulkDelete') }}';
-                let methodInput = deleteForm.querySelector('input[name="_method"]');
-                if (methodInput) methodInput.value = 'POST';
+            deleteForm.action = '{{ route('tim-distribusi.triwulanan.bulkDelete') }}';
+            let methodInput = deleteForm.querySelector('input[name="_method"]');
+            if (methodInput) methodInput.value = 'POST';
 
-                deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
-                document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'ids[]';
-                    input.value = cb.value;
-                    deleteForm.appendChild(input);
-                });
-
-                document.getElementById('deleteModalBody').innerText =
-                    `Apakah Anda yakin ingin menghapus ${count} data yang dipilih?`;
-
-                const newConfirmButton = document.getElementById('confirmDeleteButton').cloneNode(true);
-                document.getElementById('confirmDeleteButton').parentNode.replaceChild(newConfirmButton,
-                    document.getElementById('confirmDeleteButton'));
-                newConfirmButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    deleteForm.submit();
-                });
-
-                deleteModal.show();
+            deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
+            document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = cb.value;
+                deleteForm.appendChild(input);
             });
 
-            // --- Logika Dropdown Per Page ---
-            const perPageSelect = document.getElementById('perPageSelect');
-            if (perPageSelect) {
-                perPageSelect.addEventListener('change', function() {
-                    const selectedValue = this.value;
-                    const currentUrl = new URL(window.location.href);
-                    const params = currentUrl.searchParams;
-                    params.set('per_page', selectedValue);
-                    params.set('page', 1);
-                    window.location.href = currentUrl.pathname + '?' + params.toString();
-                });
+            document.getElementById('deleteModalBody').innerText =
+                `Apakah Anda yakin ingin menghapus ${count} data yang dipilih?`;
+
+            const newConfirmButton = document.getElementById('confirmDeleteButton').cloneNode(true);
+            document.getElementById('confirmDeleteButton').parentNode.replaceChild(newConfirmButton,
+                document.getElementById('confirmDeleteButton'));
+            newConfirmButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                deleteForm.submit();
+            });
+
+            deleteModal.show();
+        });
+
+        // --- Logika Dropdown Per Page ---
+        const perPageSelect = document.getElementById('perPageSelect');
+        if (perPageSelect) {
+            perPageSelect.addEventListener('change', function() {
+                const selectedValue = this.value;
+                const currentUrl = new URL(window.location.href);
+                const params = currentUrl.searchParams;
+                params.set('per_page', selectedValue);
+                params.set('page', 1);
+                window.location.href = currentUrl.pathname + '?' + params.toString();
+            });
+        }
+
+        // --- Logika Dropdown TAHUN ---
+        const tahunSelect = document.getElementById('tahunSelect');
+        if (tahunSelect) {
+            tahunSelect.addEventListener('change', function() {
+                const selectedTahun = this.value;
+                const currentUrl = new URL(window.location.href);
+                const params = currentUrl.searchParams;
+                params.set('tahun', selectedTahun);
+                params.set('page', 1);
+                window.location.href = currentUrl.pathname + '?' + params.toString();
+            });
+        }
+
+        @if (session('error_modal') == 'tambahDataModal' && $errors->any())
+            const tambahModalEl_fallback = document.getElementById('tambahDataModal');
+            if (tambahModalEl_fallback) {
+                // PERBAIKAN BUG MODAL
+                bootstrap.Modal.getOrCreateInstance(tambahModalEl_fallback).show();
             }
+        @endif
 
-            // --- Logika Dropdown TAHUN ---
-            const tahunSelect = document.getElementById('tahunSelect');
-            if (tahunSelect) {
-                tahunSelect.addEventListener('change', function() {
-                    const selectedTahun = this.value;
-                    const currentUrl = new URL(window.location.href);
-                    const params = currentUrl.searchParams;
-                    params.set('tahun', selectedTahun);
-                    params.set('page', 1);
-                    window.location.href = currentUrl.pathname + '?' + params.toString();
-                });
-            }
+        @if (session('error_modal') == 'editDataModal' && $errors->any() && session('edit_id'))
+            const editId = {{ session('edit_id') }};
+            if (editId) {
+                editData(editId); // Panggil fungsi editData (yang sudah diperbaiki)
 
-            @if (session('error_modal') == 'tambahDataModal' && $errors->any())
-                const tambahModalEl_fallback = document.getElementById('tambahDataModal');
-                if (tambahModalEl_fallback) {
-                    // PERBAIKAN BUG MODAL
-                    bootstrap.Modal.getOrCreateInstance(tambahModalEl_fallback).show();
-                }
-            @endif
-
-            @if (session('error_modal') == 'editDataModal' && $errors->any() && session('edit_id'))
-                const editId = {{ session('edit_id') }};
-                if (editId) {
-                    editData(editId); // Panggil fungsi editData (yang sudah diperbaiki)
-
-                    setTimeout(() => {
-                        const editForm_fallback = document.getElementById('editForm');
-                        @foreach ($errors->keys() as $field)
-                            const fieldElement = editForm_fallback.querySelector(
-                                '[name="{{ $field }}"]');
-                            if (fieldElement) {
-                                fieldElement.classList.add('is-invalid');
-                            }
-                            const errorElement = editForm_fallback.querySelector(
-                                `.invalid-feedback[data-field="{{ $field }}"]`);
-                            if (errorElement) {
-                                errorElement.textContent = '{{ $errors->first($field) }}';
-                            }
-                        @endforeach
-                    }, 500);
-                }
-            @endif
-
-            // --- Auto-hide Alert Sukses/Error (Non-Modal) ---
-            const autoHideAlerts = document.querySelectorAll('.alert-dismissible[role="alert"]');
-            autoHideAlerts.forEach(alert => {
-                if (!alert.closest('.modal')) {
-                    setTimeout(() => {
-                        // PERBAIKAN BUG MODAL
-                        const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-                        if (bsAlert) {
-                            bsAlert.close();
+                setTimeout(() => {
+                    const editForm_fallback = document.getElementById('editForm');
+                    @foreach ($errors->keys() as $field)
+                        const fieldElement = editForm_fallback.querySelector(
+                            '[name="{{ $field }}"]');
+                        if (fieldElement) {
+                            fieldElement.classList.add('is-invalid');
                         }
-                    }, 5000);
+                        const errorElement = editForm_fallback.querySelector(
+                            `.invalid-feedback[data-field="{{ $field }}"]`);
+                        if (errorElement) {
+                            errorElement.textContent = '{{ $errors->first($field) }}';
+                        }
+                    @endforeach
+                }, 500);
+            }
+        @endif
+        // Export All Data
+        document.getElementById('exportAllBtn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            let form = document.createElement('form');
+            form.method = 'GET';
+            form.action =
+                '{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}';
+
+            let inputs = {
+                'dataRange': 'all',
+                'exportFormat': document.getElementById('exportFormat')?.value || 'excel',
+                'kegiatan': document.querySelector('[name="kegiatan"]')?.value || '',
+                'search': document.querySelector('[name="search"]')?.value || ''
+            };
+
+            Object.keys(inputs).forEach(key => {
+                if (inputs[key]) {
+                    let input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = inputs[key];
+                    form.appendChild(input);
                 }
             });
 
+            document.body.appendChild(form);
+            form.submit();
+        });
+        // Export Current Page
+        document.getElementById('exportCurrentBtn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            let form = document.createElement('form');
+            form.method = 'GET';
+            form.action =
+                '{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}';
+
+            let urlParams = new URLSearchParams(window.location.search);
+
+            let inputs = {
+                'dataRange': 'current_page',
+                'exportFormat': document.getElementById('exportFormat')?.value || 'excel',
+                'kegiatan': urlParams.get('kegiatan') || document.querySelector('[name="kegiatan"]')
+                    ?.value || '',
+                'search': urlParams.get('search') || document.querySelector('[name="search"]')
+                    ?.value || '',
+                'page': urlParams.get('page') || '1',
+                'per_page': urlParams.get('per_page') || '20'
+            };
+
+            Object.keys(inputs).forEach(key => {
+                if (inputs[key]) {
+                    let input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = inputs[key];
+                    form.appendChild(input);
+                }
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+        // ========== EXPORT ALL DATA ==========
+        const exportAllBtn = document.getElementById('exportAllBtn');
+        if (exportAllBtn) {
+            exportAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                console.log('=== EXPORT ALL DATA ===');
+
+                const exportFormat = document.getElementById('exportFormat')?.value || 'excel';
+
+                // Ambil filter kegiatan dari URL (lebih akurat)
+                const urlParams = new URLSearchParams(window.location.search);
+                const kegiatanFilter = urlParams.get('kegiatan') || '';
+                const searchInput = urlParams.get('search') || document.querySelector('input[name="search"]')
+                    ?.value || '';
+
+                console.log('Kegiatan Filter:', kegiatanFilter);
+                console.log('Search:', searchInput);
+
+                const params = new URLSearchParams({
+                    'dataRange': 'all',
+                    'exportFormat': exportFormat,
+                    'kegiatan': kegiatanFilter,
+                    'search': searchInput
+                });
+
+                const exportUrl =
+                    '{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}' + '?' +
+                    params.toString();
+
+                console.log('Export URL:', exportUrl);
+
+                const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+                if (modal) modal.hide();
+
+                window.location.href = exportUrl;
+            });
+        }
+
+        // ========== EXPORT CURRENT PAGE ==========
+        const exportCurrentBtn = document.getElementById('exportCurrentBtn');
+        if (exportCurrentBtn) {
+            exportCurrentBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                console.log('=== EXPORT CURRENT PAGE ===');
+                console.log('Current URL:', window.location.href);
+
+                // Ambil SEMUA parameter dari URL saat ini
+                const urlParams = new URLSearchParams(window.location.search);
+
+                // Debug: tampilkan semua parameter
+                console.log('All URL Parameters:');
+                for (let [key, value] of urlParams.entries()) {
+                    console.log(`  ${key}: ${value}`);
+                }
+
+                const exportFormat = document.getElementById('exportFormat')?.value || 'excel';
+
+                // PENTING: Ambil filter kegiatan dari URL
+                const kegiatanFilter = urlParams.get('kegiatan') || '';
+                const searchInput = urlParams.get('search') || '';
+                const currentPage = urlParams.get('page') || '1';
+                const perPage = urlParams.get('per_page') || '20';
+
+                console.log('Parameters to send:');
+                console.log('  dataRange: current_page');
+                console.log('  kegiatan:', kegiatanFilter);
+                console.log('  search:', searchInput);
+                console.log('  page:', currentPage);
+                console.log('  per_page:', perPage);
+
+                const params = new URLSearchParams({
+                    'dataRange': 'current_page',
+                    'exportFormat': exportFormat,
+                    'kegiatan': kegiatanFilter,
+                    'search': searchInput,
+                    'page': currentPage,
+                    'per_page': perPage
+                });
+
+                const exportUrl =
+                    '{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}' + '?' +
+                    params.toString();
+
+                console.log('Final Export URL:', exportUrl);
+
+                const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+                if (modal) modal.hide();
+
+                window.location.href = exportUrl;
+            });
+        }
+        // --- Auto-hide Alert Sukses/Error (Non-Modal) ---
+        const autoHideAlerts = document.querySelectorAll('.alert-dismissible[role="alert"]');
+        autoHideAlerts.forEach(alert => {
+            if (!alert.closest('.modal')) {
+                setTimeout(() => {
+                    // PERBAIKAN BUG MODAL
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    if (bsAlert) {
+                        bsAlert.close();
+                    }
+                }, 5000);
+            }
         });
     </script>
 @endpush
