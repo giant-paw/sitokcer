@@ -112,7 +112,7 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
             ->where('jenisKegiatan', 'spunp|shkk');
     });
 
-    // ============ BULANAN (KELUAR dari group tahunan) ============
+    // ============ BULANAN ============
     Route::prefix('bulanan')->name('bulanan.')->group(function () {
         Route::get('/search-petugas', [DistribusiBulananController::class, 'searchPetugas'])
             ->name('searchPetugas');
@@ -120,9 +120,10 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::post('/bulk-delete', [DistribusiBulananController::class, 'bulkDelete'])
             ->name('bulkDelete');
 
+        // PERBAIKAN: Export menggunakan GET (bukan POST seperti triwulanan)
         Route::get('/{jenisKegiatan}/export', [DistribusiBulananController::class, 'export'])
             ->name('export')
-            ->where('jenisKegiatan', 'spunp|shkk'); // Sesuaikan dengan jenis kegiatan bulanan
+            ->where('jenisKegiatan', 'vhts|hkd|shpb|shp|shpj|shpbg');
 
         Route::get('/{distribusi_bulanan}/edit', [DistribusiBulananController::class, 'edit'])
             ->name('edit');
@@ -136,9 +137,10 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::post('/', [DistribusiBulananController::class, 'store'])
             ->name('store');
 
+        // PENTING: Index harus di paling bawah
         Route::get('/{jenisKegiatan}', [DistribusiBulananController::class, 'index'])
             ->name('index')
-            ->where('jenisKegiatan', 'spunp|shkk'); // Sesuaikan
+            ->where('jenisKegiatan', 'vhts|hkd|shpb|shp|shpj|shpbg');
     });
 });
 

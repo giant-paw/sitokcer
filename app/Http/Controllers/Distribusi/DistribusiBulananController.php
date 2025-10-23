@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\DistribusiBulananExport;
-
 use Illuminate\Http\Request;
 
 class DistribusiBulananController extends Controller
@@ -57,13 +56,12 @@ class DistribusiBulananController extends Controller
         }
 
         $perPage = $request->input('per_page', 20);
-
         if ($perPage == 'all') {
             $total = (clone $query)->count();
             $perPage = $total > 0 ? $total : 20;
         }
 
-        $listData = $query->latest('id_distribusi_bulanan')->paginate($perPage)->withQueryString(); // Gunakan primary key
+        $listData = $query->latest('id_distribusi_bulanan')->paginate($perPage)->withQueryString();
 
         $kegiatanCounts = DistribusiBulanan::query()
             ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan) . '%')
@@ -72,7 +70,6 @@ class DistribusiBulananController extends Controller
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
-
 
         $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
 
@@ -184,7 +181,6 @@ class DistribusiBulananController extends Controller
         return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
-
     public function bulkDelete(Request $request)
     {
         $request->validate([
@@ -200,7 +196,6 @@ class DistribusiBulananController extends Controller
     public function destroy(DistribusiBulanan $distribusi_bulanan)
     {
         $distribusi_bulanan->delete();
-
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 
@@ -221,18 +216,40 @@ class DistribusiBulananController extends Controller
 
         return response()->json($data);
     }
-    public function export(Request $request, $nama_kegiatan)
+
+    public function export(Request $request, $jenisKegiatan)
     {
-        $dataRange = $request->input('dataRange');
+        // Validasi jenis kegiatan
+        $validJenis = ['vhts', 'hkd', 'shpb', 'shp', 'shpj', 'shpbg'];
+        if (!in_array(strtolower($jenisKegiatan), $validJenis)) {
+            abort(404);
+        }
+
+        $dataRange = $request->input('dataRange', 'all');
         $dataFormat = $request->input('dataFormat');
         $exportFormat = $request->input('exportFormat');
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+        $tahun = $request->input('tahun', date('Y'));
+        $currentPage = $request->input('page', 1);
+        $perPage = $request->input('per_page', 20);
 
-        $exportClass = new DistribusiBulananExport($dataRange, $dataFormat, $nama_kegiatan);
+        // Kirim semua parameter
+        $exportClass = new DistribusiBulananExport(
+            $dataRange,
+            $dataFormat,
+            $jenisKegiatan,
+            $kegiatan,
+            $search,
+            $tahun,
+            $currentPage,
+            $perPage
+        );
 
         if ($exportFormat == 'excel') {
-            return Excel::download($exportClass, 'DistribusiTriwulanan.xlsx');
+            return Excel::download($exportClass, 'DistribusiBulanan_' . strtoupper($jenisKegiatan) . '.xlsx');
         } elseif ($exportFormat == 'csv') {
-            return Excel::download($exportClass, 'DistribusiTriwulanan.csv');
+            return Excel::download($exportClass, 'DistribusiBulanan_' . strtoupper($jenisKegiatan) . '.csv');
         } elseif ($exportFormat == 'word') {
             return $exportClass->exportToWord();
         }
