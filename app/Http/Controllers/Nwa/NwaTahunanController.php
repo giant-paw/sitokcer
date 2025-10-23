@@ -227,4 +227,25 @@ class NwaTahunanController extends Controller
             ->pluck('nama_petugas');
         return response()->json($data);
     }
+
+    /**
+     * [BARU] Menghapus beberapa data tahunan sekaligus (bulk delete).
+     */
+    public function bulkDelete(Request $request)
+    {
+        // 1. Validasi request
+        $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer|exists:nwa_tahunan,id_nwa' // Validasi bahwa semua ID ada
+        ]);
+
+        $ids = $request->input('ids');
+
+        // 2. Hapus data berdasarkan ID yang dipilih
+        NwaTahunan::whereIn('id_nwa', $ids)->delete();
+
+        // 3. Redirect kembali dengan pesan sukses
+        return redirect()->route('nwa.tahunan.index')
+                         ->with('ok', count($ids) . ' data berhasil dihapus.');
+    }
 }

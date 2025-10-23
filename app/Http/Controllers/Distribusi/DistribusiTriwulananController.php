@@ -7,21 +7,24 @@ use App\Models\Distribusi\DistribusiTriwulanan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\MasterPetugas\MasterPetugas;
-use App\Models\Master\MasterKegiatan; 
+use App\Models\Master\MasterPetugas;
+use App\Models\Master\MasterKegiatan;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\DistribusiTriwulananExport;
+use PhpOffice\PhpWord\TemplateProcessor;
 
 class DistribusiTriwulananController extends Controller
 {
     // Tampil data SPUNP atau SHKK
     public function index(Request $request, $jenisKegiatan)
     {
-        
+
         if (!in_array(strtolower($jenisKegiatan), ['spunp', 'shkk'])) {
             abort(404);
         }
 
-        $query = DistribusiTriwulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%');
+        $query = DistribusiTriwulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan) . '%');
 
         if ($request->filled('kegiatan')) {
             $query->where('nama_kegiatan', $request->kegiatan);
@@ -29,15 +32,15 @@ class DistribusiTriwulananController extends Controller
 
         if ($request->filled('search')) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                  ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                  ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
 
-        $perPage = $request->input('per_page', 20); 
+        $perPage = $request->input('per_page', 20);
 
         if ($perPage == 'all') {
             $total = (clone $query)->count();
@@ -47,7 +50,7 @@ class DistribusiTriwulananController extends Controller
         $listData = $query->latest()->paginate($perPage)->withQueryString();
 
         $kegiatanCounts = DistribusiTriwulanan::query()
-            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')
+            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan) . '%')
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
@@ -62,7 +65,7 @@ class DistribusiTriwulananController extends Controller
     {
         $baseRules = [
             'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden' => 'required|string|max:255', 
+            'BS_Responden' => 'required|string|max:255',
             'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
@@ -85,11 +88,11 @@ class DistribusiTriwulananController extends Controller
                     'errors' => $validator->errors()
                 ], 422);
             }
-            
+
             return back()
-                    ->withErrors($validator)
-                    ->withInput()
-                    ->with('error_modal', 'tambahDataModal');
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_modal', 'tambahDataModal');
         }
 
         $validatedData = $validator->validated();
@@ -126,12 +129,12 @@ class DistribusiTriwulananController extends Controller
     {
         $baseRules = [
             'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden' => 'required|string|max:255', 
+            'BS_Responden' => 'required|string|max:255',
             'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
-            'target_penyelesaian' => 'required|date', 
+            'target_penyelesaian' => 'required|date',
             'flag_progress' => 'required|string',
-            'tanggal_pengumpulan' => 'nullable|date', 
+            'tanggal_pengumpulan' => 'nullable|date',
         ];
 
         $customMessages = [
@@ -151,10 +154,10 @@ class DistribusiTriwulananController extends Controller
             }
 
             return back()
-                    ->withErrors($validator)
-                    ->withInput()
-                    ->with('error_modal', 'editDataModal')
-                    ->with('edit_id', $distribusi_triwulanan->id_distribusi_triwulanan);
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_modal', 'editDataModal')
+                ->with('edit_id', $distribusi_triwulanan->id_distribusi_triwulanan);
         }
 
         $validatedData = $validator->validated();
@@ -165,7 +168,7 @@ class DistribusiTriwulananController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil diperbarui!']);
         }
-        
+
         return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
@@ -174,7 +177,7 @@ class DistribusiTriwulananController extends Controller
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:distribusi_triwulanan,id_distribusi_triwulanan' 
+            'ids.*' => 'exists:distribusi_triwulanan,id_distribusi_triwulanan'
         ]);
 
         DistribusiTriwulanan::whereIn('id_distribusi_triwulanan', $request->ids)->delete();
@@ -201,9 +204,47 @@ class DistribusiTriwulananController extends Controller
 
         $data = MasterPetugas::query()
             ->where('nama_petugas', 'LIKE', "%{$query}%")
-            ->limit(10) 
+            ->limit(10)
             ->pluck('nama_petugas');
 
         return response()->json($data);
+    }
+
+    // PERBAIKAN 4: Method export yang benar
+    public function export(Request $request, $jenisKegiatan)
+    {
+        // Validasi jenis kegiatan
+        if (!in_array(strtolower($jenisKegiatan), ['spunp', 'shkk'])) {
+            abort(404);
+        }
+
+        $dataRange = $request->input('dataRange', 'all'); // default 'all'
+        $dataFormat = $request->input('dataFormat');
+        $exportFormat = $request->input('exportFormat');
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+        $currentPage = $request->input('page', 1); // Ambil halaman aktif
+        $perPage = $request->input('per_page', 20);
+
+        // Kirim semua parameter yang diperlukan
+        $exportClass = new DistribusiTriwulananExport(
+            $dataRange,
+            $dataFormat,
+            $jenisKegiatan,
+            $kegiatan,
+            $search,
+            $currentPage,
+            $perPage
+        );
+
+        if ($exportFormat == 'excel') {
+            return Excel::download($exportClass, 'DistribusiTriwulanan_' . strtoupper($jenisKegiatan) . '.xlsx');
+        } elseif ($exportFormat == 'csv') {
+            return Excel::download($exportClass, 'DistribusiTriwulanan_' . strtoupper($jenisKegiatan) . '.csv');
+        } elseif ($exportFormat == 'word') {
+            return $exportClass->exportToWord();
+        }
+
+        return back()->with('error', 'Format ekspor tidak didukung.');
     }
 }

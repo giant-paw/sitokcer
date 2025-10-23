@@ -1402,3 +1402,13 @@ input[type="radio"] {
     color: var(--color-gray-500);
     margin-bottom: 0;
 }
+
+/* <style>
+    #perPageSelect.form-select-sm {
+        padding-right: 2.25rem;
+    }
+</style> */
+
+ #perPageSelect.form-select-sm {
+        padding-right: 2.25rem;
+    }

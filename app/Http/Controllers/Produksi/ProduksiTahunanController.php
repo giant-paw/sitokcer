@@ -7,8 +7,9 @@ use App\Models\Produksi\ProduksiTahunan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\MasterPetugas\MasterPetugas;
-use App\Models\Master\MasterKegiatan; 
+use App\Models\Master\MasterPetugas;
+use App\Models\Master\MasterKegiatan;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 
 class ProduksiTahunanController extends Controller
@@ -115,7 +116,10 @@ class ProduksiTahunanController extends Controller
         $validatedData = $validator->validated();
 
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         ProduksiTahunan::create($validatedData);
@@ -134,18 +138,18 @@ class ProduksiTahunanController extends Controller
     public function edit($id)
     {
         // Ganti 'id_produksi' jika primary key-nya beda
-        $produksi_tahunan = ProduksiTahunan::findOrFail($id); 
-        
+        $produksi_tahunan = ProduksiTahunan::findOrFail($id);
+
         $data = $produksi_tahunan->toArray();
 
         // --- INI ADALAH LOGIKA YANG MEMPERBAIKI MASALAH ---
         $targetPenyelesaian = $produksi_tahunan->target_penyelesaian;
         $tanggalPengumpulan = $produksi_tahunan->tanggal_pengumpulan;
-        
-        $data['target_penyelesaian'] = $targetPenyelesaian 
-            ? Carbon::parse($targetPenyelesaian)->toDateString() 
+
+        $data['target_penyelesaian'] = $targetPenyelesaian
+            ? Carbon::parse($targetPenyelesaian)->toDateString()
             : null;
-            
+
         $data['tanggal_pengumpulan'] = $tanggalPengumpulan
             ? Carbon::parse($tanggalPengumpulan)->toDateString()
             : null;
@@ -172,8 +176,8 @@ class ProduksiTahunanController extends Controller
             'flag_progress' => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-        
-        $customMessages = [ /* ... sama seperti store ... */ ];
+
+        $customMessages = [ /* ... sama seperti store ... */];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
@@ -186,15 +190,18 @@ class ProduksiTahunanController extends Controller
             return back()->withErrors($validator)->withInput()
                 ->with('error_modal', 'editDataModal')
                 // Ganti 'id_produksi' jika primary key-nya beda
-                ->with('edit_id', $produksi_tahunan->id_produksi); 
+                ->with('edit_id', $produksi_tahunan->id_produksi);
         }
 
         $validatedData = $validator->validated();
-        
+
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
-        
+
         $produksi_tahunan->update($validatedData);
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -224,7 +231,7 @@ class ProduksiTahunanController extends Controller
         $request->validate([
             'ids' => 'required|array',
             // Ganti 'id_produksi' jika primary key-nya beda
-            'ids.*' => 'exists:produksi_tahunan,id_produksi' 
+            'ids.*' => 'exists:produksi_tahunan,id_produksi'
         ]);
 
         // Ganti 'id_produksi' jika primary key-nya beda
@@ -238,7 +245,7 @@ class ProduksiTahunanController extends Controller
      */
     public function searchPetugas(Request $request)
     {
-         $request->validate([
+        $request->validate([
             'query' => 'nullable|string|max:100',
         ]);
         $query = $request->input('query', '');

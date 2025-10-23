@@ -118,50 +118,91 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 
 /* --- TIM DISTRIBUSI --- */
 Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
-    
-    // --- ROUTE TAHUNAN ---
+
+    // ============ TAHUNAN ============
     Route::prefix('tahunan')->name('tahunan.')->group(function () {
-        Route::get('/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::get('/', [DistribusiTahunanController::class, 'index'])->name('index');
+        Route::post('/', [DistribusiTahunanController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [DistribusiTahunanController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [DistribusiTahunanController::class, 'update'])->name('update');
+        Route::delete('/{id}', [DistribusiTahunanController::class, 'destroy'])->name('destroy');
         Route::post('/bulk-delete', [DistribusiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
-        Route::resource('/', DistribusiTahunanController::class)->parameters(['' => 'tahunan']);
-    });
+        Route::get('/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::get('/export', [DistribusiTahunanController::class, 'export'])->name('export');
+    }); // ← TUTUP group tahunan di sini!
 
-    // --- ROUTE TRIWULANAN ---
+    // ============ TRIWULANAN============
     Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
-        Route::get('/search-petugas', [DistribusiTriwulananController::class, 'searchPetugas'])->name('searchPetugas');
-        Route::post('/bulk-delete', [DistribusiTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
-        
-        // Route untuk proses CRUD
-        Route::post('/', [DistribusiTriwulananController::class, 'store'])->name('store');
-        Route::get('/{distribusi_triwulanan}/edit', [DistribusiTriwulananController::class, 'edit'])->name('edit');
-        Route::put('/{distribusi_triwulanan}', [DistribusiTriwulananController::class, 'update'])->name('update');
-        Route::delete('/{distribusi_triwulanan}', [DistribusiTriwulananController::class, 'destroy'])->name('destroy');
-        
-        // Route utama untuk menampilkan data SPUNP atau SHKK
-        Route::get('/{jenisKegiatan}', [DistribusiTriwulananController::class, 'index'])->name('index');
+        Route::get('/search-petugas', [DistribusiTriwulananController::class, 'searchPetugas'])
+            ->name('searchPetugas');
+
+        Route::post('/bulk-delete', [DistribusiTriwulananController::class, 'bulkDelete'])
+            ->name('bulkDelete');
+
+        Route::get('/{jenisKegiatan}/export', [DistribusiTriwulananController::class, 'export'])
+            ->name('export')
+            ->where('jenisKegiatan', 'spunp|shkk');
+
+        Route::get('/{distribusi_triwulanan}/edit', [DistribusiTriwulananController::class, 'edit'])
+            ->name('edit');
+
+        Route::put('/{distribusi_triwulanan}', [DistribusiTriwulananController::class, 'update'])
+            ->name('update');
+
+        Route::delete('/{distribusi_triwulanan}', [DistribusiTriwulananController::class, 'destroy'])
+            ->name('destroy');
+
+        Route::post('/', [DistribusiTriwulananController::class, 'store'])
+            ->name('store');
+
+        Route::get('/{jenisKegiatan}', [DistribusiTriwulananController::class, 'index'])
+            ->name('index')
+            ->where('jenisKegiatan', 'spunp|shkk'); //zamm
     });
 
-    // --- ROUTE Bulanan ---
+    // ============ BULANAN ============
     Route::prefix('bulanan')->name('bulanan.')->group(function () {
-        Route::get('/search-petugas', [DistribusiBulananController::class, 'searchPetugas'])->name('searchPetugas');
-        Route::post('/bulk-delete', [DistribusiBulananController::class, 'bulkDelete'])->name('bulkDelete');
-        
-        // Route untuk proses CRUD
-        Route::post('/', [DistribusiBulananController::class, 'store'])->name('store');
-        // Gunakan snake_case untuk parameter agar konsisten
-        Route::get('/{distribusi_bulanan}/edit', [DistribusiBulananController::class, 'edit'])->name('edit');
-        Route::put('/{distribusi_bulanan}', [DistribusiBulananController::class, 'update'])->name('update');
-        Route::delete('/{distribusi_bulanan}', [DistribusiBulananController::class, 'destroy'])->name('destroy');
-        
-        // Route utama untuk menampilkan data berdasarkan jenis kegiatan
-        Route::get('/{jenisKegiatan}', [DistribusiBulananController::class, 'index'])->name('index');
+
+        // Route statis tanpa parameter (PALING ATAS)
+        Route::get('/search-petugas', [DistribusiBulananController::class, 'searchPetugas'])
+            ->name('searchPetugas');
+
+        Route::post('/bulk-delete', [DistribusiBulananController::class, 'bulkDelete'])
+            ->name('bulkDelete');
+
+        Route::post('/store', [DistribusiBulananController::class, 'store'])
+            ->name('store');
+
+        // Route dengan jenis kegiatan (LEBIH SPESIFIK DULU)
+        Route::get('/{jenisKegiatan}/export', [DistribusiBulananController::class, 'export'])
+            ->name('export')
+            ->where('jenisKegiatan', 'vhts|hkd|shpb|shp|shpj|shpbg');
+
+        // Route CRUD dengan ID angka (HARUS PAKAI CONSTRAINT)
+        Route::get('/{distribusi_bulanan}/edit', [DistribusiBulananController::class, 'edit'])
+            ->name('edit')
+            ->where('distribusi_bulanan', '[0-9]+');
+
+        Route::put('/{distribusi_bulanan}', [DistribusiBulananController::class, 'update'])
+            ->name('update')
+            ->where('distribusi_bulanan', '[0-9]+');
+
+        Route::delete('/{distribusi_bulanan}', [DistribusiBulananController::class, 'destroy'])
+            ->name('destroy')
+            ->where('distribusi_bulanan', '[0-9]+');
+
+        // Route index (PALING BAWAH - catch all)
+        Route::get('/{jenisKegiatan}', [DistribusiBulananController::class, 'index'])
+            ->name('index')
+            ->where('jenisKegiatan', 'vhts|hkd|shpb|shp|shpj|shpbg');
     });
     
 });
 
 /* --- TIM PRODUKSI --- */
 Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
-    
+
+    // --- ROUTE PRODUKSI TAHUNAN ---
     Route::prefix('tahunan')->name('tahunan.')->group(function () {
         
         Route::get('/', [ProduksiTahunanController::class, 'index'])->name('index');
@@ -182,13 +223,13 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
     // --- ROUTE PRODUKSI CATURWULANAN ---
     Route::prefix('caturwulanan')->name('caturwulanan.')->group(function () {
         Route::post('/bulk-delete', [ProduksiCaturwulananController::class, 'bulkDelete'])->name('bulkDelete');
-        
+
         // Route untuk proses CRUD
         Route::post('/', [ProduksiCaturwulananController::class, 'store'])->name('store');
         Route::get('/{produksi_caturwulanan}/edit', [ProduksiCaturwulananController::class, 'edit'])->name('edit');
         Route::put('/{produksi_caturwulanan}', [ProduksiCaturwulananController::class, 'update'])->name('update');
         Route::delete('/{produksi_caturwulanan}', [ProduksiCaturwulananController::class, 'destroy'])->name('destroy');
-        
+
         // Route utama untuk menampilkan data berdasarkan jenis kegiatan
         Route::get('/{jenisKegiatan}', [ProduksiCaturwulananController::class, 'index'])->name('index');
     });
@@ -196,21 +237,20 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
     // --- ROUTE PRODUKSI TRIWULANAN ---
     Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
         Route::post('/bulk-delete', [ProduksiTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
-        
+
         // Route untuk proses CRUD
         Route::post('/', [ProduksiTriwulananController::class, 'store'])->name('store');
         Route::get('/{produksi_triwulanan}/edit', [ProduksiTriwulananController::class, 'edit'])->name('edit');
         Route::put('/{produksi_triwulanan}', [ProduksiTriwulananController::class, 'update'])->name('update');
         Route::delete('/{produksi_triwulanan}', [ProduksiTriwulananController::class, 'destroy'])->name('destroy');
-        
+
         Route::get('/{jenisKegiatan}', [ProduksiTriwulananController::class, 'index'])->name('index');
     });
-
     // --- ROUTE Produksi Bulanan ---
     Route::prefix('bulanan')->name('bulanan.')->group(function () {
         Route::get('/search-petugas', [ProduksiBulananController::class, 'searchPetugas'])->name('searchPetugas');
         Route::post('/bulk-delete', [ProduksiBulananController::class, 'bulkDelete'])->name('bulkDelete');
-        
+
         // Route untuk proses CRUD
         Route::post('/', [ProduksiBulananController::class, 'store'])->name('store');
 
@@ -223,7 +263,6 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
     });
 });
 
-/* ---  TIM NWA --- */
 Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
     
     // --- ROUTE NWA TAHUNAN (DIROMBAK) ---
@@ -293,7 +332,7 @@ Route::prefix('master-petugas')
     ->name('master.petugas.')
     ->controller(MasterPetugasController::class)
     ->group(function () {
-        
+
         Route::post('/bulk-delete', 'bulkDelete')->name('bulkDelete');
         Route::get('/export', 'export')->name('export');
         Route::get('/search', 'search')->name('search');
@@ -301,7 +340,7 @@ Route::prefix('master-petugas')
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
 
-        Route::get('/{petugas}/edit', 'edit')->name('edit'); 
+        Route::get('/{petugas}/edit', 'edit')->name('edit');
         Route::put('/{petugas}', 'update')->name('update');
         Route::delete('/{petugas}', 'destroy')->name('destroy');
     });
