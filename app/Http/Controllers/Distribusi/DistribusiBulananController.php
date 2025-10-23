@@ -1,15 +1,17 @@
 <?php
 
 namespace App\Http\Controllers\Distribusi;
-    
+
 use App\Http\Controllers\Controller;
 use App\Models\Distribusi\DistribusiBulanan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\MasterPetugas\MasterPetugas;
-use App\Models\Master\MasterKegiatan; 
+use App\Models\Master\MasterPetugas;
+use App\Models\Master\MasterKegiatan;
 use Illuminate\Support\Facades\Validator;
-
+use PhpOffice\PhpWord\TemplateProcessor;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\DistribusiBulananExport;
 use Illuminate\Http\Request;
 
 class DistribusiBulananController extends Controller
@@ -24,20 +26,20 @@ class DistribusiBulananController extends Controller
         $selectedTahun = $request->input('tahun', date('Y'));
 
         $availableTahun = DistribusiBulanan::query()
-            ->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%')
-            ->select(DB::raw('YEAR(created_at) as tahun')) 
+            ->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan) . '%')
+            ->select(DB::raw('YEAR(created_at) as tahun'))
             ->distinct()
             ->orderBy('tahun', 'desc')
             ->pluck('tahun')
             ->toArray();
-        
+
         if (!in_array(date('Y'), $availableTahun)) {
             array_unshift($availableTahun, date('Y'));
         }
 
         $query = DistribusiBulanan::query()
-                 ->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan). '%')
-                 ->whereYear('created_at', $selectedTahun);
+            ->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan) . '%')
+            ->whereYear('created_at', $selectedTahun);
 
         if ($request->filled('kegiatan')) {
             $query->where('nama_kegiatan', $request->kegiatan);
@@ -45,41 +47,39 @@ class DistribusiBulananController extends Controller
 
         if ($request->filled('search')) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                  ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                  ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
-        
-        $perPage = $request->input('per_page', 20); 
 
+        $perPage = $request->input('per_page', 20);
         if ($perPage == 'all') {
             $total = (clone $query)->count();
             $perPage = $total > 0 ? $total : 20;
         }
 
-        $listData = $query->latest('id_distribusi_bulanan')->paginate($perPage)->withQueryString(); // Gunakan primary key
+        $listData = $query->latest('id_distribusi_bulanan')->paginate($perPage)->withQueryString();
 
         $kegiatanCounts = DistribusiBulanan::query()
-            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan). '%')
+            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan) . '%')
             ->whereYear('created_at', $selectedTahun)
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        
         $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
 
         return view('timDistribusi.distribusiBulanan', compact(
-            'listData', 
-            'kegiatanCounts', 
+            'listData',
+            'kegiatanCounts',
             'jenisKegiatan',
-            'masterKegiatanList', 
-            'availableTahun',     
-            'selectedTahun'       
+            'masterKegiatanList',
+            'availableTahun',
+            'selectedTahun'
         ));
     }
 
@@ -87,7 +87,7 @@ class DistribusiBulananController extends Controller
     {
         $baseRules = [
             'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden' => 'required|string|max:255', 
+            'BS_Responden' => 'required|string|max:255',
             'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
@@ -110,11 +110,11 @@ class DistribusiBulananController extends Controller
                     'errors' => $validator->errors()
                 ], 422);
             }
-            
+
             return back()
-                    ->withErrors($validator)
-                    ->withInput()
-                    ->with('error_modal', 'tambahDataModal');
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_modal', 'tambahDataModal');
         }
 
         $validatedData = $validator->validated();
@@ -151,12 +151,12 @@ class DistribusiBulananController extends Controller
     {
         $baseRules = [
             'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden' => 'required|string|max:255', 
+            'BS_Responden' => 'required|string|max:255',
             'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
-            'target_penyelesaian' => 'required|date', 
+            'target_penyelesaian' => 'required|date',
             'flag_progress' => 'required|string',
-            'tanggal_pengumpulan' => 'nullable|date', 
+            'tanggal_pengumpulan' => 'nullable|date',
         ];
 
         $customMessages = [
@@ -176,10 +176,10 @@ class DistribusiBulananController extends Controller
             }
 
             return back()
-                    ->withErrors($validator)
-                    ->withInput()
-                    ->with('error_modal', 'editDataModal')
-                    ->with('edit_id', $distribusi_bulanan->id_distribusi_bulanan);
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_modal', 'editDataModal')
+                ->with('edit_id', $distribusi_bulanan->id_distribusi_bulanan);
         }
 
         $validatedData = $validator->validated();
@@ -190,16 +190,15 @@ class DistribusiBulananController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil diperbarui!']);
         }
-        
+
         return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
-
 
     public function bulkDelete(Request $request)
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:distribusi_bulanan,id_distribusi_bulanan' 
+            'ids.*' => 'exists:distribusi_bulanan,id_distribusi_bulanan'
         ]);
 
         DistribusiBulanan::whereIn('id_distribusi_bulanan', $request->ids)->delete();
@@ -210,7 +209,6 @@ class DistribusiBulananController extends Controller
     public function destroy(DistribusiBulanan $distribusi_bulanan)
     {
         $distribusi_bulanan->delete();
-
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 
@@ -226,9 +224,49 @@ class DistribusiBulananController extends Controller
 
         $data = MasterPetugas::query()
             ->where('nama_petugas', 'LIKE', "%{$query}%")
-            ->limit(10) 
+            ->limit(10)
             ->pluck('nama_petugas');
 
         return response()->json($data);
+    }
+
+    public function export(Request $request, $jenisKegiatan)
+    {
+        // Validasi jenis kegiatan
+        $validJenis = ['vhts', 'hkd', 'shpb', 'shp', 'shpj', 'shpbg'];
+        if (!in_array(strtolower($jenisKegiatan), $validJenis)) {
+            abort(404);
+        }
+
+        $dataRange = $request->input('dataRange', 'all');
+        $dataFormat = $request->input('dataFormat');
+        $exportFormat = $request->input('exportFormat');
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+        $tahun = $request->input('tahun', date('Y'));
+        $currentPage = $request->input('page', 1);
+        $perPage = $request->input('per_page', 20);
+
+        // Kirim semua parameter
+        $exportClass = new DistribusiBulananExport(
+            $dataRange,
+            $dataFormat,
+            $jenisKegiatan,
+            $kegiatan,
+            $search,
+            $tahun,
+            $currentPage,
+            $perPage
+        );
+
+        if ($exportFormat == 'excel') {
+            return Excel::download($exportClass, 'DistribusiBulanan_' . strtoupper($jenisKegiatan) . '.xlsx');
+        } elseif ($exportFormat == 'csv') {
+            return Excel::download($exportClass, 'DistribusiBulanan_' . strtoupper($jenisKegiatan) . '.csv');
+        } elseif ($exportFormat == 'word') {
+            return $exportClass->exportToWord();
+        }
+
+        return back()->with('error', 'Format ekspor tidak didukung.');
     }
 }

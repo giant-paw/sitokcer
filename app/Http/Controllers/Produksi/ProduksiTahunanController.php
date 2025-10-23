@@ -7,7 +7,7 @@ use App\Models\Produksi\ProduksiTahunan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\MasterPetugas\MasterPetugas;
+use App\Models\Master\MasterPetugas;
 use App\Models\Master\MasterKegiatan; 
 use Illuminate\Support\Facades\Validator;
 

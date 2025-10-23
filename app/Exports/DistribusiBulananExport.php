@@ -2,44 +2,53 @@
 
 namespace App\Exports;
 
-use App\Models\Distribusi\DistribusiTahunan;
+use App\Models\Distribusi\DistribusiBulanan;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use PhpOffice\PhpWord\TemplateProcessor;
+use Maatwebsite\Excel\Facades\Excel;
 
-class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMapping
+class DistribusiBulananExport implements FromCollection, WithHeadings
 {
     protected $dataRange;
     protected $dataFormat;
+    protected $jenisKegiatan;
     protected $kegiatan;
     protected $search;
+    protected $tahun;
     protected $currentPage;
     protected $perPage;
 
-    // PERBAIKAN 1: Tambahkan semua parameter yang diperlukan
-    public function __construct($dataRange, $dataFormat, $kegiatan = null, $search = null, $currentPage = 1, $perPage = 20)
+    public function __construct($dataRange, $dataFormat, $jenisKegiatan, $kegiatan = null, $search = null, $tahun = null, $currentPage = 1, $perPage = 20)
     {
         $this->dataRange = $dataRange;
         $this->dataFormat = $dataFormat;
+        $this->jenisKegiatan = $jenisKegiatan;
         $this->kegiatan = $kegiatan;
         $this->search = $search;
+        $this->tahun = $tahun ?? date('Y');
         $this->currentPage = $currentPage;
         $this->perPage = $perPage;
     }
 
-    // PERBAIKAN 2: Fix logika collection
     public function collection()
     {
-        $query = DistribusiTahunan::query()->latest();
+        $query = DistribusiBulanan::query();
 
-        // Filter berdasarkan kegiatan
-        if ($this->kegiatan) {
+        // Filter berdasarkan jenis kegiatan
+        $query->where('nama_kegiatan', 'LIKE', strtoupper($this->jenisKegiatan) . '%');
+
+        // Filter berdasarkan tahun
+        $query->whereYear('created_at', $this->tahun);
+
+        // Filter berdasarkan kegiatan spesifik
+        if (!empty($this->kegiatan)) {
             $query->where('nama_kegiatan', $this->kegiatan);
         }
 
         // Filter berdasarkan search
-        if ($this->search) {
+        if (!empty($this->search)) {
             $searchTerm = $this->search;
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('BS_Responden', 'like', "%{$searchTerm}%")
@@ -49,72 +58,56 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
             });
         }
 
-        // PERBAIKAN 3: Cek dataRange dengan benar
+        // Urutkan
+        $query->latest('id_distribusi_bulanan');
+
+        // Jika current_page, ambil data halaman terkini
         if ($this->dataRange == 'current_page') {
-            // Ambil data halaman aktif dengan skip dan take
             $offset = ($this->currentPage - 1) * $this->perPage;
-            return $query->skip($offset)->take($this->perPage)->get();
+            return $query->offset($offset)->limit($this->perPage)->get();
         }
 
-        // Export semua data (tanpa pagination)
+        // Jika all, ambil semua data dengan filter
         return $query->get();
     }
 
     public function headings(): array
     {
         return [
-            'No',
-            'ID Kegiatan',
+            'ID Distribusi',
             'Nama Kegiatan',
-            'Blok Sensus/Responden',
+            'BS Responden',
             'Pencacah',
             'Pengawas',
-            'Tanggal Target Penyelesaian',
+            'Target Penyelesaian',
             'Flag Progress',
             'Tanggal Pengumpulan',
-            'Tahun Kegiatan',
-        ];
-    }
-
-    public function map($row): array
-    {
-        static $no = 0;
-        $no++;
-
-        return [
-            $no,
-            $row->id_distribusi ?? '',
-            $row->nama_kegiatan ?? '',
-            $row->BS_Responden ?? '',
-            $row->pencacah ?? '',
-            $row->pengawas ?? '',
-            $row->target_penyelesaian ?? '',
-            $row->flag_progress ?? '',
-            $row->tanggal_pengumpulan ?? '',
-            $row->tahun_kegiatan ?? '',
+            'Tahun Kegiatan'
         ];
     }
 
     public function exportToWord()
     {
-        set_time_limit(300);
-        $templatePath = storage_path('exports/template.docx');
+        $templatePath = storage_path('templates/distribusi_bulanan_template.docx');
 
         if (!file_exists($templatePath)) {
-            return response()->json(['error' => 'File template Word tidak ditemukan di: ' . $templatePath], 404);
+            return response()->json([
+                'error' => 'Template Word tidak ditemukan di: ' . $templatePath
+            ], 404);
         }
 
         $templateProcessor = new TemplateProcessor($templatePath);
 
-        try {
-            $templateProcessor->setValue('tanggal_cetak', now()->format('d F Y'));
-            $templateProcessor->setValue('judul_laporan', 'Laporan Distribusi Tahunan');
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Gagal mengisi variabel statis di template.',
-                'details' => $e->getMessage()
-            ], 500);
+        $templateProcessor->setValue('tanggal_cetak', now()->format('d F Y'));
+
+        $judulLaporan = 'Laporan Distribusi Bulanan ' . strtoupper($this->jenisKegiatan) . ' Tahun ' . $this->tahun;
+        if (!empty($this->kegiatan)) {
+            $judulLaporan .= ' - ' . $this->kegiatan;
         }
+        if ($this->dataRange == 'current_page') {
+            $judulLaporan .= ' (Halaman ' . $this->currentPage . ')';
+        }
+        $templateProcessor->setValue('judul_laporan', $judulLaporan);
 
         $data = $this->collection();
         $dataCount = $data->count();
@@ -125,7 +118,7 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
                 $templateProcessor->cloneRow($placeholderToClone, $dataCount);
             } catch (\Exception $e) {
                 return response()->json([
-                    'error' => 'Gagal mengkloning baris. Pastikan placeholder `' . $placeholderToClone . '` ada di dalam baris tabel template Word.',
+                    'error' => 'Gagal mengkloning baris di template.',
                     'details' => $e->getMessage()
                 ], 500);
             }
@@ -133,7 +126,7 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
             foreach ($data as $index => $row) {
                 $i = $index + 1;
                 $templateProcessor->setValue('no#' . $i, $i);
-                $templateProcessor->setValue('id_distribusi#' . $i, $row->id_distribusi ?? '');
+                $templateProcessor->setValue('id_distribusi#' . $i, $row->id_distribusi_bulanan ?? '');
                 $templateProcessor->setValue('nama_kegiatan#' . $i, $row->nama_kegiatan ?? '');
                 $templateProcessor->setValue('blok_sensus#' . $i, $row->BS_Responden ?? '');
                 $templateProcessor->setValue('pencacahan#' . $i, $row->pencacah ?? '');
@@ -144,10 +137,29 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
                 $templateProcessor->setValue('tahun_kegiatan#' . $i, $row->tahun_kegiatan ?? '');
             }
         } else {
-            $templateProcessor->deleteBlock($placeholderToClone);
+            try {
+                $templateProcessor->cloneRow($placeholderToClone, 1);
+                $templateProcessor->setValue('no#1', '-');
+                $templateProcessor->setValue('id_distribusi#1', 'Tidak ada data');
+                $templateProcessor->setValue('nama_kegiatan#1', '-');
+                $templateProcessor->setValue('blok_sensus#1', '-');
+                $templateProcessor->setValue('pencacahan#1', '-');
+                $templateProcessor->setValue('pengawas#1', '-');
+                $templateProcessor->setValue('tanggal_target#1', '-');
+                $templateProcessor->setValue('flag_progress#1', '-');
+                $templateProcessor->setValue('tanggal_pengumpulan#1', '-');
+                $templateProcessor->setValue('tahun_kegiatan#1', '-');
+            } catch (\Exception $e) {
+                // Ignore
+            }
         }
 
-        $fileName = 'DistribusiTahunan_' . time() . '.docx';
+        $fileName = 'DistribusiBulanan_' . strtoupper($this->jenisKegiatan);
+        if (!empty($this->kegiatan)) {
+            $fileName .= '_' . str_replace(' ', '_', $this->kegiatan);
+        }
+        $fileName .= '_' . time() . '.docx';
+
         $filePath = storage_path('exports/' . $fileName);
 
         if (!is_dir(storage_path('exports'))) {

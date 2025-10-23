@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Produksi;
 use App\Http\Controllers\Controller;
 use App\Models\Produksi\ProduksiBulanan;
 use App\Models\Master\MasterKegiatan;
-use App\Models\MasterPetugas\MasterPetugas;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Master\MasterPetugas;
+
 
 use Illuminate\Http\Request;
 
@@ -39,16 +40,16 @@ class ProduksiBulananController extends Controller
 
         // Pastikan tahun ini ada di daftar
         if (!empty($availableTahun) && !in_array(date('Y'), $availableTahun)) {
-             array_unshift($availableTahun, date('Y'));
+            array_unshift($availableTahun, date('Y'));
         } elseif (empty($availableTahun)) {
-             $availableTahun = [date('Y')]; // Default jika belum ada data
+            $availableTahun = [date('Y')]; // Default jika belum ada data
         }
         // --- Akhir Logika Tahun ---
 
         // Kueri Utama dengan filter nama kegiatan dan tahun
         $query = ProduksiBulanan::query()
-                 ->where('nama_kegiatan', 'LIKE', $jenisKegiatan . '%') // Filter nama asli
-                 ->whereYear('created_at', $selectedTahun); // Filter tahun
+            ->where('nama_kegiatan', 'LIKE', $jenisKegiatan . '%') // Filter nama asli
+            ->whereYear('created_at', $selectedTahun); // Filter tahun
 
         // Filter berdasarkan tab kegiatan spesifik (jika ada)
         if ($request->filled('kegiatan')) {
@@ -58,11 +59,11 @@ class ProduksiBulananController extends Controller
         // Filter pencarian
         if ($request->filled('search')) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                  ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                  ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
 
@@ -77,7 +78,7 @@ class ProduksiBulananController extends Controller
 
         $kegiatanCounts = ProduksiBulanan::query()
             ->where('nama_kegiatan', 'LIKE', $jenisKegiatan . '%')
-            ->whereYear('created_at', $selectedTahun) 
+            ->whereYear('created_at', $selectedTahun)
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
@@ -93,7 +94,7 @@ class ProduksiBulananController extends Controller
             'jenisKegiatan',
             'masterKegiatanList',
             'availableTahun',
-            'selectedTahun'  
+            'selectedTahun'
         ));
     }
 
@@ -106,7 +107,7 @@ class ProduksiBulananController extends Controller
             'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
             'flag_progress' => 'required|string',
-            'tanggal_pengumpulan' => 'nullable|date', 
+            'tanggal_pengumpulan' => 'nullable|date',
         ];
 
         $customMessages = [
@@ -131,8 +132,9 @@ class ProduksiBulananController extends Controller
 
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
             try {
-               $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
-            } catch (\Exception $e) {  }
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         ProduksiBulanan::create($validatedData);
@@ -161,7 +163,7 @@ class ProduksiBulananController extends Controller
         return response()->json($data);
     }
 
-    
+
     public function update(Request $request, ProduksiBulanan $produksi_bulanan)
     {
         $baseRules = [
@@ -171,9 +173,9 @@ class ProduksiBulananController extends Controller
             'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
             'flag_progress' => 'required|string',
-            'tanggal_pengumpulan' => 'nullable|date', 
+            'tanggal_pengumpulan' => 'nullable|date',
         ];
-         $customMessages = [
+        $customMessages = [
             'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar.',
             'pencacah.exists' => 'Nama pencacah tidak terdaftar.',
             'pengawas.exists' => 'Nama pengawas tidak terdaftar.',
@@ -189,16 +191,17 @@ class ProduksiBulananController extends Controller
                 ], 422);
             }
             return back()->withErrors($validator)->withInput()
-                         ->with('error_modal', 'editDataModal')
-                         ->with('edit_id', $produksi_bulanan->id_produksi_bulanan);
+                ->with('error_modal', 'editDataModal')
+                ->with('edit_id', $produksi_bulanan->id_produksi_bulanan);
         }
 
         $validatedData = $validator->validated();
 
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-             try {
+            try {
                 $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
-             } catch (\Exception $e) { /* Abaikan */ }
+            } catch (\Exception $e) { /* Abaikan */
+            }
         }
 
         $produksi_bulanan->update($validatedData);
@@ -226,9 +229,9 @@ class ProduksiBulananController extends Controller
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 
-     public function searchPetugas(Request $request)
+    public function searchPetugas(Request $request)
     {
-         $request->validate([
+        $request->validate([
             'field' => 'required|in:pencacah,pengawas',
             'query' => 'nullable|string|max:100',
         ]);
