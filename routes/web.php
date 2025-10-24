@@ -285,6 +285,9 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
     // --- ROUTE PRODUKSI CATURWULANAN ---
     Route::prefix('caturwulanan')->name('caturwulanan.')->group(function () {
         Route::post('/bulk-delete', [ProduksiCaturwulananController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::get('/{jenisKegiatan}/export', [ProduksiCaturwulananController::class, 'export'])->name('export')
+            ->where('jenisKegiatan', 'ubinan padi palawija|updating utp palawija');
+
 
         // Route untuk proses CRUD
         Route::post('/', [ProduksiCaturwulananController::class, 'store'])->name('store');
@@ -300,6 +303,9 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
     Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
         Route::post('/bulk-delete', [ProduksiTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
 
+        Route::get('/{jenisKegiatan}/export', [ProduksiTriwulananController::class, 'export'])->name('export')
+            ->where('jenisKegiatan', 'sktr|tpi|sphbst|sphtbf|sphth|airbersih');
+
         // Route untuk proses CRUD
         Route::post('/', [ProduksiTriwulananController::class, 'store'])->name('store');
         Route::get('/{produksi_triwulanan}/edit', [ProduksiTriwulananController::class, 'edit'])->name('edit');
@@ -312,6 +318,11 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
     Route::prefix('bulanan')->name('bulanan.')->group(function () {
         Route::get('/search-petugas', [ProduksiBulananController::class, 'searchPetugas'])->name('searchPetugas');
         Route::post('/bulk-delete', [ProduksiBulananController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::get('/{jenisKegiatan}/export', [ProduksiBulananController::class, 'export'])->name('export')
+            ->where('jenisKegiatan', 'ksapadi|ksajagung|lptb|sphsbs|sppalawija|perkebunan|ibs');
+        // Export route
+        Route::get('/{jenisKegiatan}/export', [ProduksiBulananController::class, 'export'])->name('export')
+            ->where('jenisKegiatan', 'ksapadi|ksajagung|lptb|sphsbs|sppalawija|perkebunan|ibs');
 
         // Route untuk proses CRUD
         Route::post('/', [ProduksiBulananController::class, 'store'])->name('store');
