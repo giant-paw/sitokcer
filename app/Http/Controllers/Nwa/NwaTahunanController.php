@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\Master\MasterPetugas;
-use App\Models\Master\MasterKegiatan;     
+use App\Models\Master\MasterKegiatan;
 use Illuminate\Support\Facades\Validator;
 
 class NwaTahunanController extends Controller
@@ -57,7 +57,7 @@ class NwaTahunanController extends Controller
             $perPage = $total > 0 ? $total : 20;
         }
 
-        $listData = $query->latest('id_nwa')->paginate($perPage)->withQueryString(); 
+        $listData = $query->latest('id_nwa')->paginate($perPage)->withQueryString();
 
         $kegiatanCounts = NwaTahunan::query()
             ->whereYear('created_at', $selectedTahun)
@@ -112,7 +112,10 @@ class NwaTahunanController extends Controller
         $validatedData = $validator->validated();
 
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         NwaTahunan::create($validatedData);
@@ -129,17 +132,17 @@ class NwaTahunanController extends Controller
     public function edit($id)
     {
         $tahunan = NwaTahunan::findOrFail($id);
-        
+
         $data = $tahunan->toArray();
 
         // INI ADALAH LOGIKA PENTING YANG HILANG
         $targetPenyelesaian = $tahunan->target_penyelesaian;
         $tanggalPengumpulan = $tahunan->tanggal_pengumpulan;
-        
-        $data['target_penyelesaian'] = $targetPenyelesaian 
-            ? Carbon::parse($targetPenyelesaian)->toDateString() 
+
+        $data['target_penyelesaian'] = $targetPenyelesaian
+            ? Carbon::parse($targetPenyelesaian)->toDateString()
             : null;
-            
+
         $data['tanggal_pengumpulan'] = $tanggalPengumpulan
             ? Carbon::parse($tanggalPengumpulan)->toDateString()
             : null;
@@ -163,7 +166,7 @@ class NwaTahunanController extends Controller
             'flag_progress' => ['required', Rule::in(['Belum Mulai', 'Proses', 'Selesai'])],
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-        $customMessages = [ /* ... sama seperti store ... */ ];
+        $customMessages = [ /* ... sama seperti store ... */];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
@@ -181,7 +184,10 @@ class NwaTahunanController extends Controller
         $validatedData = $validator->validated();
 
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         $tahunan->update($validatedData);
@@ -199,7 +205,7 @@ class NwaTahunanController extends Controller
     {
         $tahunan = NwaTahunan::findOrFail($id);
         $tahunan->delete();
-        
+
         return back()->with(['success' => 'Data dihapus.', 'auto_hide' => true]);
     }
 
@@ -207,7 +213,7 @@ class NwaTahunanController extends Controller
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:nwa_tahunan,id_nwa' 
+            'ids.*' => 'exists:nwa_tahunan,id_nwa'
         ]);
 
         NwaTahunan::whereIn('id_nwa', $request->ids)->delete();
@@ -217,7 +223,7 @@ class NwaTahunanController extends Controller
     public function searchPetugas(Request $request)
     {
         // Perbaikan typo: [ + menjadi [
-         $request->validate([
+        $request->validate([
             'query' => 'nullable|string|max:100',
         ]);
         $query = $request->input('query', '');
@@ -231,21 +237,4 @@ class NwaTahunanController extends Controller
     /**
      * [BARU] Menghapus beberapa data tahunan sekaligus (bulk delete).
      */
-    public function bulkDelete(Request $request)
-    {
-        // 1. Validasi request
-        $request->validate([
-            'ids'   => 'required|array',
-            'ids.*' => 'integer|exists:nwa_tahunan,id_nwa' // Validasi bahwa semua ID ada
-        ]);
-
-        $ids = $request->input('ids');
-
-        // 2. Hapus data berdasarkan ID yang dipilih
-        NwaTahunan::whereIn('id_nwa', $ids)->delete();
-
-        // 3. Redirect kembali dengan pesan sukses
-        return redirect()->route('nwa.tahunan.index')
-                         ->with('ok', count($ids) . ' data berhasil dihapus.');
-    }
 }

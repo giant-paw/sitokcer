@@ -11,6 +11,8 @@ use App\Models\Master\MasterPetugas;
 use App\Models\Master\MasterKegiatan;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ProduksiTahunanExport;
 
 class ProduksiTahunanController extends Controller
 {
@@ -254,5 +256,39 @@ class ProduksiTahunanController extends Controller
             ->limit(10)
             ->pluck('nama_petugas');
         return response()->json($data);
+    }
+
+    public function export(Request $request)
+    {
+        $dataRange = $request->input('dataRange', 'all');
+        $exportFormat = $request->input('exportFormat');
+
+        $tahun = $request->input('tahun', date('Y'));
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+
+        $currentPage = $request->input('page', 1);
+        $perPage = $request->input('per_page', 20);
+        if (!in_array($exportFormat, ['excel', 'csv', 'word'])) {
+            return back()->with('error', 'Format export tidak valid!');
+        }
+        $exportClass = new ProduksiTahunanExport(
+            $dataRange,
+            null,
+            $tahun,
+            $kegiatan,
+            $search,
+            $currentPage,
+            $perPage
+        );
+        $fileName = 'ProduksiTahunan_' . $tahun . '_' . date('YmdHis');
+        if ($exportFormat == 'excel') {
+            return Excel::download($exportClass, $fileName . '.xlsx');
+        } elseif ($exportFormat == 'csv') {
+            return Excel::download($exportClass, $fileName . '.csv');
+        } elseif ($exportFormat == 'word') {
+            return $exportClass->exportToWord();
+        }
+        return back()->with('error', 'Format ekspor tidak didukung.');
     }
 }

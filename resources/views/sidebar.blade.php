@@ -43,18 +43,18 @@
                 <li class="{{ request()->routeIs('sosial.tahunan.*') ? 'active-link' : '' }}">
                     <a href="{{ route('sosial.tahunan.index') }}">Sosial Tahunan</a>
                 </li>
-                
+
                 <!-- SOSIAL TRIWULAN -->
                 <li class="menu-item has-dropdown {{ request()->is('sosial/triwulanan*') ? 'active' : '' }}">
-                            <a href="#" class="dropdown-toggle">
-                                <span>Kegiatan Triwulan</span>
-                            </a>
-                            <ul class="submenu">
-                                <li class="{{ request()->is('sosial/triwulanan/seruti*') ? 'active-link' : '' }}">
-                                    <a href="{{ route('sosial.triwulanan.index', ['jenisKegiatan' => 'seruti']) }}">Seruti</a>
-                                </li>
-                            </ul>
+                    <a href="#" class="dropdown-toggle">
+                        <span>Kegiatan Triwulan</span>
+                    </a>
+                    <ul class="submenu">
+                        <li class="{{ request()->is('sosial/triwulanan/seruti*') ? 'active-link' : '' }}">
+                            <a href="{{ route('sosial.triwulanan.index', ['jenisKegiatan' => 'seruti']) }}">Seruti</a>
                         </li>
+                    </ul>
+                </li>
 
                 <li class="menu-item has-dropdown {{ request()->routeIs('sosial.semesteran.*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
@@ -63,10 +63,12 @@
                     <ul class="submenu">
                         {{-- Link ke route index baru, passing 'sakernas' atau 'susenas' sebagai jenisKegiatan --}}
                         <li class="{{ request()->is('sosial/semesteran/sakernas*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.semesteran.index', ['jenisKegiatan' => 'sakernas']) }}">Sakernas</a>
+                            <a
+                                href="{{ route('sosial.semesteran.index', ['jenisKegiatan' => 'sakernas']) }}">Sakernas</a>
                         </li>
                         <li class="{{ request()->is('sosial/semesteran/susenas*') ? 'active-link' : '' }}">
-                            <a href="{{ route('sosial.semesteran.index', ['jenisKegiatan' => 'susenas']) }}">Susenas</a>
+                            <a
+                                href="{{ route('sosial.semesteran.index', ['jenisKegiatan' => 'susenas']) }}">Susenas</a>
                         </li>
                     </ul>
                 </li>
@@ -218,11 +220,13 @@
                         <li
                             class="{{ request()->routeIs('tim-produksi.bulanan.index') && request()->route('jenisKegiatan') == 'ksapadi' ? 'active-link' : '' }}">
                             <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'ksapadi']) }}">KSA
-                                Padi</a></li>
+                                Padi</a>
+                        </li>
                         <li
                             class="{{ request()->routeIs('tim-produksi.bulanan.index') && request()->route('jenisKegiatan') == 'ksajagung' ? 'active-link' : '' }}">
                             <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'ksajagung']) }}">KSA
-                                Jagung</a></li>
+                                Jagung</a>
+                        </li>
                         <li
                             class="{{ request()->routeIs('tim-produksi.bulanan.index') && request()->route('jenisKegiatan') == 'lptb' ? 'active-link' : '' }}">
                             <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'lptb']) }}">LPTB</a>
@@ -235,15 +239,18 @@
                         <li
                             class="{{ request()->routeIs('tim-produksi.bulanan.index') && request()->route('jenisKegiatan') == 'sppalawija' ? 'active-link' : '' }}">
                             <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'sppalawija']) }}">SP
-                                Palawija</a></li>
+                                Palawija</a>
+                        </li>
                         <li
                             class="{{ request()->routeIs('tim-produksi.bulanan.index') && request()->route('jenisKegiatan') == 'perkebunan' ? 'active-link' : '' }}">
                             <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'perkebunan']) }}">Perkebunan
-                                Bulanan</a></li>
+                                Bulanan</a>
+                        </li>
                         <li
                             class="{{ request()->routeIs('tim-produksi.bulanan.index') && request()->route('jenisKegiatan') == 'ibs' ? 'active-link' : '' }}">
                             <a href="{{ route('tim-produksi.bulanan.index', ['jenisKegiatan' => 'ibs']) }}">IBS
-                                Bulanan</a></li>
+                                Bulanan</a>
+                        </li>
                     </ul>
                 </li>
             </ul>
@@ -268,13 +275,16 @@
                     <ul class="submenu">
                         <li
                             class="{{ request()->routeIs('nwa.triwulanan.index') && request()->route('jenis') == 'sklnp' ? 'active-link' : '' }}">
-                            <a href="{{ route('nwa.triwulanan.index', 'sklnp') }}">SKLNP</a></li>
+                            <a href="{{ route('nwa.triwulanan.index', 'sklnp') }}">SKLNP</a>
+                        </li>
                         <li
                             class="{{ request()->routeIs('nwa.triwulanan.index') && request()->route('jenis') == 'snaper' ? 'active-link' : '' }}">
-                            <a href="{{ route('nwa.triwulanan.index', 'snaper') }}">Snaper</a></li>
+                            <a href="{{ route('nwa.triwulanan.index', 'snaper') }}">Snaper</a>
+                        </li>
                         <li
                             class="{{ request()->routeIs('nwa.triwulanan.index') && request()->route('jenis') == 'sktnp' ? 'active-link' : '' }}">
-                            <a href="{{ route('nwa.triwulanan.index', 'sktnp') }}">SKTNP</a></li>
+                            <a href="{{ route('nwa.triwulanan.index', 'sktnp') }}">SKTNP</a>
+                        </li>
                     </ul>
                 </li>
             </ul>
@@ -314,13 +324,6 @@
         </li>
 
         <!-- USER -->
-
-        <li class="{{ request()->is('users*') ? 'active' : '' }}">
-            <a href="{{ route('users.index') }}"">
-                <i class="bi bi-person-fill-gear menu-icon"></i>
-                <span>User</span>
-            </a>
-        </li>
     </ul>
 </aside>
 
