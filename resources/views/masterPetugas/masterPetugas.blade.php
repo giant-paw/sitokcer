@@ -827,7 +827,7 @@
 /* User Name */
 .user-name {
     font-weight: 500;
-    color: #1f2937;
+    color: #2b2b2cff !important;
 }
 
 .text-secondary {

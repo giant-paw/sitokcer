@@ -41,5 +41,8 @@ class MasterPetugas extends Model
     'kecamatan',
     'pekerjaan'
 ];
+protected $casts = [
+        'tgl_lahir' => 'date', // INI SOLUSINYA
+    ];
 
 }

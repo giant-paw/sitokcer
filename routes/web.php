@@ -408,23 +408,21 @@ Route::prefix('rekapitulasi')->name('rekapitulasi.')->group(function () {
     Route::post('/pengawas/print-selected', [PengawasController::class, 'printSelectedData'])->name('pengawas.printSelected');
 });
 
+
+
 /* --- MASTER PETUGAS --- */
-Route::prefix('master-petugas')
-    ->name('master.petugas.')
-    ->controller(MasterPetugasController::class)
-    ->group(function () {
+Route::prefix('master-petugas')->name('master.petugas.')->group(function () {
+    
+   
+    Route::resource('/', MasterPetugasController::class)
+         ->parameters(['' => 'petugas']); 
 
-        Route::post('/bulk-delete', 'bulkDelete')->name('bulkDelete');
-        Route::get('/export', 'export')->name('export');
-        Route::get('/search', 'search')->name('search');
 
-        Route::get('/', 'index')->name('index');
-        Route::post('/', 'store')->name('store');
+    Route::post('/bulk-delete', [MasterPetugasController::class, 'bulkDelete'])->name('bulkDelete');
+    Route::get('/export-csv', [MasterPetugasController::class, 'export'])->name('export');
+    Route::get('/search-petugas', [MasterPetugasController::class, 'search'])->name('search');
 
-        Route::get('/{petugas}/edit', 'edit')->name('edit');
-        Route::put('/{petugas}', 'update')->name('update');
-        Route::delete('/{petugas}', 'destroy')->name('destroy');
-    });
+});
 
 /* --- MASTER KEGIATAN --- */
 Route::prefix('master-kegiatan')
