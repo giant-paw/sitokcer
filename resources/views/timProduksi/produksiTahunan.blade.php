@@ -206,6 +206,11 @@
             <div class="modal-content">
                 <form action="{{ route('tim-produksi.tahunan.export') }}" method="GET">
                     @csrf
+                    <input type="hidden" name="kegiatan" value="{{ request('kegiatan') }}">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <input type="hidden" name="tahun" value="{{ request('tahun', date('Y')) }}">
+                    <input type="hidden" name="page" value="{{ request('page', 1) }}">
+                    <input type="hidden" name="per_page" value="{{ request('per_page', 20) }}">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exportModalLabel">Ekspor Data</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

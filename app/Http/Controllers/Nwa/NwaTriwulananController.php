@@ -9,8 +9,10 @@ use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\Master\MasterPetugas;
-use App\Models\Master\MasterKegiatan;     
+use App\Models\Master\MasterKegiatan;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\NwaTriwulananExport;
 
 class NwaTriwulananController extends Controller
 {
@@ -129,10 +131,13 @@ class NwaTriwulananController extends Controller
         }
 
         $validatedData = $validator->validated();
-        
+
         // 2. Logika Tahun (diambil dari template Produksi)
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         // 3. Ganti Model
@@ -153,7 +158,7 @@ class NwaTriwulananController extends Controller
     {
         // 1. Cari data secara manual
         $nwa_triwulanan = NwaTriwulanan::findOrFail($id);
-        
+
         $data = $nwa_triwulanan->toArray();
 
         // 2. Logika format tanggal (diambil dari template Produksi)
@@ -214,12 +219,15 @@ class NwaTriwulananController extends Controller
         }
 
         $validatedData = $validator->validated();
-        
+
         // 4. Logika Tahun (diambil dari template Produksi)
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
-        
+
         // 5. Update data
         $nwa_triwulanan->update($validatedData);
 
@@ -255,10 +263,59 @@ class NwaTriwulananController extends Controller
     {
         // 1. Cari data secara manual
         $nwa_triwulanan = NwaTriwulanan::findOrFail($id);
-        
+
         // 2. Hapus data
         $nwa_triwulanan->delete();
 
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
+    }
+
+    public function export(Request $request, $jenisKegiatan)
+    {
+        // Validasi jenis kegiatan
+        $validJenis = ['sklnp', 'snaper', 'sktnp'];
+        if (!in_array(strtolower($jenisKegiatan), $validJenis)) {
+            abort(404);
+        }
+        // Validasi input
+        $request->validate([
+            'dataRange' => 'required|in:all,current_page',
+            'dataFormat' => 'required|in:formatted_values,raw_values',
+            'exportFormat' => 'required|in:excel,csv,word',
+        ]);
+        $dataRange = $request->input('dataRange', 'all');
+        $dataFormat = $request->input('dataFormat');
+        $exportFormat = $request->input('exportFormat');
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+        $tahun = $request->input('tahun', date('Y'));
+        $currentPage = $request->input('page', 1);
+        $perPage = $request->input('per_page', 20);
+        // Buat instance export class
+        $exportClass = new NwaTriwulananExport(
+            $dataRange,
+            $dataFormat,
+            $jenisKegiatan,
+            $kegiatan,
+            $search,
+            $tahun,
+            $currentPage,
+            $perPage
+        );
+        // Generate nama file
+        $fileName = 'NWA_Triwulanan_' . strtoupper($jenisKegiatan);
+        if (!empty($kegiatan)) {
+            $fileName .= '_' . str_replace(' ', '_', $kegiatan);
+        }
+        $fileName .= '_' . date('Ymd_His');
+        // Export berdasarkan format
+        if ($exportFormat == 'excel') {
+            return Excel::download($exportClass, $fileName . '.xlsx');
+        } elseif ($exportFormat == 'csv') {
+            return Excel::download($exportClass, $fileName . '.csv');
+        } elseif ($exportFormat == 'word') {
+            return $exportClass->exportToWord();
+        }
+        return back()->with('error', 'Format ekspor tidak didukung.');
     }
 }

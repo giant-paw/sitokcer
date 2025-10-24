@@ -346,6 +346,10 @@ Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
         Route::post('/', [NwaTahunanController::class, 'store'])->name('store');
         Route::post('/bulk-delete', [NwaTahunanController::class, 'bulkDelete'])->name('bulkDelete');
 
+        // Rute untuk ekspor data
+        Route::get('/export', [NwaTahunanController::class, 'export'])->name('export');
+
+
         // Rute search (jika ada, tambahkan di sini, misal: search-petugas)
         // Route::get('/search-petugas', [NwaTahunanController::class, 'searchPetugas'])->name('searchPetugas');
 
@@ -366,6 +370,9 @@ Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
         // Rute-rute yang tidak punya parameter / spesifik
         Route::post('/', [NwaTriwulananController::class, 'store'])->name('store');
         Route::post('/bulk-delete', [NwaTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
+
+        Route::get('/{jenisKegiatan}/export', [NwaTriwulananController::class, 'export'])->name('export')
+            ->where('jenisKegiatan', 'sklnp|snaper|sktnp');
 
         // Rute-rute yang menggunakan {id}
         // Menggunakan {id} polos agar cocok dengan controller yang dirombak
