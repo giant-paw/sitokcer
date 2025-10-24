@@ -1,5 +1,5 @@
 /* =================================================================== */
-/* ==       🎨 PUSAT KONTROL TEMA (VARIABEL CSS)         == */
+/* ==      🎨 PUSAT KONTROL TEMA (VARIABEL CSS)        == */
 /* =================================================================== */
 :root {
     /* Palet Warna Utama */
@@ -83,7 +83,7 @@
 }
 
 /* =================================================================== */
-/* ==               🌐 RESET & DASAR HALAMAN                 == */
+/* ==                 🌐 RESET & DASAR HALAMAN                 == */
 /* =================================================================== */
 *,
 *::before,
@@ -224,7 +224,7 @@ a:hover {
 }
 
 /* =================================================================== */
-/* ==                 📝 FORMULIR & INPUT                     == */
+/* ==                 📝 FORMULIR & INPUT                   == */
 /* =================================================================== */
 .form-group {
     margin-bottom: 1.25rem;
@@ -307,7 +307,7 @@ a:hover {
 }
 
 /* =================================================================== */
-/* ==                   👆 TOMBOL (BUTTON)                       == */
+/* ==                 👆 TOMBOL (BUTTON)                     == */
 /* =================================================================== */
 .btn {
     display: inline-flex;
@@ -530,7 +530,7 @@ a:hover {
 }
 
 /* =================================================================== */
-/* ==                    📊 TABEL DATA                      == */
+/* ==                 📊 TABEL DATA                         == */
 /* =================================================================== */
 .table-responsive {
     overflow-x: auto;
@@ -610,7 +610,7 @@ a:hover {
 }
 
 /* =================================================================== */
-/* ==                    📑 TABS NAVIGATION                    == */
+/* ==                 📑 TABS NAVIGATION                    == */
 /* =================================================================== */
 .nav-tabs {
     display: flex;
@@ -658,7 +658,7 @@ a:hover {
 }
 
 /* =================================================================== */
-/* ==                    🔍 SEARCH BOX                         == */
+/* ==                 🔍 SEARCH BOX                          == */
 /* =================================================================== */
 .search-wrapper {
     position: relative;
@@ -716,7 +716,7 @@ a:hover {
 }
 
 /* =================================================================== */
-/* ==                    🏷️ BADGE/STATUS                        == */
+/* ==                 🏷️ BADGE/STATUS                       == */
 /* =================================================================== */
 .badge {
     display: inline-flex;
@@ -762,7 +762,7 @@ a:hover {
 }
 
 /* =================================================================== */
-/* ==                    🔔 ALERT                             == */
+/* ==                 🔔 ALERT                             == */
 /* =================================================================== */
 .alert {
     padding: 1rem 1.25rem;
@@ -797,7 +797,7 @@ a:hover {
 }
 
 /* =================================================================== */
-/* ==                    📄 PAGINATION                         == */
+/* ==                 📄 PAGINATION                         == */
 /* =================================================================== */
 .pagination {
     padding: 1rem 1.5rem;
@@ -857,7 +857,7 @@ a:hover {
 }
 
 /* =================================================================== */
-/* ==                  🛠️ TOOLBAR                             == */
+/* ==                 🛠️ TOOLBAR                           == */
 /* =================================================================== */
 .toolbar {
     display: flex;
@@ -882,7 +882,7 @@ a:hover {
 }
 
 /* =================================================================== */
-/* ==                  💫 UTILITY CLASSES                     == */
+/* ==                 💫 UTILITY CLASSES                     == */
 /* =================================================================== */
 /* Spacing */
 .m-0 { margin: 0 !important; }
@@ -1113,7 +1113,7 @@ input[type="radio"] {
 }
 
 /* =================================================================== */
-/* ==                  📱 RESPONSIVE DESIGN                   == */
+/* ==                 📱 RESPONSIVE DESIGN                     == */
 /* =================================================================== */
 @media (max-width: 1024px) {
     .container {
@@ -1221,7 +1221,7 @@ input[type="radio"] {
 }
 
 /* =================================================================== */
-/* ==                  🌟 ANIMATIONS & EFFECTS                == */
+/* ==                 🌟 ANIMATIONS & EFFECTS                  == */
 /* =================================================================== */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
@@ -1293,7 +1293,7 @@ input[type="radio"] {
 }
 
 /* =================================================================== */
-/* ==                     🌟 HALAMAN UTAMA (DASHBOARD)                 == */
+/* ==                 🌟 HALAMAN UTAMA (DASHBOARD)               == */
 /* =================================================================== */
 
 /* Kartu Dashboard Utama */
@@ -1403,12 +1403,797 @@ input[type="radio"] {
     margin-bottom: 0;
 }
 
-/* <style>
-    #perPageSelect.form-select-sm {
-        padding-right: 2.25rem;
-    }
-</style> */
 
- #perPageSelect.form-select-sm {
-        padding-right: 2.25rem;
+/* =================================================================== */
+/* ==   ✨ STYLE SPESIFIK DARI MASTER PETUGAS (SEKARANG GLOBAL) ✨  == */
+/* =================================================================== */
+
+/* Page Header */
+.page-header {
+    margin-bottom: 24px;
+}
+
+.page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1f2937; /* Bisa diganti var(--color-gray-800) */
+    margin-bottom: 4px;
+}
+
+.page-subtitle {
+    font-size: 0.9375rem;
+    color: #6b7280; /* Bisa diganti var(--color-gray-500) */
+    margin: 0;
+}
+
+/* Data Card */
+.data-card {
+    background: #ffffff; /* Bisa diganti var(--card-bg) */
+    border-radius: 16px; /* Bisa diganti var(--border-radius-xl) */
+    border: 1px solid #e5e7eb; /* Bisa diganti var(--color-gray-200) */
+    overflow: hidden;
+}
+
+/* Toolbar */
+.toolbar {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f3f4f6; /* Bisa diganti var(--color-gray-100) */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.toolbar-left {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.toolbar-right {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Action Buttons (Ini akan menimpa .btn-primary, .btn-success, .btn-danger dari global jika ada) */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px; /* Sedikit beda dari --border-radius */
+    font-size: 0.875rem; /* var(--font-size-sm) */
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease; /* var(--transition-base) */
+    text-decoration: none;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-action svg {
+    flex-shrink: 0;
+}
+
+/*
+   CATATAN: .btn-primary, .btn-success, .btn-danger di bawah ini 
+   SEKARANG akan menjadi style default untuk class tersebut 
+   karena file ini dimuat setelah definisi .btn-primary global.
+   Jika Anda ingin KEDUA style ada, Anda harus mengganti nama class
+   di HTML Anda (misal: .btn-gradient-primary) atau di sini.
+   Untuk saat ini, saya asumsikan style gradient ini yang Anda inginkan.
+*/
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+.btn-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Filter Group */
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.filter-select {
+    padding: 8px 32px 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #374151;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Search Form */
+.search-form {
+    display: flex;
+    gap: 8px;
+    min-width: 280px;
+}
+
+/* Menggunakan .search-input dari global.css mungkin lebih baik, tapi ini spesifik */
+.search-input {
+    flex: 1;
+    padding: 10px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-btn {
+    padding: 10px 16px;
+    background: #667eea;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-btn:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+}
+
+/* Alert */
+/* Ini akan menimpa .alert-success dari global */
+.alert-success {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 12px;
+    margin: 20px 24px;
+    color: #059669;
+    font-size: 0.875rem;
+}
+
+.alert-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(16, 185, 129, 0.2);
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.alert-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #059669;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.2s ease;
+}
+
+.alert-close:hover {
+    opacity: 0.7;
+}
+
+/* Table */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead {
+    background: #f9fafb;
+}
+
+.data-table th {
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.data-table td {
+    padding: 16px 20px;
+    font-size: 0.875rem;
+    color: #1f2937;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.data-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.data-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.th-checkbox,
+.td-checkbox {
+    width: 48px;
+    text-align: center;
+}
+
+.th-action,
+.td-action {
+    width: 140px;
+    text-align: center;
+}
+
+.table-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 2px solid #d1d5db;
+}
+
+.table-checkbox:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+/* User Name */
+.user-name {
+    font-weight: 500;
+    color: #2b2b2cff !important;
+}
+
+.text-secondary {
+    color: #6b7280; /* Menimpa .text-secondary dari global */
+}
+
+/* Badge */
+/* Ini adalah style badge yang BERBEDA dari global.css */
+/* Pastikan Anda menggunakan .badge-blue / .badge-purple di HTML Anda */
+.badge {
+    display: inline-flex;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-blue {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+}
+
+.badge-purple {
+    background: rgba(139, 92, 246, 0.1);
+    color: #7c3aed;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-icon-view {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+
+.btn-icon-view:hover {
+    background: rgba(107, 114, 128, 0.2);
+    color: #4b5563;
+    transform: translateY(-2px);
+}
+
+.btn-icon-edit {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.btn-icon-edit:hover {
+    background: rgba(245, 158, 11, 0.2);
+    color: #d97706;
+    transform: translateY(-2px);
+}
+
+.btn-icon-delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.btn-icon-delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #dc2626;
+    transform: translateY(-2px);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px !important;
+}
+
+.empty-icon {
+    color: #d1d5db;
+    margin-bottom: 16px;
+}
+
+.empty-text {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+.empty-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.empty-link:hover {
+    text-decoration: underline;
+}
+
+/* Table Footer */
+.table-footer {
+    padding: 20px 24px;
+    border-top: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.footer-info {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/*
+   CATATAN: .table-footer .pagination akan menimpa style .pagination global.
+   Style pagination dari Bootstrap (yang mungkin Anda gunakan) akan
+   terlihat lebih baik jika di-style di sini.
+   Kode ini mengasumsikan Anda menggunakan pagination default Laravel (Tailwind).
+*/
+.footer-pagination .pagination {
+    padding: 0;
+    border-top: none;
+    background: transparent;
+}
+/* Anda mungkin perlu menambahkan style pagination Bootstrap di sini jika Anda menggunakannya */
+
+
+/* ====== MODAL STYLES - HORIZONTAL LAYOUT ====== */
+.modern-modal {
+    border-radius: 16px;
+    border: none;
+    overflow: hidden;
+}
+
+.modern-modal .modal-header {
+    padding: 24px 28px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header-content {
+    flex: 1;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.modal-subtitle {
+    font-size: 0.8125rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.modern-modal .modal-body {
+    padding: 28px;
+}
+
+/* Modal Grid Layout - 3 Columns */
+.modal-grid-layout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.modal-column {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Form Sections */
+.form-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Form Groups */
+/* Menimpa .form-group global */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Form Labels */
+/* Menimpa .form-label global */
+.form-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.required {
+    color: #ef4444;
+    margin-left: 2px;
+}
+
+/* Form Inputs */
+/* Ini akan menjadi style input default baru */
+.form-input,
+.form-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #1f2937;
+    transition: all 0.2s ease;
+    background: #ffffff;
+}
+
+.form-input::placeholder {
+    color: #9ca3af;
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: #fafbff;
+}
+
+.form-input.is-invalid,
+.form-select.is-invalid {
+    border-color: #ef4444;
+    background: #fef2f2;
+}
+
+.form-input.is-invalid:focus,
+.form-select.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.invalid-feedback {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: #ef4444;
+    font-weight: 500;
+}
+
+/* Modal Footer */
+.modern-modal .modal-footer {
+    padding: 20px 28px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    background: #fafafa;
+}
+
+.modal-footer .btn-secondary,
+.modal-footer .btn-primary,
+.modal-footer .btn-danger {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 110px;
+}
+
+.modal-footer .btn-secondary {
+    background: #ffffff;
+    color: #6b7280;
+    border: 1.5px solid #d1d5db;
+}
+
+.modal-footer .btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    color: #374151;
+}
+
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.modal-footer .btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    transform: translateY(-1px);
+}
+
+.modal-footer .btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.modal-footer .btn-danger:hover {
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Modal Close Button */
+.modal-close {
+    background: #f3f4f6;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #6b7280;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.modal-close:hover {
+    background: #e5e7eb;
+    color: #374151;
+    transform: rotate(90deg);
+}
+
+/* Delete Modal Specific */
+.modal-header-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff; /* Mengubah warna teks agar terbaca */
+    border-bottom: none;
+}
+
+.modal-header-danger .modal-title {
+    color: #ffffff; /* Mengubah warna teks agar terbaca */
+}
+
+.modal-close-white {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+.modal-close-white:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    transform: rotate(90deg);
+}
+
+.delete-icon {
+    text-align: center;
+    color: #ef4444;
+    margin-bottom: 16px;
+}
+
+.delete-text {
+    text-align: center;
+    font-size: 0.9375rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Responsive Design for Modal */
+@media (max-width: 1200px) {
+    .modal-grid-layout {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
     }
+    
+    .modal-column:last-child {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-grid-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .modal-title {
+        font-size: 1.125rem;
+    }
+    
+    .modal-subtitle {
+        font-size: 0.75rem;
+    }
+    
+    .modern-modal .modal-header {
+        padding: 20px;
+    }
+    
+    .modern-modal .modal-body {
+        padding: 20px;
+    }
+    
+    .modern-modal .modal-footer {
+        padding: 16px 20px;
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn-secondary,
+    .modal-footer .btn-primary,
+    .modal-footer .btn-danger { /* Menambahkan btn-danger */
+        width: 100%;
+    }
+    
+    /* Menimpa .toolbar dari global.css */
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .toolbar-left,
+    .toolbar-right {
+        width: 100%;
+    }
+    
+    .toolbar-right {
+        flex-direction: column;
+    }
+    
+    .search-form {
+        min-width: 100%;
+    }
+    
+    .filter-group {
+        width: 100%; /* Menyesuaikan filter group */
+        justify-content: space-between;
+    }
+    
+    .table-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 12px 16px;
+    }
+    
+    .btn-action {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .section-title {
+        font-size: 0.8125rem;
+    }
+}

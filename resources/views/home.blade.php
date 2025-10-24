@@ -177,7 +177,7 @@
             bottom: 0;
             /* Ini adalah overlay gradien gelap yang mirip dengan warna asli Anda */
             /* Anda bisa ganti dengan `background: rgba(0, 0, 0, 0.5);` untuk overlay hitam sederhana */
-            background: linear-gradient(135deg, rgba(71, 71, 72, 0.75), rgba(62, 61, 62, 0.75));
+            /* background: linear-gradient(135deg, rgba(71, 71, 72, 0.75), rgba(62, 61, 62, 0.75)); */
             border-radius: 20px; /* Samakan dengan parent */
             z-index: 1; /* Posisikan di atas background-image */
         }

@@ -180,12 +180,15 @@
 
 {{-- Modal Tambah --}}
 <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <form action="{{ route('master.petugas.store') }}" method="POST">
             @csrf
             <div class="modal-content modern-modal">
                 <div class="modal-header">
-                    <h5 class="modal-title">Tambah Petugas Baru</h5>
+                    <div class="modal-header-content">
+                        <h5 class="modal-title">Tambah Petugas Baru</h5>
+                        <p class="modal-subtitle">Isi form di bawah untuk menambahkan data petugas</p>
+                    </div>
                     <button type="button" class="modal-close" data-bs-dismiss="modal">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -193,82 +196,111 @@
                         </svg>
                     </button>
                 </div>
-                <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
-                    <div class="form-grid">
-                        <div class="form-group-full">
-                            <label class="form-label">Nama Petugas <span class="required">*</span></label>
-                            <input type="text" class="form-input @error('nama_petugas') is-invalid @enderror" name="nama_petugas" value="{{ old('nama_petugas') }}" required>
-                            @error('nama_petugas') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-                        
-                        <div class="form-group-full">
-                            <label class="form-label">Kategori</label>
-                            <select class="form-select @error('kategori') is-invalid @enderror" name="kategori">
-                                <option value="">-- Pilih Kategori --</option>
-                                <option value="Mitra" {{ old('kategori') == 'Mitra' ? 'selected' : '' }}>Mitra</option>
-                                <option value="Organik BPS" {{ old('kategori') == 'Organik BPS' ? 'selected' : '' }}>Organik BPS</option>
-                            </select>
-                            @error('kategori') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <div class="modal-body">
+                    <div class="modal-grid-layout">
+                        <!-- Column 1 -->
+                        <div class="modal-column">
+                            <div class="form-section">
+                                <h6 class="section-title">Informasi Pribadi</h6>
+                                <div class="form-group">
+                                    <label class="form-label">Nama Petugas <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('nama_petugas') is-invalid @enderror" name="nama_petugas" value="{{ old('nama_petugas') }}" required placeholder="Masukkan nama lengkap">
+                                    @error('nama_petugas') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">NIK</label>
+                                    <input type="text" class="form-input @error('nik') is-invalid @enderror" name="nik" value="{{ old('nik') }}" placeholder="16 digit NIK">
+                                    @error('nik') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Tanggal Lahir</label>
+                                    <input type="date" class="form-input @error('tgl_lahir') is-invalid @enderror" name="tgl_lahir" value="{{ old('tgl_lahir') }}">
+                                    @error('tgl_lahir') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Pendidikan Terakhir</label>
+                                    <input type="text" class="form-input @error('pendidikan') is-invalid @enderror" name="pendidikan" value="{{ old('pendidikan') }}" placeholder="Contoh: S1">
+                                    @error('pendidikan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-group-full">
-                            <label class="form-label">NIK</label>
-                            <input type="text" class="form-input @error('nik') is-invalid @enderror" name="nik" value="{{ old('nik') }}">
-                            @error('nik') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <!-- Column 2 -->
+                        <div class="modal-column">
+                            <div class="form-section">
+                                <h6 class="section-title">Informasi Kontak</h6>
+                                <div class="form-group">
+                                    <label class="form-label">No HP</label>
+                                    <input type="text" class="form-input @error('no_hp') is-invalid @enderror" name="no_hp" value="{{ old('no_hp') }}" placeholder="+62 812 xxxx xxxx">
+                                    @error('no_hp') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-input @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" placeholder="email@example.com">
+                                    @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Kecamatan</label>
+                                    <input type="text" class="form-input @error('kecamatan') is-invalid @enderror" name="kecamatan" value="{{ old('kecamatan') }}" placeholder="Nama kecamatan">
+                                    @error('kecamatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Alamat</label>
+                                    <textarea class="form-input @error('alamat') is-invalid @enderror" name="alamat" rows="3" placeholder="Alamat lengkap">{{ old('alamat') }}</textarea>
+                                    @error('alamat') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-group-full">
-                            <label class="form-label">No HP</label>
-                            <input type="text" class="form-input @error('no_hp') is-invalid @enderror" name="no_hp" value="{{ old('no_hp') }}" placeholder="+62 8xx...">
-                            @error('no_hp') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+                        <!-- Column 3 -->
+                        <div class="modal-column">
+                            <div class="form-section">
+                                <h6 class="section-title">Informasi Pekerjaan</h6>
+                                <div class="form-group">
+                                    <label class="form-label">Kategori</label>
+                                    <select class="form-select @error('kategori') is-invalid @enderror" name="kategori">
+                                        <option value="">-- Pilih Kategori --</option>
+                                        <option value="Mitra" {{ old('kategori') == 'Mitra' ? 'selected' : '' }}>Mitra</option>
+                                        <option value="Organik BPS" {{ old('kategori') == 'Organik BPS' ? 'selected' : '' }}>Organik BPS</option>
+                                    </select>
+                                    @error('kategori') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
 
-                        <div class="form-group-full">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-input @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}">
-                            @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+                                <div class="form-group">
+                                    <label class="form-label">Posisi</label>
+                                    <input type="text" class="form-input @error('posisi') is-invalid @enderror" name="posisi" value="{{ old('posisi') }}" placeholder="Jabatan/posisi">
+                                    @error('posisi') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
 
-                        <div class="form-group-full">
-                            <label class="form-label">Posisi</label>
-                            <input type="text" class="form-input @error('posisi') is-invalid @enderror" name="posisi" value="{{ old('posisi') }}">
-                            @error('posisi') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="form-group-full">
-                            <label class="form-label">Alamat</label>
-                            <textarea class="form-input @error('alamat') is-invalid @enderror" name="alamat" rows="2">{{ old('alamat') }}</textarea>
-                            @error('alamat') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="form-group-full">
-                            <label class="form-label">Pendidikan Terakhir</label>
-                            <input type="text" class="form-input @error('pendidikan') is-invalid @enderror" name="pendidikan" value="{{ old('pendidikan') }}">
-                            @error('pendidikan') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="form-group-full">
-                            <label class="form-label">Tanggal Lahir</label>
-                            <input type="date" class="form-input @error('tgl_lahir') is-invalid @enderror" name="tgl_lahir" value="{{ old('tgl_lahir') }}">
-                            @error('tgl_lahir') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="form-group-full">
-                            <label class="form-label">Kecamatan</label>
-                            <input type="text" class="form-input @error('kecamatan') is-invalid @enderror" name="kecamatan" value="{{ old('kecamatan') }}">
-                            @error('kecamatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="form-group-full">
-                            <label class="form-label">Pekerjaan</label>
-                            <input type="text" class="form-input @error('pekerjaan') is-invalid @enderror" name="pekerjaan" value="{{ old('pekerjaan') }}">
-                            @error('pekerjaan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                <div class="form-group">
+                                    <label class="form-label">Pekerjaan</label>
+                                    <input type="text" class="form-input @error('pekerjaan') is-invalid @enderror" name="pekerjaan" value="{{ old('pekerjaan') }}" placeholder="Bidang pekerjaan">
+                                    @error('pekerjaan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn-primary">Simpan</button>
+                    <button type="button" class="btn-secondary" data-bs-dismiss="modal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Simpan Data
+                    </button>
                 </div>
             </div>
         </form>
@@ -277,13 +309,16 @@
 
 {{-- Modal Edit --}}
 <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <form id="editForm" method="POST">
             @csrf
             @method('PUT')
             <div class="modal-content modern-modal">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Petugas</h5>
+                    <div class="modal-header-content">
+                        <h5 class="modal-title">Edit Data Petugas</h5>
+                        <p class="modal-subtitle">Perbarui informasi petugas yang diperlukan</p>
+                    </div>
                     <button type="button" class="modal-close" data-bs-dismiss="modal">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -291,82 +326,111 @@
                         </svg>
                     </button>
                 </div>
-                <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
-                    <div class="form-grid">
-                        <div class="form-group-full">
-                            <label class="form-label">Nama Petugas <span class="required">*</span></label>
-                            <input type="text" class="form-input @error('nama_petugas', 'edit_error') is-invalid @enderror" id="edit_nama_petugas" name="nama_petugas" required>
-                            @error('nama_petugas', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-                        
-                        <div class="form-group-full">
-                            <label class="form-label">Kategori</label>
-                            <select class="form-select @error('kategori', 'edit_error') is-invalid @enderror" id="edit_kategori" name="kategori">
-                                <option value="">-- Pilih Kategori --</option>
-                                <option value="Mitra">Mitra</option>
-                                <option value="Organik BPS">Organik BPS</option>
-                            </select>
-                            @error('kategori', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <div class="modal-body">
+                    <div class="modal-grid-layout">
+                        <!-- Column 1 -->
+                        <div class="modal-column">
+                            <div class="form-section">
+                                <h6 class="section-title">Informasi Pribadi</h6>
+                                <div class="form-group">
+                                    <label class="form-label">Nama Petugas <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('nama_petugas', 'edit_error') is-invalid @enderror" id="edit_nama_petugas" name="nama_petugas" required placeholder="Masukkan nama lengkap">
+                                    @error('nama_petugas', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">NIK</label>
+                                    <input type="text" class="form-input @error('nik', 'edit_error') is-invalid @enderror" id="edit_nik" name="nik" placeholder="16 digit NIK">
+                                    @error('nik', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Tanggal Lahir</label>
+                                    <input type="date" class="form-input @error('tgl_lahir', 'edit_error') is-invalid @enderror" id="edit_tgl_lahir" name="tgl_lahir">
+                                    @error('tgl_lahir', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Pendidikan Terakhir</label>
+                                    <input type="text" class="form-input @error('pendidikan', 'edit_error') is-invalid @enderror" id="edit_pendidikan" name="pendidikan" placeholder="Contoh: S1">
+                                    @error('pendidikan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-group-full">
-                            <label class="form-label">NIK</label>
-                            <input type="text" class="form-input @error('nik', 'edit_error') is-invalid @enderror" id="edit_nik" name="nik">
-                            @error('nik', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <!-- Column 2 -->
+                        <div class="modal-column">
+                            <div class="form-section">
+                                <h6 class="section-title">Informasi Kontak</h6>
+                                <div class="form-group">
+                                    <label class="form-label">No HP</label>
+                                    <input type="text" class="form-input @error('no_hp', 'edit_error') is-invalid @enderror" id="edit_no_hp" name="no_hp" placeholder="+62 812 xxxx xxxx">
+                                    @error('no_hp', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-input @error('email', 'edit_error') is-invalid @enderror" id="edit_email" name="email" placeholder="email@example.com">
+                                    @error('email', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Kecamatan</label>
+                                    <input type="text" class="form-input @error('kecamatan', 'edit_error') is-invalid @enderror" id="edit_kecamatan" name="kecamatan" placeholder="Nama kecamatan">
+                                    @error('kecamatan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Alamat</label>
+                                    <textarea class="form-input @error('alamat', 'edit_error') is-invalid @enderror" id="edit_alamat" name="alamat" rows="3" placeholder="Alamat lengkap"></textarea>
+                                    @error('alamat', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-group-full">
-                            <label class="form-label">No HP</label>
-                            <input type="text" class="form-input @error('no_hp', 'edit_error') is-invalid @enderror" id="edit_no_hp" name="no_hp">
-                            @error('no_hp', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+                        <!-- Column 3 -->
+                        <div class="modal-column">
+                            <div class="form-section">
+                                <h6 class="section-title">Informasi Pekerjaan</h6>
+                                <div class="form-group">
+                                    <label class="form-label">Kategori</label>
+                                    <select class="form-select @error('kategori', 'edit_error') is-invalid @enderror" id="edit_kategori" name="kategori">
+                                        <option value="">-- Pilih Kategori --</option>
+                                        <option value="Mitra">Mitra</option>
+                                        <option value="Organik BPS">Organik BPS</option>
+                                    </select>
+                                    @error('kategori', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
 
-                        <div class="form-group-full">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-input @error('email', 'edit_error') is-invalid @enderror" id="edit_email" name="email">
-                            @error('email', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+                                <div class="form-group">
+                                    <label class="form-label">Posisi</label>
+                                    <input type="text" class="form-input @error('posisi', 'edit_error') is-invalid @enderror" id="edit_posisi" name="posisi" placeholder="Jabatan/posisi">
+                                    @error('posisi', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
 
-                        <div class="form-group-full">
-                            <label class="form-label">Posisi</label>
-                            <input type="text" class="form-input @error('posisi', 'edit_error') is-invalid @enderror" id="edit_posisi" name="posisi">
-                            @error('posisi', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="form-group-full">
-                            <label class="form-label">Alamat</label>
-                            <textarea class="form-input @error('alamat', 'edit_error') is-invalid @enderror" id="edit_alamat" name="alamat" rows="2"></textarea>
-                            @error('alamat', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="form-group-full">
-                            <label class="form-label">Pendidikan Terakhir</label>
-                            <input type="text" class="form-input @error('pendidikan', 'edit_error') is-invalid @enderror" id="edit_pendidikan" name="pendidikan">
-                            @error('pendidikan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="form-group-full">
-                            <label class="form-label">Tanggal Lahir</label>
-                            <input type="date" class="form-input @error('tgl_lahir', 'edit_error') is-invalid @enderror" id="edit_tgl_lahir" name="tgl_lahir">
-                            @error('tgl_lahir', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="form-group-full">
-                            <label class="form-label">Kecamatan</label>
-                            <input type="text" class="form-input @error('kecamatan', 'edit_error') is-invalid @enderror" id="edit_kecamatan" name="kecamatan">
-                            @error('kecamatan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="form-group-full">
-                            <label class="form-label">Pekerjaan</label>
-                            <input type="text" class="form-input @error('pekerjaan', 'edit_error') is-invalid @enderror" id="edit_pekerjaan" name="pekerjaan">
-                            @error('pekerjaan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                <div class="form-group">
+                                    <label class="form-label">Pekerjaan</label>
+                                    <input type="text" class="form-input @error('pekerjaan', 'edit_error') is-invalid @enderror" id="edit_pekerjaan" name="pekerjaan" placeholder="Bidang pekerjaan">
+                                    @error('pekerjaan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn-primary">Simpan Perubahan</button>
+                    <button type="button" class="btn-secondary" data-bs-dismiss="modal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Simpan Perubahan
+                    </button>
                 </div>
             </div>
         </form>
@@ -518,7 +582,7 @@
                         const fieldElement = document.getElementById('edit_{{ $field }}');
                         if (fieldElement) {
                             fieldElement.classList.add('is-invalid');
-                            const errorElement = fieldElement.closest('.mb-3').querySelector('.invalid-feedback');
+                            const errorElement = fieldElement.closest('.form-group').querySelector('.invalid-feedback');
                             if (errorElement) {
                                 errorElement.textContent = '{{ $errors->getBag("edit_error")->first($field) }}';
                             }
@@ -540,678 +604,3 @@
 </script>
 @endpush
 
-@push('styles')
-<style>
-/* Page Header */
-.page-header {
-    margin-bottom: 24px;
-}
-
-.page-title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 4px;
-}
-
-.page-subtitle {
-    font-size: 0.9375rem;
-    color: #6b7280;
-    margin: 0;
-}
-
-/* Data Card */
-.data-card {
-    background: #ffffff;
-    border-radius: 16px;
-    border: 1px solid #e5e7eb;
-    overflow: hidden;
-}
-
-/* Toolbar */
-.toolbar {
-    padding: 20px 24px;
-    border-bottom: 1px solid #f3f4f6;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-.toolbar-left {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.toolbar-right {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-/* Action Buttons */
-.btn-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-radius: 10px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-
-.btn-action:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.btn-action svg {
-    flex-shrink: 0;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #ffffff;
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: #ffffff;
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: #ffffff;
-}
-
-.btn-secondary {
-    background: #f3f4f6;
-    color: #6b7280;
-}
-
-.btn-secondary:hover {
-    background: #e5e7eb;
-    color: #4b5563;
-}
-
-.btn-action:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none !important;
-}
-
-/* Filter Group */
-.filter-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.filter-label {
-    font-size: 0.875rem;
-    color: #6b7280;
-    white-space: nowrap;
-    margin: 0;
-}
-
-.filter-select {
-    padding: 8px 32px 8px 12px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    color: #374151;
-    background: #ffffff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.filter-select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-/* Search Form */
-.search-form {
-    display: flex;
-    gap: 8px;
-    min-width: 280px;
-}
-
-.search-input {
-    flex: 1;
-    padding: 10px 16px;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.search-btn {
-    padding: 10px 16px;
-    background: #667eea;
-    color: #ffffff;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.search-btn:hover {
-    background: #5568d3;
-    transform: translateY(-2px);
-}
-
-/* Alert */
-.alert-success {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 24px;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    border-radius: 12px;
-    margin: 20px 24px;
-    color: #059669;
-    font-size: 0.875rem;
-}
-
-.alert-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: rgba(16, 185, 129, 0.2);
-    border-radius: 8px;
-    flex-shrink: 0;
-}
-
-.alert-close {
-    margin-left: auto;
-    background: none;
-    border: none;
-    color: #059669;
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    transition: opacity 0.2s ease;
-}
-
-.alert-close:hover {
-    opacity: 0.7;
-}
-
-/* Table */
-.table-wrapper {
-    overflow-x: auto;
-}
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.data-table thead {
-    background: #f9fafb;
-}
-
-.data-table th {
-    padding: 16px 20px;
-    text-align: left;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: #374151;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.data-table td {
-    padding: 16px 20px;
-    font-size: 0.875rem;
-    color: #1f2937;
-    border-bottom: 1px solid #f3f4f6;
-}
-
-.data-table tbody tr {
-    transition: background-color 0.15s ease;
-}
-
-.data-table tbody tr:hover {
-    background: #f9fafb;
-}
-
-.th-checkbox,
-.td-checkbox {
-    width: 48px;
-    text-align: center;
-}
-
-.th-action,
-.td-action {
-    width: 140px;
-    text-align: center;
-}
-
-.table-checkbox {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    border-radius: 4px;
-    border: 2px solid #d1d5db;
-}
-
-.table-checkbox:checked {
-    background-color: #667eea;
-    border-color: #667eea;
-}
-
-/* User Name */
-.user-name {
-    font-weight: 500;
-    color: #2b2b2cff !important;
-}
-
-.text-secondary {
-    color: #6b7280;
-}
-
-/* Badge */
-.badge {
-    display: inline-flex;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.badge-blue {
-    background: rgba(59, 130, 246, 0.1);
-    color: #2563eb;
-}
-
-.badge-purple {
-    background: rgba(139, 92, 246, 0.1);
-    color: #7c3aed;
-}
-
-/* Action Buttons */
-.action-buttons {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-}
-
-.btn-icon {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-
-.btn-icon-view {
-    background: rgba(107, 114, 128, 0.1);
-    color: #6b7280;
-}
-
-.btn-icon-view:hover {
-    background: rgba(107, 114, 128, 0.2);
-    color: #4b5563;
-    transform: translateY(-2px);
-}
-
-.btn-icon-edit {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-}
-
-.btn-icon-edit:hover {
-    background: rgba(245, 158, 11, 0.2);
-    color: #d97706;
-    transform: translateY(-2px);
-}
-
-.btn-icon-delete {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-}
-
-.btn-icon-delete:hover {
-    background: rgba(239, 68, 68, 0.2);
-    color: #dc2626;
-    transform: translateY(-2px);
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px !important;
-}
-
-.empty-icon {
-    color: #d1d5db;
-    margin-bottom: 16px;
-}
-
-.empty-text {
-    font-size: 1rem;
-    color: #6b7280;
-    margin-bottom: 12px;
-}
-
-.empty-link {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.875rem;
-}
-
-.empty-link:hover {
-    text-decoration: underline;
-}
-
-/* Table Footer */
-.table-footer {
-    padding: 20px 24px;
-    border-top: 1px solid #f3f4f6;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-}
-
-.footer-info {
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-/* Modal */
-.modern-modal {
-    border-radius: 16px;
-    border: none;
-    overflow: hidden;
-}
-
-.modern-modal .modal-header {
-    padding: 20px 300px;
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modern-modal .modal-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.modal-close {
-    background: transparent;
-    border: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #9ca3af;
-    padding: 0;
-}
-
-.modal-close:hover {
-    background: #f3f4f6;
-    color: #6b7280;
-}
-
-.modal-header-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: #ffffff;
-    border-bottom: none;
-}
-
-.modal-header-danger .modal-title {
-    color: #ffffff;
-}
-
-.modal-close-white {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff;
-}
-
-.modal-close-white:hover {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.modern-modal .modal-body {
-    padding: 24px;
-}
-
-.modern-modal .modal-footer {
-    padding: 16px 24px;
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    background: #fafafa;
-}
-
-/* Button Styles in Modal */
-.modal-footer .btn-secondary,
-.modal-footer .btn-primary,
-.modal-footer .btn-danger {
-    padding: 9px 18px;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 80px;
-}
-
-.modal-footer .btn-secondary {
-    background: #ffffff;
-    color: #6b7280;
-    border: 1px solid #e5e7eb;
-}
-
-.modal-footer .btn-secondary:hover {
-    background: #f9fafb;
-    border-color: #d1d5db;
-}
-
-.modal-footer .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(102, 126, 234, 0.3);
-}
-
-.modal-footer .btn-primary:hover {
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
-    transform: translateY(-1px);
-}
-
-.modal-footer .btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(239, 68, 68, 0.3);
-}
-
-.modal-footer .btn-danger:hover {
-    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
-    transform: translateY(-1px);
-}
-
-/* Form Elements */
-.form-label {
-    display: block;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: #4b5563;
-    margin-bottom: 6px;
-}
-
-.required {
-    color: #ef4444;
-}
-
-.form-input,
-.form-select {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    color: #1f2937;
-    transition: all 0.2s ease;
-    background: #ffffff;
-}
-
-.form-input:focus,
-.form-select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.08);
-}
-
-.form-input.is-invalid,
-.form-select.is-invalid {
-    border-color: #ef4444;
-}
-
-.form-input.is-invalid:focus,
-.form-select.is-invalid:focus {
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
-}
-
-.invalid-feedback {
-    display: block;
-    margin-top: 4px;
-    font-size: 0.75rem;
-    color: #ef4444;
-}
-
-/* Delete Modal */
-.delete-icon {
-    text-align: center;
-    color: #ef4444;
-    margin-bottom: 16px;
-}
-
-.delete-text {
-    text-align: center;
-    font-size: 0.9375rem;
-    color: #6b7280;
-    margin: 0;
-}
-
-/* Form Grid for Single Column Layout */
-.form-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.form-group-full {
-    width: 100%;
-}
-
-/* Modal Scrollbar Styling */
-.modal-body::-webkit-scrollbar {
-    width: 5px;
-}
-
-.modal-body::-webkit-scrollbar-track {
-    background: #f9fafb;
-    border-radius: 10px;
-}
-
-.modal-body::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 10px;
-}
-
-.modal-body::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .toolbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .toolbar-left,
-    .toolbar-right {
-        width: 100%;
-    }
-    
-    .toolbar-right {
-        flex-direction: column;
-    }
-    
-    .search-form {
-        min-width: 100%;
-    }
-    
-    .filter-group {
-        justify-content: space-between;
-    }
-    
-    .table-footer {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
-
-@media (max-width: 576px) {
-    .page-title {
-        font-size: 1.5rem;
-    }
-    
-    .data-table th,
-    .data-table td {
-        padding: 12px 16px;
-    }
-    
-    .btn-action {
-        width: 100%;
-        justify-content: center;
-    }
-}
-</style>
-@endpush

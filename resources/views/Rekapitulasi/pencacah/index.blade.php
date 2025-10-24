@@ -68,7 +68,7 @@
         gap: 0.5rem;
         font-weight: 500;
     }
-
+    
     /* CSS untuk menyembunyikan elemen saat mencetak halaman ini via window.print() */
     @media print {
         body * {
