@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\Sosial;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sosial\SosialTahunan; 
+use App\Models\Sosial\SosialTahunan;
 use Illuminate\Http\Request;
-use App\Models\Master\MasterPetugas; 
+use App\Models\Master\MasterPetugas;
 use App\Models\Master\MasterKegiatan;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SosialTahunanExport;
 
 class SosialTahunanController extends Controller
 {
@@ -42,11 +44,11 @@ class SosialTahunanController extends Controller
         // Filter Pencarian
         $search = $request->input('search', ''); // Simpan untuk dikirim ke view
         if ($search !== '') {
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('BS_Responden', 'like', "%{$search}%")
-                  ->orWhere('pencacah', 'like', "%{$search}%")
-                  ->orWhere('pengawas', 'like', "%{$search}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$search}%");
+                    ->orWhere('pencacah', 'like', "%{$search}%")
+                    ->orWhere('pengawas', 'like', "%{$search}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$search}%");
             });
         }
 
@@ -115,7 +117,10 @@ class SosialTahunanController extends Controller
         $validatedData = $validator->validated();
 
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         SosialTahunan::create($validatedData);
@@ -173,7 +178,7 @@ class SosialTahunanController extends Controller
             'tanggal_pengumpulan' => 'nullable|date',
         ];
 
-        $customMessages = [ /* ... sama seperti store ... */ ];
+        $customMessages = [ /* ... sama seperti store ... */];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
@@ -192,7 +197,10 @@ class SosialTahunanController extends Controller
         $validatedData = $validator->validated();
 
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         $sosial_tahunan->update($validatedData);
@@ -232,7 +240,7 @@ class SosialTahunanController extends Controller
     public function searchPetugas(Request $request)
     {
         // Hapus validasi 'field' karena tidak dipakai di Blade
-         $request->validate([
+        $request->validate([
             'query' => 'nullable|string|max:100',
         ]);
         $query = $request->input('query', '');
@@ -245,15 +253,57 @@ class SosialTahunanController extends Controller
 
     public function searchKegiatan(Request $request)
     {
-         $request->validate(['query' => 'nullable|string|max:100']);
-         $query = $request->input('query', '');
+        $request->validate(['query' => 'nullable|string|max:100']);
+        $query = $request->input('query', '');
 
-         $data = MasterKegiatan::query()
-             // ->where('jenis', 'Sosial') // Opsional: filter hanya kegiatan sosial
-             ->where('nama_kegiatan', 'LIKE', "%{$query}%")
-             ->limit(10)
-             ->pluck('nama_kegiatan');
+        $data = MasterKegiatan::query()
+            // ->where('jenis', 'Sosial') // Opsional: filter hanya kegiatan sosial
+            ->where('nama_kegiatan', 'LIKE', "%{$query}%")
+            ->limit(10)
+            ->pluck('nama_kegiatan');
 
-         return response()->json($data);
+        return response()->json($data);
+    }
+    public function export(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'dataRange' => 'required|in:all,current_page',
+            'dataFormat' => 'required|in:formatted_values,raw_values',
+            'exportFormat' => 'required|in:excel,csv,word',
+        ]);
+        $dataRange = $request->input('dataRange', 'all');
+        $dataFormat = $request->input('dataFormat');
+        $exportFormat = $request->input('exportFormat');
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+        $tahun = $request->input('tahun', date('Y'));
+        $currentPage = $request->input('page', 1);
+        $perPage = $request->input('per_page', 20);
+        // Buat instance export class
+        $exportClass = new SosialTahunanExport(
+            $dataRange,
+            $dataFormat,
+            $kegiatan,
+            $search,
+            $tahun,
+            $currentPage,
+            $perPage
+        );
+        // Generate nama file
+        $fileName = 'Sosial_Tahunan';
+        if (!empty($kegiatan)) {
+            $fileName .= '_' . str_replace(' ', '_', $kegiatan);
+        }
+        $fileName .= '_' . date('Ymd_His');
+        // Export berdasarkan format
+        if ($exportFormat == 'excel') {
+            return Excel::download($exportClass, $fileName . '.xlsx');
+        } elseif ($exportFormat == 'csv') {
+            return Excel::download($exportClass, $fileName . '.csv');
+        } elseif ($exportFormat == 'word') {
+            return $exportClass->exportToWord();
+        }
+        return back()->with('error', 'Format ekspor tidak didukung.');
     }
 }

@@ -60,8 +60,9 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         Route::post('/', [SosialTahunanController::class, 'store'])->name('store');
         Route::get('/search-petugas', [SosialTahunanController::class, 'searchPetugas'])->name('searchPetugas');
         Route::post('/bulk-delete', [SosialTahunanController::class, 'bulkDelete'])->name('bulkDelete');
-        // Tambahkan searchKegiatan jika ada di controller
-        // Route::get('/search-kegiatan', [SosialTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
+
+        // export
+        Route::get('/export', [SosialTahunanController::class, 'export'])->name('export');
 
 
         // Rute-rute yang menggunakan {id}
@@ -81,6 +82,9 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         Route::post('/bulk-delete', [SosialTriwulanController::class, 'bulkDelete'])->name('bulkDelete');
         Route::get('/search-petugas', [SosialTriwulanController::class, 'searchPetugas'])->name('searchPetugas');
         Route::get('/search-kegiatan', [SosialTriwulanController::class, 'searchKegiatan'])->name('searchKegiatan');
+
+        Route::get('/{jenisKegiatan}/export', [SosialTriwulanController::class, 'export'])->name('export')
+            ->where('jenisKegiatan', 'seruti');
 
         // Rute-rute yang menggunakan {id}
         Route::get('/{id}/edit', [SosialTriwulanController::class, 'edit'])->name('edit');
@@ -103,6 +107,9 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         Route::post('/bulk-delete', [SosialSemesteranController::class, 'bulkDelete'])->name('bulkDelete');
         Route::get('/search-petugas', [SosialSemesteranController::class, 'searchPetugas'])->name('searchPetugas');
         Route::get('/search-kegiatan', [SosialSemesteranController::class, 'searchKegiatan'])->name('searchKegiatan');
+
+        Route::get('/{jenisKegiatan}/export', [SosialSemesteranController::class, 'export'])->name('export')
+            ->where('jenisKegiatan', 'sakernas|susenas');
 
         // Rute-rute yang menggunakan {id}
         Route::get('/{id}/edit', [SosialSemesteranController::class, 'edit'])->name('edit');
