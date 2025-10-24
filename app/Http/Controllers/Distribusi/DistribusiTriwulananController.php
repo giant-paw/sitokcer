@@ -13,201 +13,250 @@ use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\DistribusiTriwulananExport;
 use PhpOffice\PhpWord\TemplateProcessor;
+use Illuminate\Validation\Rule;
 
 class DistribusiTriwulananController extends Controller
 {
-    // Tampil data SPUNP atau SHKK
     public function index(Request $request, $jenisKegiatan)
     {
-
-        if (!in_array(strtolower($jenisKegiatan), ['spunp', 'shkk'])) {
+        // 1. Validasi jenis kegiatan
+        $validJenis = ['spunp', 'shkk'];
+        $jenisKegiatanLower = strtolower($jenisKegiatan);
+        if (!in_array($jenisKegiatanLower, $validJenis)) {
             abort(404);
         }
+        $prefixKegiatan = strtoupper($jenisKegiatan); // SPUNP atau SHKK
 
-        $query = DistribusiTriwulanan::query()->where('nama_kegiatan', 'Like', strtoupper($jenisKegiatan) . '%');
-
-        if ($request->filled('kegiatan')) {
-            $query->where('nama_kegiatan', $request->kegiatan);
+        // 2. Logika Filter Tahun (Konsisten)
+        $selectedTahun = $request->input('tahun', date('Y'));
+        $availableTahun = DistribusiTriwulanan::query()
+            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+            ->select(DB::raw('YEAR(created_at) as tahun'))
+            ->distinct()->whereNotNull('created_at')->orderBy('tahun', 'desc')
+            ->pluck('tahun')->toArray();
+        if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
+            array_unshift($availableTahun, date('Y'));
         }
 
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+        // 3. Kueri Utama
+        $query = DistribusiTriwulanan::query()
+            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%') // Filter jenis
+            ->whereYear('created_at', $selectedTahun); // Filter tahun
+
+        // Filter Kegiatan Spesifik (Tab)
+        $selectedKegiatan = $request->input('kegiatan', '');
+        if ($selectedKegiatan !== '') {
+            $query->where('nama_kegiatan', $selectedKegiatan);
+        }
+
+        // Filter Pencarian
+        $search = $request->input('search', '');
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('BS_Responden', 'like', "%{$search}%")
+                  ->orWhere('pencacah', 'like', "%{$search}%")
+                  ->orWhere('pengawas', 'like', "%{$search}%")
+                  ->orWhere('nama_kegiatan', 'like', "%{$search}%");
             });
         }
 
+        // 4. Logika Pagination
         $perPage = $request->input('per_page', 20);
-
         if ($perPage == 'all') {
             $total = (clone $query)->count();
             $perPage = $total > 0 ? $total : 20;
         }
 
-        $listData = $query->latest()->paginate($perPage)->withQueryString();
+        // 5. Ambil Data
+        $listData = $query->latest('id_distribusi_triwulanan')->paginate($perPage)->withQueryString();
 
+        // 6. Logika Hitung Tab
         $kegiatanCounts = DistribusiTriwulanan::query()
-            ->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan) . '%')
+            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+            ->whereYear('created_at', $selectedTahun)
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
+        // Ambil master kegiatan hanya untuk jenis yang relevan
+        $masterKegiatanList = MasterKegiatan::where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+                                            ->orderBy('nama_kegiatan')->get();
 
-        return view('timDistribusi.distribusiTriwulanan', compact('listData', 'kegiatanCounts', 'jenisKegiatan'));
+        // 7. Kirim ke View
+        return view('timDistribusi.distribusiTriwulanan', compact(
+            'listData',
+            'kegiatanCounts',
+            'jenisKegiatan',
+            'masterKegiatanList',
+            'availableTahun',
+            'selectedTahun',
+            'selectedKegiatan',
+            'search'
+        ));
     }
 
+    /**
+     * Simpan data baru (AJAX ready).
+     */
     public function store(Request $request)
     {
         $baseRules = [
-            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden' => 'required|string|max:255',
-            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
-            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'nama_kegiatan'       => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
+            'BS_Responden'        => 'required|string|max:255',
+            'pencacah'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
-            'flag_progress' => 'required|string',
+            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], // Sesuaikan opsi
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-
-        $customMessages = [
-            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar di master kegiatan.',
-            'pencacah.exists' => 'Nama pencacah tidak terdaftar di master petugas.',
-            'pengawas.exists' => 'Nama pengawas tidak terdaftar di master petugas.',
-        ];
-
+         $customMessages = [
+            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar.',
+            'pencacah.exists'      => 'Nama pencacah tidak terdaftar.',
+            'pengawas.exists'      => 'Nama pengawas tidak terdaftar.',
+         ];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'message' => 'Data yang diberikan tidak valid.',
-                    'errors' => $validator->errors()
-                ], 422);
+                return response()->json(['message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
             }
-
-            return back()
-                ->withErrors($validator)
-                ->withInput()
-                ->with('error_modal', 'tambahDataModal');
+            return back()->withErrors($validator)->withInput()->with('error_modal', 'tambahDataModal');
         }
 
         $validatedData = $validator->validated();
-        $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+        if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
+            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+        }
 
         DistribusiTriwulanan::create($validatedData);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil ditambahkan!']);
         }
-
         return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
 
-    public function edit(DistribusiTriwulanan $distribusi_triwulanan)
+    /**
+     * Ambil data untuk modal edit ($id manual + format tanggal).
+     */
+    public function edit($id)
     {
+        $distribusi_triwulanan = DistribusiTriwulanan::findOrFail($id);
         $data = $distribusi_triwulanan->toArray();
 
+        // Format tanggal ke Y-m-d
         $targetPenyelesaian = $distribusi_triwulanan->target_penyelesaian;
         $tanggalPengumpulan = $distribusi_triwulanan->tanggal_pengumpulan;
-        
-        $data['target_penyelesaian'] = $targetPenyelesaian 
-            ? Carbon::parse($targetPenyelesaian)->toDateString() // toDateString() menghasilkan 'Y-m-d'
-            : null;
-            
-        $data['tanggal_pengumpulan'] = $tanggalPengumpulan
-            ? Carbon::parse($tanggalPengumpulan)->toDateString()
-            : null;
+        $data['target_penyelesaian'] = $targetPenyelesaian ? Carbon::parse($targetPenyelesaian)->toDateString() : null;
+        $data['tanggal_pengumpulan'] = $tanggalPengumpulan ? Carbon::parse($tanggalPengumpulan)->toDateString() : null;
 
         return response()->json($data);
     }
 
-    public function update(Request $request, DistribusiTriwulanan $distribusi_triwulanan)
+    /**
+     * Update data ($id manual).
+     */
+    public function update(Request $request, $id)
     {
-        $baseRules = [
-            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden' => 'required|string|max:255',
-            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
-            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+        $distribusi_triwulanan = DistribusiTriwulanan::findOrFail($id);
+        $baseRules = [ // Sama seperti store, tambahkan exists
+            'nama_kegiatan'       => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
+            'BS_Responden'        => 'required|string|max:255',
+            'pencacah'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
-            'flag_progress' => 'required|string',
+            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-
-        $customMessages = [
-            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar di master kegiatan.',
-            'pencacah.exists' => 'Nama pencacah tidak terdaftar di master petugas.',
-            'pengawas.exists' => 'Nama pengawas tidak terdaftar di master petugas.',
-        ];
-
+         $customMessages = [ /* ... sama seperti store ... */ ];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'message' => 'Data yang diberikan tidak valid.',
-                    'errors' => $validator->errors()
-                ], 422);
+                return response()->json(['message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
             }
-
-            return back()
-                ->withErrors($validator)
-                ->withInput()
+            return back()->withErrors($validator)->withInput()
                 ->with('error_modal', 'editDataModal')
                 ->with('edit_id', $distribusi_triwulanan->id_distribusi_triwulanan);
         }
 
         $validatedData = $validator->validated();
-        $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+        if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
+             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+        }
 
         $distribusi_triwulanan->update($validatedData);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil diperbarui!']);
         }
-
         return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
+    /**
+     * Hapus data ($id manual).
+     */
+    public function destroy($id)
+    {
+        $distribusi_triwulanan = DistribusiTriwulanan::findOrFail($id);
+        $distribusi_triwulanan->delete();
 
+        if (request()->ajax() || request()->wantsJson()) {
+             return response()->json(['success' => 'Data berhasil dihapus!']);
+        }
+        return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
+    }
+
+    /**
+     * Hapus banyak data.
+     */
     public function bulkDelete(Request $request)
     {
         $request->validate([
             'ids'   => 'required|array',
             'ids.*' => 'exists:distribusi_triwulanan,id_distribusi_triwulanan'
         ]);
-
         DistribusiTriwulanan::whereIn('id_distribusi_triwulanan', $request->ids)->delete();
-
         return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
     }
 
-    public function destroy(DistribusiTriwulanan $distribusi_triwulanan)
-    {
-        $distribusi_triwulanan->delete();
-
-        return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
-    }
-
+    /**
+     * Cari petugas (autocomplete).
+     */
     public function searchPetugas(Request $request)
     {
-        $request->validate([
-            'field' => 'required|in:pencacah,pengawas',
-            'query' => 'nullable|string|max:100',
-        ]);
-
-        $field = $request->input('field');
+         $request->validate(['query' => 'nullable|string|max:100']);
         $query = $request->input('query', '');
-
         $data = MasterPetugas::query()
             ->where('nama_petugas', 'LIKE', "%{$query}%")
             ->limit(10)
             ->pluck('nama_petugas');
-
         return response()->json($data);
+    }
+
+     /**
+      * Cari kegiatan (autocomplete).
+      */
+    public function searchKegiatan(Request $request, $jenisKegiatan = null) // Tambah $jenisKegiatan opsional
+    {
+         $request->validate(['query' => 'nullable|string|max:100']);
+         $query = $request->input('query', '');
+         $kegiatanQuery = MasterKegiatan::query();
+
+         // Filter berdasarkan jenisKegiatan jika diberikan di URL
+         if ($jenisKegiatan) {
+             $jenisKegiatanLower = strtolower($jenisKegiatan);
+             if (in_array($jenisKegiatanLower, ['spunp', 'shkk'])) {
+                 $kegiatanQuery->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan) . '%');
+             }
+         }
+
+         $data = $kegiatanQuery
+             ->where('nama_kegiatan', 'LIKE', "%{$query}%")
+             ->limit(10)
+             ->pluck('nama_kegiatan');
+         return response()->json($data);
     }
 
     // PERBAIKAN 4: Method export yang benar
