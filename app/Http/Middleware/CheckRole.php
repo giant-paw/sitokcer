@@ -41,12 +41,29 @@ use App\Http\Controllers\Master\MasterKegiatanController;
 // USER
 use App\Http\Controllers\User\UserController;
 
+// =========================================================================
+// RUTE PUBLIK (BISA DIAKSES TANPA LOGIN)
+// =========================================================================
+
+// HOME
+Route::get('/', fn () => view('home'))->name('home');
+
+// =========================================================================
+// RUTE YANG DILINDUNGI (HARUS LOGIN)
+// =========================================================================
+// Semua rute di dalam grup ini akan otomatis dialihkan ke halaman login
+// jika pengguna belum terautentikasi.
+// =========================================================================
+
 Route::middleware('auth')->group(function () {
-        
-    // HOME
-    Route::get('/', fn() => view('home'))->name('home');
 
     /* DASHBOARD */
+    // Asumsi: Halaman dashboard harus login. Jika dashboard Anda publik, pindahkan ke luar grup.
+    // Breeze akan membuatkan rute /dashboard baru, Anda bisa sesuaikan ini
+    // Route::get('/dashboard', function () {
+    //     return view('dashboard');
+    // })->name('dashboard');
+    
     Route::get('/dashboard-distribusi', [DashboardDistribusiController::class, 'index'])->name('dashboard.distribusi');
     Route::get('/dashboard-nwa', [DashboardNwaController::class, 'index'])->name('dashboard.nwa');
     Route::get('/dashboard-produksi', [DashboardProduksiController::class, 'index'])->name('dashboard.produksi');
@@ -68,7 +85,6 @@ Route::middleware('auth')->group(function () {
             Route::get('/{id}/edit', [SosialTahunanController::class, 'edit'])->name('edit');
             Route::put('/{id}', [SosialTahunanController::class, 'update'])->name('update');
             Route::delete('/{id}', [SosialTahunanController::class, 'destroy'])->name('destroy');
-
         });
 
         Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
@@ -88,7 +104,6 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{id}', [SosialTriwulanController::class, 'destroy'])->name('destroy');
 
             Route::get('/{jenisKegiatan?}', [SosialTriwulanController::class, 'index'])->name('index');
-
         });
 
         // --- ROUTE SOSIAL SEMESTERAN (SAKERNAS/SUSENAS) (SUDAH BENAR) ---
@@ -194,7 +209,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
             Route::get('/search-kegiatan', [App\Http\Controllers\Distribusi\DistribusiTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
             Route::get('/export', [DistribusiTahunanController::class, 'export'])->name('export');
-        }); 
+        });
 
         // ============ TRIWULANAN============
         Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
@@ -443,4 +458,24 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/master/kegiatan/search', [MasterKegiatanController::class, 'search'])->name('master.kegiatan.search');
 
-});
+    /* --- USER (HANYA ADMIN) --- */
+    // Rute ini dilindungi oleh 'auth' (harus login)
+    // DAN 'role:admin' (harus admin)
+    Route::prefix('user')
+        ->name('user.')
+        ->middleware('role:admin') // Middleware baru kita!
+        ->controller(UserController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            // Tambahkan rute user lainnya (create, store, edit, update, destroy)
+            // Contoh:
+            // Route::get('/create', 'create')->name('create');
+            // Route::post('/', 'store')->name('store');
+            // Route::get('/{user}/edit', 'edit')->name('edit');
+            // Route::put('/{user}', 'update')->name('update');
+            // Route::delete('/{user}', 'destroy')->name('destroy');
+        });
+
+}); 
+
+require __DIR__ . '/auth.php';

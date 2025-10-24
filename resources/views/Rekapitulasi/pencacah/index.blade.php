@@ -127,9 +127,11 @@
                             </a>
                         </li>
                         <li>
-                            <button class="dropdown-item" type="button" id="printCurrentPage">
-                                Cetak Halaman Ini
-                            </button>
+                            <span>
+                                <button class="dropdown-item" type="button" id="printCurrentPage" style="color: blue;">
+                                    Cetak Halaman Ini
+                                </button>
+                            </span>
                         </li>
                         <li>
                             <button class="dropdown-item" type="button" id="printSelected" disabled>

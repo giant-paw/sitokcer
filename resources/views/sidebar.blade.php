@@ -324,6 +324,19 @@
         </li>
 
         <!-- USER -->
+
+        @if(auth()->user() && auth()->user()->role == 'admin')
+        <li class="nav-item">
+            <a href="{{ route('user.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-users"></i>
+                <p>
+                    Kelola User
+                    <!-- <i class="right fas fa-angle-left"></i> -->
+                </p>
+            </a>
+            <!-- Jika ada submenu, letakkan di sini -->
+        </li>
+        @endif
     </ul>
 </aside>
 
