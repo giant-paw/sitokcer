@@ -12,9 +12,12 @@
 
         .autocomplete-suggestions {
             position: absolute;
-            border: 1px solid var(--border-color, #d1d3e2); /* Menggunakan var CSS */
+            border: 1px solid var(--border-color, #d1d3e2);
             border-top: none;
-            z-index: 1056; /* Pastikan di atas modal */
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1056;
             width: 100%;
             background-color: var(--card-bg, #fff);
             max-height: 200px;
@@ -22,6 +25,7 @@
             border-radius: 0 0 var(--border-radius-sm, 0.375rem) var(--border-radius-sm, 0.375rem);
             box-shadow: var(--box-shadow-md, 0 4px 6px rgba(0, 0, 0, 0.07));
         }
+
 
         .autocomplete-suggestion-item {
             padding: 8px 12px;

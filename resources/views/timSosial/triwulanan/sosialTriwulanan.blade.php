@@ -1,517 +1,310 @@
 @extends('layouts.app')
 
 {{-- Judul Disesuaikan --}}
-@section('title', 'Sosial Triwulanan (Seruti) - Sitokcer')
-@section('header-title', 'List Target Kegiatan Seruti')
+@section('title', strtoupper($jenisKegiatan) . ' - Sosial Triwulanan - Sitokcer')
+@section('header-title', 'List Target Kegiatan ' . ucwords($jenisKegiatan))
 
-{{-- STYLES UNTUK AUTOCOMPLETE --}}
 @push('styles')
     <style>
-        .autocomplete-container {
-            position: relative;
-        }
-
-        .autocomplete-suggestions {
+        /* Style Autocomplete disesuaikan dengan variabel CSS global */
+        .autocomplete-container { position: relative; }
+       .autocomplete-suggestions {
             position: absolute;
-            border: 1px solid #d1d3e2;
+            border: 1px solid var(--border-color, #d1d3e2);
             border-top: none;
+            top: 100%;
+            left: 0;
+            right: 0;
             z-index: 1056;
             width: 100%;
-            background-color: #fff;
+            background-color: var(--card-bg, #fff);
             max-height: 200px;
             overflow-y: auto;
+            border-radius: 0 0 var(--border-radius-sm, 0.375rem) var(--border-radius-sm, 0.375rem);
+            box-shadow: var(--box-shadow-md, 0 4px 6px rgba(0, 0, 0, 0.07));
         }
-
-        .autocomplete-suggestion-item {
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-
+        .autocomplete-suggestion-item { padding: 8px 12px; cursor: pointer; font-size: var(--font-size-sm, 0.875rem); }
         .autocomplete-suggestion-item:hover,
-        .autocomplete-suggestion-item.active {
-            background-color: #0d6efd;
-            color: #fff;
-        }
+        .autocomplete-suggestion-item.active { background-color: var(--primary-color, #0d6efd); color: var(--card-bg, #fff); }
+
+        /* Helper class untuk grid 2 kolom di modal */
+        .modal-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg, 1.5rem); }
+        @media (max-width: 768px) { .modal-grid-2col { grid-template-columns: 1fr; gap: var(--spacing-md, 1rem); } }
     </style>
 @endpush
 
 @section('content')
-    <div class="container-fluid">
-        <div class="card">
-            <div class="card-header bg-light">
-                {{-- Judul Disesuaikan --}}
-                <h4 class="card-title mb-0">LIST TARGET KEGIATAN SERUTI</h4>
+    <div class="container-fluid px-4 py-4">
+
+        {{-- 1. Menggunakan Page Header --}}
+        <div class="page-header mb-4">
+            <div class="header-content">
+                 <h2 class="page-title">List Target Kegiatan Triwulanan: {{ ucwords($jenisKegiatan) }}</h2>
+                <p class="page-subtitle">Kelola data target kegiatan triwulanan {{ $jenisKegiatan }} tim Sosial</p>
             </div>
-            <div class="card-body">
-                <div class="mb-4 d-flex flex-wrap justify-content-between align-items-center">
-                    <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                            data-bs-target="#tambahDataModal"><i class="bi bi-plus-circle"></i> Tambah Baru</button>
-                        <button type="button" class="btn btn-secondary"><i class="bi bi-upload"></i> Import</button>
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
-                            <i class="bi bi-download"></i> Ekspor Hasil
-                        </button>
-                        <button type="button" class="btn btn-danger" data-bs-target="#deleteDataModal" id="bulkDeleteBtn"
-                            disabled><i class="bi bi-trash"></i> Hapus Data Terpilih</button>
-                    </div>
+        </div>
 
-                    {{-- Filter Tahun & Per Page --}}
-                    <div class="d-flex align-items-center gap-2">
-                        <div>
-                            <label for="perPageSelect" class="form-label me-2 mb-0">Display:</label>
-                            <select class="form-select form-select-sm" id="perPageSelect" style="width: auto;">
-                                @php $options = [10, 20, 30, 50, 100, 500, 'all']; @endphp
-                                @foreach ($options as $option)
-                                    <option value="{{ $option }}"
-                                        {{ request('per_page', 20) == $option ? 'selected' : '' }}>
-                                        {{ $option == 'all' ? 'All' : $option }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <label for="tahunSelect" class="form-label me-2 mb-0">Tahun:</label>
-                            <select class="form-select form-select-sm" id="tahunSelect" style="width: auto;">
-                                @foreach ($availableTahun ?? [date('Y')] as $tahun)
-                                    <option value="{{ $tahun }}"
-                                        {{ ($selectedTahun ?? date('Y')) == $tahun ? 'selected' : '' }}>
-                                        {{ $tahun }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
+        {{-- 2. Menggunakan .data-card sebagai wrapper utama --}}
+        <div class="data-card">
+            {{-- 3. Menggunakan .toolbar --}}
+            <div class="toolbar">
+                <div class="toolbar-left">
+                     {{-- 4. Menggunakan .btn-action dan icon SVG --}}
+                    <button type="button" class="btn-action btn-primary" data-bs-toggle="modal" data-bs-target="#tambahDataModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                        Tambah Baru
+                    </button>
+                    <button type="button" class="btn-action btn-secondary" style="background: #f3f4f6; color: #6b7280;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        Import
+                    </button>
+                    <button type="button" class="btn-action btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Ekspor Hasil
+                    </button>
+                    <button type="button" class="btn-action btn-danger" data-bs-target="#deleteDataModal" id="bulkDeleteBtn" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        Hapus Terpilih
+                    </button>
                 </div>
-
-                {{-- Alert Sukses/Error --}}
-                @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert"> {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="toolbar-right">
+                    {{-- 5. Filter --}}
+                    <div class="filter-group">
+                        <label class="filter-label">Display:</label>
+                        <select class="filter-select" id="perPageSelect">
+                            @php $options = [10, 20, 30, 50, 100, 500, 'all']; @endphp
+                            @foreach ($options as $option) <option value="{{ $option }}" {{ request('per_page', 20) == $option ? 'selected' : '' }}>{{ $option == 'all' ? 'All' : $option }}</option> @endforeach
+                        </select>
                     </div>
-                @endif
-                @if ($errors->any() && !session('error_modal'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert"> <strong>Error!</strong>
-                        Periksa form. <button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
-                @endif
+                    <div class="filter-group">
+                        <label class="filter-label">Tahun:</label>
+                        <select class="filter-select" id="tahunSelect">
+                            @foreach ($availableTahun ?? [date('Y')] as $tahun) <option value="{{ $tahun }}" {{ ($selectedTahun ?? date('Y')) == $tahun ? 'selected' : '' }}>{{ $tahun }}</option> @endforeach
+                        </select>
+                    </div>
+                     {{-- 6. Search form --}}
+                    <form action="{{ route('sosial.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET" class="search-form">
+                        <input type="hidden" name="tahun" value="{{ $selectedTahun ?? date('Y') }}">
+                        @if (!empty($selectedKegiatan)) <input type="hidden" name="kegiatan" value="{{ $selectedKegiatan }}"> @endif
+                        <input type="text" class="search-input" placeholder="Cari (Kegiatan, BS, Petugas...)" name="search" value="{{ $search ?? '' }}">
+                        <button class="search-btn" type="submit"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg> </button>
+                    </form>
+                </div>
+            </div>
 
-                {{-- Tab Kegiatan (misal: Seruti-TW1, TW2, ...) --}}
-                <ul class="nav nav-pills mb-3 d-flex flex-wrap gap-2">
+            {{-- 7. Alert --}}
+            @if (session('success'))
+                <div class="alert-success"> <div class="alert-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> </div> <span>{{ session('success') }}</span> <button type="button" class="alert-close" data-bs-dismiss="alert"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button> </div>
+            @elseif (session('error'))
+                 <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert"> {{ session('error') }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
+            @endif
+            @if ($errors->any() && !session('error_modal'))
+                <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert"> <strong>Error!</strong> Periksa form.<button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
+            @endif
+
+            {{-- 8. Tabs Kegiatan --}}
+            <div class="px-4 pt-4">
+                 <ul class="nav nav-tabs">
                     <li class="nav-item">
-                        {{-- Link ke index dengan jenisKegiatan 'seruti' --}}
-                        <a class="nav-link {{ empty($selectedKegiatan) ? 'active' : '' }}"
-                            href="{{ route('sosial.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
-                            Semua TW
+                        <a class="nav-link {{ empty($selectedKegiatan) ? 'active' : '' }}" href="{{ route('sosial.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
+                            Semua TW ({{ strtoupper($jenisKegiatan) }})
                         </a>
                     </li>
-                    @foreach ($kegiatanCounts ?? [] as $kegiatan)
+                    @foreach($kegiatanCounts ?? [] as $kegiatan)
                         <li class="nav-item">
-                            <a class="nav-link {{ ($selectedKegiatan ?? '') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
-                                href="{{ route('sosial.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'kegiatan' => $kegiatan->nama_kegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
-                                {{ $kegiatan->nama_kegiatan }} <span
-                                    class="badge bg-secondary">{{ $kegiatan->total }}</span>
+                            <a class="nav-link {{ ($selectedKegiatan ?? '') == $kegiatan->nama_kegiatan ? 'active' : '' }}" href="{{ route('sosial.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'kegiatan' => $kegiatan->nama_kegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
+                                {{ $kegiatan->nama_kegiatan }} <span class="badge badge-secondary">{{ $kegiatan->total }}</span>
                             </a>
                         </li>
                     @endforeach
                 </ul>
+            </div>
 
-                {{-- Form Pencarian --}}
-                <form action="{{ route('sosial.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET"
-                    class="mb-4">
-                    <div class="row g-2 align-items-center">
-                        <input type="hidden" name="tahun" value="{{ $selectedTahun ?? date('Y') }}">
-                        @if (!empty($selectedKegiatan))
-                            <input type="hidden" name="kegiatan" value="{{ $selectedKegiatan }}">
-                        @endif
-                        <div class="col-md-9 col-12">
-                            <input type="text" class="form-control" placeholder="Cari (Kegiatan, BS, Petugas...)"
-                                name="search" value="{{ $search ?? '' }}">
-                        </div>
-                        <div class="col-md-3 col-12">
-                            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i> Cari</button>
-                        </div>
-                    </div>
-                </form>
-
-                {{-- Tabel Data --}}
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered table-hover">
-                        <thead class="table-light text-center">
+            {{-- 11. Table --}}
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="th-checkbox"><input type="checkbox" class="table-checkbox" id="selectAll"></th>
+                            <th>Nama Kegiatan</th>
+                            <th>BS/Responden</th>
+                            <th>Pencacah</th>
+                            <th>Pengawas</th>
+                            <th>Target Selesai</th>
+                            <th>Progress</th>
+                            <th>Tgl Kumpul</th>
+                            <th class="th-action">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($listData ?? [] as $item)
                             <tr>
-                                <th style="width: 1%;"><input type="checkbox" class="form-check-input" id="selectAll"></th>
-                                <th>Nama Kegiatan</th>
-                                <th>BS/Responden</th>
-                                <th>Pencacah</th>
-                                <th>Pengawas</th>
-                                <th>Target Selesai</th>
-                                <th>Progress</th>
-                                <th>Tgl Kumpul</th>
-                                <th style="width: 10%;">Aksi</th>
+                                <td class="td-checkbox"><input type="checkbox" class="table-checkbox row-checkbox" value="{{ $item->id_sosial_triwulanan }}"></td> {{-- ID Triwulanan --}}
+                                <td>{{ $item->nama_kegiatan }}</td>
+                                <td class="text-secondary">{{ $item->BS_Responden }}</td>
+                                <td class="text-secondary">{{ $item->pencacah }}</td>
+                                <td class="text-secondary">{{ $item->pengawas }}</td>
+                                <td class="text-secondary">{{ $item->target_penyelesaian ? $item->target_penyelesaian->format('d/m/Y') : '-' }}</td>
+                                <td>
+                                    @php
+                                        $flag = $item->flag_progress;
+                                        $badgeClass = 'badge-secondary';
+                                        if ($flag === 'Selesai') { $badgeClass = 'badge-success'; }
+                                        elseif ($flag === 'Proses') { $badgeClass = 'badge-warning'; }
+                                    @endphp
+                                    <span class="badge {{ $badgeClass }}">{{ $flag }}</span>
+                                </td>
+                                <td class="text-secondary">{{ $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('d/m/Y') : '-' }}</td>
+                                <td class="td-action">
+                                    <div class="action-buttons">
+                                        <button class="btn-icon btn-icon-edit" title="Edit" data-bs-toggle="modal" data-bs-target="#editDataModal" onclick="editData({{ $item->id_sosial_triwulanan }})"> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg> </button>
+                                        <button class="btn-icon btn-icon-delete" title="Hapus" data-bs-toggle="modal" data-bs-target="#deleteDataModal" onclick="deleteData({{ $item->id_sosial_triwulanan }})"> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> </button>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($listData ?? [] as $item)
-                                <tr>
-                                    {{-- Primary key disesuaikan --}}
-                                    <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox"
-                                            value="{{ $item->id_sosial_triwulanan }}"></td>
-                                    <td>{{ $item->nama_kegiatan }}</td>
-                                    <td>{{ $item->BS_Responden }}</td>
-                                    <td>{{ $item->pencacah }}</td>
-                                    <td>{{ $item->pengawas }}</td>
-                                    <td class="text-center">
-                                        {{ $item->target_penyelesaian ? $item->target_penyelesaian->format('d/m/Y') : '-' }}
-                                    </td>
-                                    <td class="text-center">
-                                        @php
-                                            $flag = $item->flag_progress;
-                                            $badgeClass = 'bg-secondary'; // Default 'Belum Mulai'
-                                            if ($flag === 'Selesai') {
-                                                $badgeClass = 'bg-success';
-                                            } elseif ($flag === 'Proses') {
-                                                $badgeClass = 'bg-warning text-dark';
-                                            }
-                                        @endphp
-                                        <span class="badge {{ $badgeClass }}">{{ $flag }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        {{ $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('d/m/Y') : '-' }}
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="btn-group btn-group-sm">
-                                            {{-- Primary key disesuaikan --}}
-                                            <button class="btn btn-warning" data-bs-toggle="modal"
-                                                data-bs-target="#editDataModal"
-                                                onclick="editData({{ $item->id_sosial_triwulanan }})"><i
-                                                    class="bi bi-pencil-square"></i></button>
-                                            <button class="btn btn-danger" data-bs-toggle="modal"
-                                                data-bs-target="#deleteDataModal"
-                                                onclick="deleteData({{ $item->id_sosial_triwulanan }})"><i
-                                                    class="bi bi-trash"></i></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="9" class="text-center">Tidak ada data Seruti yang ditemukan untuk
-                                        tahun {{ $selectedTahun }}.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                        @empty
+                            <tr>
+                                <td colspan="9" class="empty-state">
+                                    <div class="empty-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg> </div>
+                                    <p class="empty-text">Tidak ada data {{ strtoupper($jenisKegiatan) }} ditemukan untuk tahun {{ $selectedTahun }}.</p>
+                                    @if($search || $selectedKegiatan) <a href="{{ route('sosial.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}" class="empty-link">Reset filter</a> @endif
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-            <div class="card-footer d-flex justify-content-between align-items-center">
-                <div class="text-muted small"> Displaying {{ $listData->firstItem() ?? 0 }} -
-                    {{ $listData->lastItem() ?? 0 }} of {{ $listData->total() ?? 0 }} </div>
-                <div> {{ $listData->links() ?? '' }} </div>
+
+            {{-- Pagination --}}
+            @if ($listData->hasPages())
+            <div class="table-footer">
+                <div class="footer-info"> Displaying {{ $listData->firstItem() ?? 0 }} - {{ $listData->lastItem() ?? 0 }} of {{ $listData->total() ?? 0 }} </div>
+                <div class="footer-pagination"> {{ $listData->links() ?? '' }} </div>
             </div>
+            @endif
         </div>
     </div>
 
-    <!-- Modal Ekspor -->
+    {{-- ================================================= --}}
+    {{-- ==              MODAL SECTIONS                 == --}}
+    {{-- ================================================= --}}
+
     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="{{ route('sosial.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan ?? 'seruti']) }}"
-                    method="GET">
-                    @csrf
-                    <input type="hidden" name="kegiatan" value="{{ request('kegiatan') }}">
-                    <input type="hidden" name="search" value="{{ request('search') }}">
-                    <input type="hidden" name="tahun" value="{{ request('tahun', date('Y')) }}">
-                    <input type="hidden" name="page" value="{{ request('page', 1) }}">
-                    <input type="hidden" name="per_page" value="{{ request('per_page', 20) }}">
+        <div class="modal-dialog modal-dialog-centered">
+            <form action="{{ route('sosial.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan ?? 'seruti']) }}" method="GET" id="exportForm">
+                <div class="modal-content modern-modal">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exportModalLabel">Ekspor Data</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <div class="modal-header-content"> <h5 class="modal-title">Ekspor Data {{ strtoupper($jenisKegiatan) }}</h5> <p class="modal-subtitle">Pilih opsi ekspor Anda</p> </div>
+                        <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
-                        <!-- Jangkauan Data -->
-                        <div class="mb-3">
-                            <label for="dataRange" class="form-label">Jangkauan Data</label>
-                            <select class="form-select" id="dataRange" name="dataRange" required>
-                                <option value="all">Semua Catatan</option>
-                                <option value="current_page">Hanya Halaman Terkini</option>
-                            </select>
-                        </div>
-
-                        <!-- Filter Kegiatan -->
-                        <input type="hidden" name="kegiatan" value="{{ request('kegiatan') }}">
-
-                        <!-- Format Data -->
-                        <div class="mb-3">
-                            <label for="dataFormat" class="form-label">Format Data</label>
-                            <select class="form-select" id="dataFormat" name="dataFormat" required>
-                                <option value="formatted_values">Formatted Values</option>
-                                <option value="raw_values">Raw Values</option>
-                            </select>
-                        </div>
-
-                        <!-- Format Keluaran -->
-                        <div class="mb-3">
-                            <label for="exportFormat" class="form-label">Format Keluaran</label>
-                            <select class="form-select" id="exportFormat" name="exportFormat" required>
-                                <option value="excel">Excel 2007</option>
-                                <option value="csv">CSV (Nilai Terpisah Koma)</option>
-                                <option value="word">Word (.docx)</option>
-                            </select>
-                        </div>
+                        <input type="hidden" name="tahun" id="export_tahun_tri" value="{{ $selectedTahun ?? date('Y') }}">
+                        <input type="hidden" name="kegiatan" id="export_kegiatan_tri" value="{{ $selectedKegiatan ?? '' }}">
+                        <input type="hidden" name="search" id="export_search_tri" value="{{ $search ?? '' }}">
+                        <input type="hidden" name="page" id="export_page_tri" value="{{ $listData->currentPage() }}">
+                        <input type="hidden" name="per_page" id="export_per_page_tri" value="{{ request('per_page', $listData->perPage()) }}">
+                        <div class="form-group"> <label for="exportDataRangeSosTri" class="form-label">Jangkauan Data</label> <select class="form-select" id="exportDataRangeSosTri" name="dataRange" required> <option value="all">Semua Data ({{ $listData->total() }})</option> <option value="current_page">Halaman Ini ({{ $listData->count() }})</option> </select> </div>
+                        <div class="form-group"> <label for="exportDataFormatSosTri" class="form-label">Format Nilai Tanggal</label> <select class="form-select" id="exportDataFormatSosTri" name="dataFormat"> <option value="formatted_values" selected>Format Tampilan</option> <option value="raw_values">Nilai Asli Database</option> </select> <small class="form-text text-muted">Pilih "Raw Values" untuk olah data.</small> </div>
+                        <div class="form-group"> <label for="exportExportFormatSosTri" class="form-label">Format File</label> <select class="form-select" id="exportExportFormatSosTri" name="exportFormat" required> <option value="excel">Excel (.xlsx)</option> <option value="csv">CSV (.csv)</option> </select> </div>
                     </div>
-
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Ekspor</button>
+                        <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn-primary"> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Ekspor </button>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 
-    {{-- ================== MODAL TAMBAH ================== --}}
-    <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            {{-- Action ke route store yang baru --}}
+    <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered"> {{-- Gunakan modal-lg --}}
             <form action="{{ route('sosial.triwulanan.store') }}" method="POST" id="tambahForm">
                 @csrf
-                <div class="modal-content">
+                <div class="modal-content modern-modal">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="tambahDataModalLabel">Tambah Data Seruti Baru</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <div class="modal-header-content"> <h5 class="modal-title">Tambah Data {{ strtoupper($jenisKegiatan) }} Baru</h5> <p class="modal-subtitle">Isi form di bawah</p> </div>
+                        <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
-                        {{-- Nama Kegiatan (Autocomplete difilter hanya Seruti) --}}
-                        <div class="mb-3 autocomplete-container">
-                            <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror"
-                                id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
-                                placeholder="Ketik Seruti-TW..." required autocomplete="off">
-                            <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
-                            <div class="invalid-feedback" data-field="nama_kegiatan">
-                                @error('nama_kegiatan')
-                                    {{ $message }}
-                                @enderror
+                        <input type="hidden" name="_form" value="tambahForm">
+                        <div class="modal-grid-2col"> {{-- Layout 2 kolom --}}
+                            <div class="modal-column"> {{-- Kolom 1 --}}
+                                <div class="form-group autocomplete-container"> <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label> <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror" id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" placeholder="Ketik {{ strtoupper($jenisKegiatan) }}-TW..." required autocomplete="off"> <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div> <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div> </div>
+                                <div class="form-group"> <label for="BS_Responden" class="form-label">BS/Responden</label> <input type="text" class="form-input @error('BS_Responden') is-invalid @enderror" id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}"> <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden') {{ $message }} @enderror</div> </div>
+                                <div class="form-group autocomplete-container"> <label for="pencacah" class="form-label">Pencacah <span class="required">*</span></label> <input type="text" class="form-input @error('pencacah') is-invalid @enderror" id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="pencacah-suggestions"></div> <div class="invalid-feedback" data-field="pencacah">@error('pencacah') {{ $message }} @enderror</div> </div>
+                                <div class="form-group autocomplete-container"> <label for="pengawas" class="form-label">Pengawas <span class="required">*</span></label> <input type="text" class="form-input @error('pengawas') is-invalid @enderror" id="pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="pengawas-suggestions"></div> <div class="invalid-feedback" data-field="pengawas">@error('pengawas') {{ $message }} @enderror</div> </div>
                             </div>
-                            <small class="form-text text-muted">Contoh: Seruti-TW1, Seruti-TW2, dst.</small>
-                        </div>
-                        {{-- BS Responden (nullable) --}}
-                        <div class="mb-3">
-                            <label for="BS_Responden" class="form-label">Blok Sensus/Responden</label>
-                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror"
-                                id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}">
-                            <div class="invalid-feedback" data-field="BS_Responden">
-                                @error('BS_Responden')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-                        {{-- Pencacah --}}
-                        <div class="mb-3 autocomplete-container">
-                            <label for="pencacah" class="form-label">Pencacah <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror"
-                                id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required
-                                autocomplete="off">
-                            <div class="autocomplete-suggestions" id="pencacah-suggestions"></div>
-                            <div class="invalid-feedback" data-field="pencacah">
-                                @error('pencacah')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-                        {{-- Pengawas --}}
-                        <div class="mb-3 autocomplete-container">
-                            <label for="pengawas" class="form-label">Pengawas <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror"
-                                id="pengawas" name="pengawas" value="{{ old('pengawas') }}" required
-                                autocomplete="off">
-                            <div class="autocomplete-suggestions" id="pengawas-suggestions"></div>
-                            <div class="invalid-feedback" data-field="pengawas">
-                                @error('pengawas')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-                        {{-- Target Penyelesaian (nullable) --}}
-                        <div class="mb-3">
-                            <label for="target_penyelesaian" class="form-label">Target Penyelesaian</label>
-                            <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror"
-                                id="target_penyelesaian" name="target_penyelesaian"
-                                value="{{ old('target_penyelesaian') }}">
-                            <div class="invalid-feedback" data-field="target_penyelesaian">
-                                @error('target_penyelesaian')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-                        {{-- Flag Progress --}}
-                        <div class="mb-3">
-                            <label for="flag_progress" class="form-label">Flag Progress <span
-                                    class="text-danger">*</span></label>
-                            <select class="form-select @error('flag_progress') is-invalid @enderror" id="flag_progress"
-                                name="flag_progress" required>
-                                @php $oldFlag = old('flag_progress', 'Belum Mulai'); @endphp
-                                @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt)
-                                    <option value="{{ $opt }}" @selected($oldFlag === $opt)>{{ $opt }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div class="invalid-feedback" data-field="flag_progress">
-                                @error('flag_progress')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-                        {{-- Tanggal Pengumpulan (nullable) --}}
-                        <div class="mb-3">
-                            <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
-                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror"
-                                id="tanggal_pengumpulan" name="tanggal_pengumpulan"
-                                value="{{ old('tanggal_pengumpulan') }}">
-                            <div class="invalid-feedback" data-field="tanggal_pengumpulan">
-                                @error('tanggal_pengumpulan')
-                                    {{ $message }}
-                                @enderror
+                            <div class="modal-column"> {{-- Kolom 2 --}}
+                                <div class="form-group"> <label for="target_penyelesaian" class="form-label">Target Penyelesaian</label> <input type="date" class="form-input @error('target_penyelesaian') is-invalid @enderror" id="target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}"> <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian') {{ $message }} @enderror</div> </div>
+                                <div class="form-group"> <label for="flag_progress" class="form-label">Flag Progress <span class="required">*</span></label> <select class="form-select @error('flag_progress') is-invalid @enderror" id="flag_progress" name="flag_progress" required> @php $oldFlag = old('flag_progress', 'Belum Mulai'); @endphp @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt) <option value="{{ $opt }}" @selected($oldFlag === $opt)>{{ $opt }}</option> @endforeach </select> <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress') {{ $message }} @enderror</div> </div>
+                                <div class="form-group"> <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label> <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror" id="tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}"> <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan') {{ $message }} @enderror</div> </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary"> <span
-                                class="spinner-border spinner-border-sm d-none"></span> Simpan </button>
+                        <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn-primary"> <span class="spinner-border spinner-border-sm d-none"></span> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Simpan </button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    {{-- ================== MODAL EDIT ================== --}}
     <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <form id="editForm" method="POST"> {{-- Action diatur JS --}}
-                @csrf
-                @method('PUT')
-                <div class="modal-content">
+        <div class="modal-dialog modal-lg modal-dialog-centered"> {{-- Gunakan modal-lg --}}
+            <form id="editForm" method="POST">
+                @csrf @method('PUT')
+                <input type="hidden" name="_form" value="editForm"> <input type="hidden" name="edit_id_fallback" id="edit_id_fallback" value="{{ session('edit_id') ?? '' }}">
+                <div class="modal-content modern-modal">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="editDataModalLabel">Edit Data Seruti</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <div class="modal-header-content"> <h5 class="modal-title">Edit Data {{ strtoupper($jenisKegiatan) }}</h5> <p class="modal-subtitle">Perbarui informasi data</p> </div>
+                        <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" id="edit_id_fallback" value="{{ session('edit_id') ?? '' }}">
-                        {{-- Untuk fallback error --}}
-
-                        <div class="mb-3 autocomplete-container">
-                            <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror"
-                                id="edit_nama_kegiatan" name="nama_kegiatan" required autocomplete="off">
-                            <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
-                            <div class="invalid-feedback" data-field="nama_kegiatan">
-                                @error('nama_kegiatan')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                            <small class="form-text text-muted">Contoh: Seruti-TW1, Seruti-TW2, dst.</small>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_BS_Responden" class="form-label">Blok Sensus/Responden</label>
-                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror"
-                                id="edit_BS_Responden" name="BS_Responden">
-                            <div class="invalid-feedback" data-field="BS_Responden">
-                                @error('BS_Responden')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="mb-3 autocomplete-container">
-                            <label for="edit_pencacah" class="form-label">Pencacah <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror"
-                                id="edit_pencacah" name="pencacah" required autocomplete="off">
-                            <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
-                            <div class="invalid-feedback" data-field="pencacah">
-                                @error('pencacah')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="mb-3 autocomplete-container">
-                            <label for="edit_pengawas" class="form-label">Pengawas <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror"
-                                id="edit_pengawas" name="pengawas" required autocomplete="off">
-                            <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div>
-                            <div class="invalid-feedback" data-field="pengawas">
-                                @error('pengawas')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_target_penyelesaian" class="form-label">Target Penyelesaian</label>
-                            <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror"
-                                id="edit_target_penyelesaian" name="target_penyelesaian">
-                            <div class="invalid-feedback" data-field="target_penyelesaian">
-                                @error('target_penyelesaian')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_flag_progress" class="form-label">Flag Progress <span
-                                    class="text-danger">*</span></label>
-                            <select class="form-select @error('flag_progress') is-invalid @enderror"
-                                id="edit_flag_progress" name="flag_progress" required>
-                                {{-- Opsi disamakan --}}
-                                <option value="Belum Mulai">Belum Mulai</option>
-                                <option value="Proses">Proses</option>
-                                <option value="Selesai">Selesai</option>
-                            </select>
-                            <div class="invalid-feedback" data-field="flag_progress">
-                                @error('flag_progress')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
-                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror"
-                                id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan">
-                            <div class="invalid-feedback" data-field="tanggal_pengumpulan">
-                                @error('tanggal_pengumpulan')
-                                    {{ $message }}
-                                @enderror
-                            </div>
+                         <div class="modal-grid-2col"> {{-- Layout 2 kolom --}}
+                             <div class="modal-column"> {{-- Kolom 1 --}}
+                                <div class="form-group autocomplete-container"> <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label> <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror" id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div> <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div> </div>
+                                <div class="form-group"> <label for="edit_BS_Responden" class="form-label">BS/Responden</label> <input type="text" class="form-input @error('BS_Responden') is-invalid @enderror" id="edit_BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}"> <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden') {{ $message }} @enderror</div> </div>
+                                <div class="form-group autocomplete-container"> <label for="edit_pencacah" class="form-label">Pencacah <span class="required">*</span></label> <input type="text" class="form-input @error('pencacah') is-invalid @enderror" id="edit_pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div> <div class="invalid-feedback" data-field="pencacah">@error('pencacah') {{ $message }} @enderror</div> </div>
+                                <div class="form-group autocomplete-container"> <label for="edit_pengawas" class="form-label">Pengawas <span class="required">*</span></label> <input type="text" class="form-input @error('pengawas') is-invalid @enderror" id="edit_pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div> <div class="invalid-feedback" data-field="pengawas">@error('pengawas') {{ $message }} @enderror</div> </div>
+                             </div>
+                             <div class="modal-column"> {{-- Kolom 2 --}}
+                                <div class="form-group"> <label for="edit_target_penyelesaian" class="form-label">Target Penyelesaian</label> <input type="date" class="form-input @error('target_penyelesaian') is-invalid @enderror" id="edit_target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}"> <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian') {{ $message }} @enderror</div> </div>
+                                <div class="form-group"> <label for="edit_flag_progress" class="form-label">Flag Progress <span class="required">*</span></label> <select class="form-select @error('flag_progress') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required> <option value="Belum Mulai">Belum Mulai</option> <option value="Proses">Proses</option> <option value="Selesai">Selesai</option> </select> <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress') {{ $message }} @enderror</div> </div>
+                                <div class="form-group"> <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label> <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror" id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}"> <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan') {{ $message }} @enderror</div> </div>
+                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">
-                            <span class="spinner-border spinner-border-sm d-none"></span> Simpan Perubahan
-                        </button>
+                        <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn-primary"> <span class="spinner-border spinner-border-sm d-none"></span> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Simpan Perubahan </button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    {{-- ================== MODAL HAPUS ================== --}}
-    <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <form id="deleteForm" method="POST"> @csrf @method('DELETE') <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Konfirmasi Hapus</h5> <button type="button" class="btn-close"
-                            data-bs-dismiss="modal"></button>
+    <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form id="deleteForm" method="POST">
+                @csrf @method('DELETE')
+                <div class="modal-content modern-modal">
+                    <div class="modal-header modal-header-danger">
+                        <h5 class="modal-title">Konfirmasi Hapus</h5>
+                        <button type="button" class="modal-close modal-close-white" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
-                    <div class="modal-body" id="deleteModalBody"> Hapus data Seruti ini? </div>
-                    <div class="modal-footer"> <button type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">Batal</button> <button type="submit" class="btn btn-danger"
-                            id="confirmDeleteButton">Hapus</button> </div>
+                    <div class="modal-body">
+                        <div class="delete-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> </div>
+                        <p class="delete-text" id="deleteModalBody">Hapus data {{ strtoupper($jenisKegiatan) }} ini?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn-danger" id="confirmDeleteButton"> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Ya, Hapus </button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
-
 @endsection
 
 @push('scripts')

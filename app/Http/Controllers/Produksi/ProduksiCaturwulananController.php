@@ -220,6 +220,19 @@ class ProduksiCaturwulananController extends Controller
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 
+     public function searchPetugas(Request $request)
+    {
+        $request->validate([
+            'query' => 'nullable|string|max:100',
+        ]);
+        $query = $request->input('query', '');
+        $data = MasterPetugas::query()
+            ->where('nama_petugas', 'LIKE', "%{$query}%")
+            ->limit(10)
+            ->pluck('nama_petugas');
+        return response()->json($data);
+    }
+
     public function export(Request $request, $jenisKegiatan)
     {
         // Validasi...
