@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SosialSemesteranExport;
+
 class SosialSemesteranController extends Controller
 {
     public function index(Request $request, $jenisKegiatan) // Tambah parameter jenisKegiatan
@@ -317,5 +320,55 @@ class SosialSemesteranController extends Controller
              ->pluck('nama_kegiatan');
 
          return response()->json($data);
+    }
+    public function export(Request $request, $jenisKegiatan)
+    {
+        // Validasi jenis kegiatan
+        $validJenis = ['sakernas', 'susenas'];
+        $jenisKegiatanLower = strtolower($jenisKegiatan);
+        if (!in_array($jenisKegiatanLower, $validJenis)) {
+            abort(404);
+        }
+        // Validasi input
+        $request->validate([
+            'dataRange' => 'required|in:all,current_page',
+            'dataFormat' => 'required|in:formatted_values,raw_values',
+            'exportFormat' => 'required|in:excel,csv,word',
+        ]);
+        $dataRange = $request->input('dataRange', 'all');
+        $dataFormat = $request->input('dataFormat');
+        $exportFormat = $request->input('exportFormat');
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+        $tahun = $request->input('tahun', date('Y'));
+        $currentPage = $request->input('page', 1);
+        $perPage = $request->input('per_page', 20);
+        // Buat instance export class
+        $exportClass = new SosialSemesteranExport(
+            $dataRange,
+            $dataFormat,
+            $jenisKegiatan,
+            $kegiatan,
+            $search,
+            $tahun,
+            $currentPage,
+            $perPage
+        );
+        // Generate nama file
+        $jenisKegiatanTitle = ucfirst($jenisKegiatan);
+        $fileName = 'Sosial_Semesteran_' . $jenisKegiatanTitle;
+        if (!empty($kegiatan)) {
+            $fileName .= '_' . str_replace(' ', '_', $kegiatan);
+        }
+        $fileName .= '_' . date('Ymd_His');
+        // Export berdasarkan format
+        if ($exportFormat == 'excel') {
+            return Excel::download($exportClass, $fileName . '.xlsx');
+        } elseif ($exportFormat == 'csv') {
+            return Excel::download($exportClass, $fileName . '.csv');
+        } elseif ($exportFormat == 'word') {
+            return $exportClass->exportToWord();
+        }
+        return back()->with('error', 'Format ekspor tidak didukung.');
     }
 }

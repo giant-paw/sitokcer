@@ -1,38 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'Distribusi Triwulanan - Sitokcer')
-@section('header-title', 'List Target Kegiatan Triwulanan Tim Distribusi')
+{{-- Judul Disesuaikan --}}
+@section('title', 'Distribusi Triwulanan (' . strtoupper($jenisKegiatan) . ') - Sitokcer')
+@section('header-title', 'List Target Kegiatan ' . strtoupper($jenisKegiatan))
 
 @push('styles')
     <style>
-        .autocomplete-container {
-            position: relative;
-        }
-
+        .autocomplete-container { position: relative; }
         .autocomplete-suggestions {
-            position: absolute;
-            border: 1px solid #d1d3e2;
-            border-top: none;
-            z-index: 1056;
-            width: 100%;
-            background-color: #fff;
-            max-height: 200px;
-            overflow-y: auto;
+            position: absolute; border: 1px solid #d1d3e2; border-top: none;
+            z-index: 1056; width: 100%; background-color: #fff;
+            max-height: 200px; overflow-y: auto;
         }
-
-        .autocomplete-suggestion-item {
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-
+        .autocomplete-suggestion-item { padding: 8px 12px; cursor: pointer; }
         .autocomplete-suggestion-item:hover,
-        .autocomplete-suggestion-item.active {
-            background-color: #0d6efd;
-            color: #fff;
-        }
+        .autocomplete-suggestion-item.active { background-color: #0d6efd; color: #fff; }
     </style>
 @endpush
-
 
 @section('content')
     <div class="container-fluid">
@@ -43,189 +27,183 @@
             <div class="card-body">
                 <div class="mb-4 d-flex flex-wrap justify-content-between align-items-center">
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                            data-bs-target="#tambahDataModal">
-                            <i class="bi bi-plus-circle"></i> Tambah Baru
-                        </button>
-                        <button type="button" class="btn btn-secondary">
-                            <i class="bi bi-upload"></i> Import
-                        </button>
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
-                            <i class="bi bi-download"></i> Ekspor Hasil
-                        </button>
-                        <button type="button" class="btn btn-danger" data-bs-target="#deleteDataModal" id="bulkDeleteBtn"
-                            disabled>
-                            <i class="bi bi-trash"></i> Hapus Data Terpilih
-                        </button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahDataModal"><i class="bi bi-plus-circle"></i> Tambah Baru</button>
+                        {{-- <button type="button" class="btn btn-secondary"><i class="bi bi-upload"></i> Import</button> --}}
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal"><i class="bi bi-download"></i> Ekspor Hasil</button>
+                        <button type="button" class="btn btn-danger" data-bs-target="#deleteDataModal" id="bulkDeleteBtn" disabled><i class="bi bi-trash"></i> Hapus Data Terpilih</button>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <label for="perPageSelect" class="form-label me-2 mb-0">Display:</label>
-                        <select class="form-select form-select-sm" id="perPageSelect" style="width: auto;">
-                            @php $options = [10, 20, 30, 50, 100, 500, 'all']; @endphp
-                            @foreach ($options as $option)
-                                <option value="{{ $option }}"
-                                    {{ request('per_page', 20) == $option ? 'selected' : '' }}>
-                                    {{ $option == 'all' ? 'All' : $option }}
-                                </option>
-                            @endforeach
-                        </select>
+
+                    {{-- Filter Tahun & Per Page --}}
+                    <div class="d-flex align-items-center gap-2">
+                        <div>
+                            <label for="perPageSelect" class="form-label me-2 mb-0">Display:</label>
+                            <select class="form-select form-select-sm" id="perPageSelect" style="width: auto;">
+                                @php $options = [10, 20, 30, 50, 100, 500, 'all']; @endphp
+                                @foreach($options as $option)
+                                    <option value="{{ $option }}" {{ (request('per_page', 20) == $option) ? 'selected' : '' }}>
+                                        {{ $option == 'all' ? 'All' : $option }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <label for="tahunSelect" class="form-label me-2 mb-0">Tahun:</label>
+                            <select class="form-select form-select-sm" id="tahunSelect" style="width: auto;">
+                                @foreach($availableTahun ?? [date('Y')] as $tahun)
+                                    <option value="{{ $tahun }}" {{ ($selectedTahun ?? date('Y')) == $tahun ? 'selected' : '' }}>{{ $tahun }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Alert biarkan apa adanya --}}
+                {{-- Alert Sukses/Error --}}
                 @if (session('success'))
-                    ...
+                <div class="alert alert-success alert-dismissible fade show" role="alert"> {{ session('success') }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
+                @elseif (session('error'))
+                 <div class="alert alert-danger alert-dismissible fade show" role="alert"> {{ session('error') }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
                 @endif
-                @if ($errors->any())
-                    ...
+                @if ($errors->any() && !session('error_modal'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert"> <strong>Error!</strong> Periksa form.<button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
                 @endif
 
-                <ul class="nav nav-pills mb-3 d-flex flex-wrap gap-8">
+                {{-- Tab Kegiatan (misal: SPUNP-TW1, SHKK-TW3) --}}
+                <ul class="nav nav-pills mb-3 d-flex flex-wrap gap-2" >
                     <li class="nav-item">
-                        <a class="nav-link {{ request('kegiatan') == '' ? 'active' : '' }}"
-                            href="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}">All
-                            data</a>
+                        <a class="nav-link {{ empty($selectedKegiatan) ? 'active' : '' }}"
+                           href="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
+                           Semua TW ({{ strtoupper($jenisKegiatan) }})
+                        </a>
                     </li>
-                    @foreach ($kegiatanCounts as $kegiatan)
+                    @foreach($kegiatanCounts ?? [] as $kegiatan)
                         <li class="nav-item">
-                            <a class="nav-link {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
-                                href="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'kegiatan' => $kegiatan->nama_kegiatan]) }}">
-
-                                {{ $kegiatan->nama_kegiatan }} <span
-                                    class="badge bg-secondary">{{ $kegiatan->total }}</span>
+                            <a class="nav-link {{ ($selectedKegiatan ?? '') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
+                               href="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'kegiatan' => $kegiatan->nama_kegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
+                                {{ $kegiatan->nama_kegiatan }} <span class="badge bg-secondary">{{ $kegiatan->total }}</span>
                             </a>
                         </li>
                     @endforeach
                 </ul>
 
-                <form action="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}"
-                    method="GET" class="mb-4">
-                    {{-- ... (Form pencarian biarkan apa adanya) ... --}}
+                {{-- Form Pencarian --}}
+                <form action="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET" class="mb-4">
+                    <div class="row g-2 align-items-center">
+                        <input type="hidden" name="tahun" value="{{ $selectedTahun ?? date('Y') }}">
+                        @if(!empty($selectedKegiatan))
+                            <input type="hidden" name="kegiatan" value="{{ $selectedKegiatan }}">
+                        @endif
+                        <div class="col-md-9 col-12">
+                            <input type="text" class="form-control" placeholder="Cari Nama Kegiatan, BS, Petugas..." name="search" value="{{ $search ?? '' }}">
+                        </div>
+                        <div class="col-md-3 col-12">
+                            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i> Cari</button>
+                        </div>
+                    </div>
                 </form>
 
-
+                {{-- Tabel Data --}}
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col">
-                                    <input type="checkbox" class="form-check-input" id="selectAll">
-                                </th>
-                                <th scope="col">Nama Kegiatan</th>
-                                <th scope="col">Blok Sensus/Responden</th>
-                                <th scope="col">Pencacah</th>
-                                <th scope="col">Pengawas</th>
-                                <th scope="col">Tanggal Target Penyelesaian</th>
-                                <th scope="col">Flag Progress</th>
-                                <th scope="col">Tanggal Pengumpulan</th>
-                                <th scope="col">Aksi</th>
+                        <thead class="table-light text-center">
+                             <tr>
+                                <th style="width: 1%;"><input type="checkbox" class="form-check-input" id="selectAll"></th>
+                                <th>Nama Kegiatan</th>
+                                <th>BS/Responden</th>
+                                <th>Pencacah</th>
+                                <th>Pengawas</th>
+                                <th>Target Selesai</th>
+                                <th>Progress</th>
+                                <th>Tgl Kumpul</th>
+                                <th style="width: 10%;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($listData as $item)
+                            @forelse ($listData ?? [] as $item)
                                 <tr>
-                                    <td>
-                                        <input type="checkbox" class="form-check-input row-checkbox"
-                                            value="{{ $item->id_distribusi_triwulanan }}">
-                                    </td>
+                                    {{-- Primary key disesuaikan --}}
+                                    <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" value="{{ $item->id_distribusi_triwulanan }}"></td>
                                     <td>{{ $item->nama_kegiatan }}</td>
                                     <td>{{ $item->BS_Responden }}</td>
                                     <td>{{ $item->pencacah }}</td>
                                     <td>{{ $item->pengawas }}</td>
-
-                                    {{-- PERBAIKAN FORMAT TANGGAL --}}
-                                    <td>{{ $item->target_penyelesaian ? $item->target_penyelesaian->format('d/m/Y') : '-' }}
+                                    {{-- Menggunakan $casts, format() bisa langsung dipakai --}}
+                                    <td class="text-center">{{ $item->target_penyelesaian ? $item->target_penyelesaian->format('d/m/Y') : '-' }}</td>
+                                    <td class="text-center">
+                                         @php
+                                            $flag = $item->flag_progress;
+                                            $badgeClass = ($flag == 'Selesai') ? 'bg-success' : 'bg-warning text-dark';
+                                        @endphp
+                                        <span class="badge {{ $badgeClass }}">{{ $flag }}</span>
                                     </td>
-
-                                    <td><span
-                                            class="badge {{ $item->flag_progress == 'Selesai' ? 'bg-success' : 'bg-warning text-dark' }}">{{ $item->flag_progress }}</span>
-                                    </td>
-
-                                    {{-- PERBAIKAN FORMAT TANGGAL --}}
-                                    <td>{{ $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('d/m/Y') : '-' }}
-                                    </td>
-
-                                    <td class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
-                                            data-bs-target="#editDataModal"
-                                            onclick="editData({{ $item->id_distribusi_triwulanan }})">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
-
-                                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                            data-bs-target="#deleteDataModal"
-                                            onclick="deleteData({{ $item->id_distribusi_triwulanan }})">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                                     {{-- Menggunakan $casts, format() bisa langsung dipakai --}}
+                                    <td class="text-center">{{ $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('d/m/Y') : '-' }}</td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            {{-- Primary key disesuaikan --}}
+                                            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editDataModal" onclick="editData({{ $item->id_distribusi_triwulanan }})"><i class="bi bi-pencil-square"></i></button>
+                                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteDataModal" onclick="deleteData({{ $item->id_distribusi_triwulanan }})"><i class="bi bi-trash"></i></button>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center">Tidak ada data yang ditemukan.</td>
+                                    <td colspan="9" class="text-center">Tidak ada data {{ strtoupper($jenisKegiatan) }} yang ditemukan untuk tahun {{ $selectedTahun }}.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div class="card-footer d-flex justify-content-between align-items-center"> {{-- Perbaikan layout footer --}}
-                <div class="text-muted small">
-                    Displaying {{ $listData->firstItem() ?? 0 }} - {{ $listData->lastItem() ?? 0 }} of
-                    {{ $listData->total() }}
-                </div>
-                <div>
-                    {{ $listData->links() }}
-                </div>
+             <div class="card-footer d-flex justify-content-between align-items-center">
+                <div class="text-muted small"> Displaying {{ $listData->firstItem() ?? 0 }} - {{ $listData->lastItem() ?? 0 }} of {{ $listData->total() ?? 0 }} </div>
+                <div> {{ $listData->links() ?? '' }} </div>
             </div>
         </div>
     </div>
-    <!-- Modal Ekspor -->
+
+    {{-- ================== MODAL EXPORT ================== --}}
     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}"
-                    method="GET">
-                    @csrf
-                    <!-- HIDDEN: Agar filter, search, page, per_page terkirim saat export -->
-                    <input type="hidden" name="kegiatan" value="{{ request('kegiatan') }}">
-                    <input type="hidden" name="search" value="{{ request('search') }}">
-                    <input type="hidden" name="page" value="{{ request('page', 1) }}">
-                    <input type="hidden" name="per_page" value="{{ request('per_page', 20) }}">
-
+                {{-- Action ke route export BARU --}}
+                <form action="{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET" id="exportForm">
+                    {{-- Hapus @csrf --}}
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exportModalLabel">Ekspor Data</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title" id="exportModalLabel">Ekspor Data {{ strtoupper($jenisKegiatan) }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Jangkauan Data -->
+                        {{-- Hidden inputs untuk filter aktif --}}
+                        <input type="hidden" name="tahun" id="export_tahun" value="{{ $selectedTahun ?? date('Y') }}">
+                        <input type="hidden" name="kegiatan" id="export_kegiatan" value="{{ $selectedKegiatan ?? '' }}">
+                        <input type="hidden" name="search" id="export_search" value="{{ $search ?? '' }}">
+                        <input type="hidden" name="page" id="export_page" value="{{ $listData->currentPage() }}">
+                        <input type="hidden" name="per_page" id="export_per_page" value="{{ request('per_page', $listData->perPage()) }}">
+
                         <div class="mb-3">
                             <label for="dataRange" class="form-label">Jangkauan Data</label>
                             <select class="form-select" id="dataRange" name="dataRange" required>
-                                <option value="all">Semua Catatan</option>
-                                <option value="current_page">Hanya Halaman Terkini</option>
+                                <option value="all">Semua Data ({{ $listData->total() }} record)</option>
+                                <option value="current_page">Hanya Halaman Ini ({{ $listData->count() }} record)</option>
                             </select>
                         </div>
-
-
-                        <!-- Format Data -->
                         <div class="mb-3">
-                            <label for="dataFormat" class="form-label">Format Data</label>
-                            <select class="form-select" id="dataFormat" name="dataFormat" required>
-                                <option value="formatted_values">Formatted Values</option>
-                                <option value="raw_values">Raw Values</option>
+                            <label for="dataFormat" class="form-label">Format Nilai Tanggal/Lainnya</label>
+                            <select class="form-select" id="dataFormat" name="dataFormat">
+                                <option value="formatted_values" selected>Gunakan Format Tampilan (misal: dd/mm/yyyy)</option>
+                                <option value="raw_values">Gunakan Nilai Asli Database (misal: yyyy-mm-dd)</option>
                             </select>
+                            <small class="form-text text-muted">Pilih "Raw Values" jika ingin mengolah data lebih lanjut.</small>
                         </div>
-                        <!-- Format Keluaran -->
                         <div class="mb-3">
-                            <label for="exportFormat" class="form-label">Format Keluaran</label>
+                            <label for="exportFormat" class="form-label">Format File Export</label>
                             <select class="form-select" id="exportFormat" name="exportFormat" required>
-                                <option value="excel">Excel 2007</option>
-                                <option value="csv">CSV (Nilai Terpisah Koma)</option>
-                                <option value="word">Word (.docx)</option>
+                                <option value="excel">Excel (.xlsx)</option>
+                                <option value="csv">CSV (.csv)</option>
+                                {{-- <option value="word">Word (.docx)</option> --}}
                             </select>
                         </div>
                     </div>
-
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary">Ekspor</button>
@@ -235,229 +213,136 @@
         </div>
     </div>
 
-
-    <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel"
-        aria-hidden="true">
+    {{-- ================== MODAL TAMBAH ================== --}}
+    <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            {{-- TAMBAHKAN ID FORM --}}
+            {{-- Action ke route store yang baru --}}
             <form action="{{ route('tim-distribusi.triwulanan.store') }}" method="POST" id="tambahForm">
-                @csrf
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="tambahDataModalLabel">Tambah Data Baru</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tambahDataModalLabel">Tambah Data {{ strtoupper($jenisKegiatan) }} Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {{-- Nama Kegiatan (Autocomplete) --}}
+                    <div class="mb-3 autocomplete-container">
+                        <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror" id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" placeholder="Ketik {{ strtoupper($jenisKegiatan) }}-TW..." required autocomplete="off">
+                        <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
+                        <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
                     </div>
-                    <div class="modal-body">
-
-                        {{-- UBAH INPUT NAMA KEGIATAN --}}
-                        <div class="mb-3 autocomplete-container">
-                            <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror"
-                                id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
-                                placeholder="Ketik untuk mencari kegiatan..." required autocomplete="off">
-                            <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
-                            <div class="invalid-feedback" data-field="nama_kegiatan">
-                                @error('nama_kegiatan')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="BS_Responden" class="form-label">Blok Sensus/Responden <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror"
-                                id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
-                            <div class="invalid-feedback" data-field="BS_Responden">
-                                @error('BS_Responden')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="mb-3 autocomplete-container">
-                            <label for="pencacah" class="form-label">Pencacah <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror"
-                                id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required
-                                autocomplete="off">
-                            <div class="autocomplete-suggestions" id="pencacah-suggestions"></div>
-                            <div class="invalid-feedback" data-field="pencacah">
-                                @error('pencacah')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="mb-3 autocomplete-container">
-                            <label for="pengawas" class="form-label">Pengawas <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror"
-                                id="pengawas" name="pengawas" value="{{ old('pengawas') }}" required
-                                autocomplete="off">
-                            <div class="autocomplete-suggestions" id="pengawas-suggestions"></div>
-                            <div class="invalid-feedback" data-field="pengawas">
-                                @error('pengawas')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="target_penyelesaian" class="form-label">Tanggal Target Penyelesaian <span
-                                    class="text-danger">*</span></label>
-                            <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror"
-                                id="target_penyelesaian" name="target_penyelesaian"
-                                value="{{ old('target_penyelesaian') }}" required>
-                            <div class="invalid-feedback" data-field="target_penyelesaian">
-                                @error('target_penyelesaian')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="flag_progress" class="form-label">Flag Progress <span
-                                    class="text-danger">*</span></label>
-                            <select class="form-select @error('flag_progress') is-invalid @enderror" id="flag_progress"
-                                name="flag_progress" required>
-                                <option value="Belum Selesai"
-                                    {{ old('flag_progress') == 'Belum Selesai' ? 'selected' : '' }}>Belum Selesai</option>
-                                <option value="Selesai" {{ old('flag_progress') == 'Selesai' ? 'selected' : '' }}>Selesai
-                                </option>
-                            </select>
-                            <div class="invalid-feedback" data-field="flag_progress">
-                                @error('flag_progress')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
-                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror"
-                                id="tanggal_pengumpulan" name="tanggal_pengumpulan"
-                                value="{{ old('tanggal_pengumpulan') }}" required>
-                            <div class="invalid-feedback" data-field="tanggal_pengumpulan">
-                                @error('tanggal_pengumpulan')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
+                    {{-- BS Responden --}}
+                    <div class="mb-3">
+                        <label for="BS_Responden" class="form-label">Blok Sensus/Responden <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror" id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
+                        <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden'){{ $message }}@enderror</div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">
-                            <span class="spinner-border spinner-border-sm d-none" role="status"
-                                aria-hidden="true"></span>
-                            Simpan
-                        </button>
+                     {{-- Pencacah (Autocomplete) --}}
+                    <div class="mb-3 autocomplete-container">
+                        <label for="pencacah" class="form-label">Pencacah <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control @error('pencacah') is-invalid @enderror" id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off">
+                        <div class="autocomplete-suggestions" id="pencacah-suggestions"></div>
+                        <div class="invalid-feedback" data-field="pencacah">@error('pencacah'){{ $message }}@enderror</div>
+                    </div>
+                     {{-- Pengawas (Autocomplete) --}}
+                    <div class="mb-3 autocomplete-container">
+                        <label for="pengawas" class="form-label">Pengawas <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control @error('pengawas') is-invalid @enderror" id="pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off">
+                        <div class="autocomplete-suggestions" id="pengawas-suggestions"></div>
+                        <div class="invalid-feedback" data-field="pengawas">@error('pengawas'){{ $message }}@enderror</div>
+                    </div>
+                    {{-- Target Penyelesaian --}}
+                    <div class="mb-3">
+                        <label for="target_penyelesaian" class="form-label">Target Penyelesaian <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror" id="target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required>
+                        <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian'){{ $message }}@enderror</div>
+                    </div>
+                    {{-- Flag Progress --}}
+                    <div class="mb-3">
+                        <label for="flag_progress" class="form-label">Flag Progress <span class="text-danger">*</span></label>
+                        <select class="form-select @error('flag_progress') is-invalid @enderror" id="flag_progress" name="flag_progress" required>
+                            <option value="Belum Selesai" @selected(old('flag_progress', 'Belum Selesai') == 'Belum Selesai')>Belum Selesai</option>
+                            <option value="Selesai" @selected(old('flag_progress') == 'Selesai')>Selesai</option>
+                        </select>
+                        <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress'){{ $message }}@enderror</div>
+                    </div>
+                    {{-- Tanggal Pengumpulan --}}
+                    <div class="mb-3">
+                        <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
+                        <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror" id="tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}">
+                        <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan'){{ $message }}@enderror</div>
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary"> <span class="spinner-border spinner-border-sm d-none"></span> Simpan </button>
+                </div>
+            </div>
             </form>
         </div>
     </div>
 
+    {{-- ================== MODAL EDIT ================== --}}
     <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <form id="editForm" method="POST">
+            <form id="editForm" method="POST"> {{-- Action diatur JS --}}
                 @csrf
                 @method('PUT')
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="editDataModalLabel">Edit Data</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title" id="editDataModalLabel">Edit Data {{ strtoupper($jenisKegiatan) }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        
-                        {{-- Nama Kegiatan --}}
-                        <div class="mb-3 autocomplete-container">
-                            <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror" 
-                                id="edit_nama_kegiatan" name="nama_kegiatan" 
-                                value="{{ old('nama_kegiatan') }}" required autocomplete="off">
-                            <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
-                            <div class="invalid-feedback" data-field="nama_kegiatan">
-                                @error('nama_kegiatan')
-                                    {{ $message }}
-                                @enderror
-                            </div>
-                        </div>
+                         <input type="hidden" id="edit_id_fallback"> {{-- Untuk fallback error --}}
 
-                        {{-- BS Responden --}}
+                         <div class="mb-3 autocomplete-container">
+                            <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror" id="edit_nama_kegiatan" name="nama_kegiatan" required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
+                            <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
+                        </div>
                         <div class="mb-3">
                             <label for="edit_BS_Responden" class="form-label">Blok Sensus/Responden <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror" 
-                                id="edit_BS_Responden" name="BS_Responden" 
-                                value="{{ old('BS_Responden') }}" required>
+                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror" id="edit_BS_Responden" name="BS_Responden" required>
                             <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden'){{ $message }}@enderror</div>
                         </div>
-
-                        {{-- Pencacah --}}
-                        <div class="mb-3 autocomplete-container"> 
+                        <div class="mb-3 autocomplete-container">
                             <label for="edit_pencacah" class="form-label">Pencacah <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror" 
-                                id="edit_pencacah" name="pencacah" 
-                                value="{{ old('pencacah') }}" required autocomplete="off">
+                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror" id="edit_pencacah" name="pencacah" required autocomplete="off">
                             <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
                             <div class="invalid-feedback" data-field="pencacah">@error('pencacah'){{ $message }}@enderror</div>
                         </div>
-
-                        {{-- Pengawas --}}
                         <div class="mb-3 autocomplete-container">
                             <label for="edit_pengawas" class="form-label">Pengawas <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror" 
-                                id="edit_pengawas" name="pengawas" 
-                                value="{{ old('pengawas') }}" required autocomplete="off">
+                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror" id="edit_pengawas" name="pengawas" required autocomplete="off">
                             <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div>
-                            <div class="invalid-feedback" data-field="pengawas">
-                                @error('pengawas')
-                                    {{ $message }}
-                                @enderror
-                            </div>
+                            <div class="invalid-feedback" data-field="pengawas">@error('pengawas'){{ $message }}@enderror</div>
                         </div>
-
-                        {{-- Target Penyelesaian --}}
                         <div class="mb-3">
-                            <label for="edit_target_penyelesaian" class="form-label">Tanggal Target Penyelesaian <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror" 
-                                id="edit_target_penyelesaian" name="target_penyelesaian" 
-                                value="{{ old('target_penyelesaian') }}" required>
+                            <label for="edit_target_penyelesaian" class="form-label">Target Penyelesaian <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror" id="edit_target_penyelesaian" name="target_penyelesaian" required>
                             <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian'){{ $message }}@enderror</div>
                         </div>
-                        
-                        {{-- Flag Progress --}}
                         <div class="mb-3">
                             <label for="edit_flag_progress" class="form-label">Flag Progress <span class="text-danger">*</span></label>
-                            <select class="form-select @error('flag_progress') is-invalid @enderror" 
-                                    id="edit_flag_progress" name="flag_progress" required>
-                                
-                                {{-- Tambahkan logic 'selected' di sini --}}
-                                <option value="Belum Selesai" {{ old('flag_progress') == 'Belum Selesai' ? 'selected' : '' }}>Belum Selesai</option>
-                                <option value="Selesai" {{ old('flag_progress') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
-                            
+                            <select class="form-select @error('flag_progress') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required>
+                                <option value="Belum Selesai">Belum Selesai</option>
+                                <option value="Selesai">Selesai</option>
                             </select>
-                            <div class="invalid-feedback" data-field="flag_progress">
-                                @error('flag_progress')
-                                    {{ $message }}
-                                @enderror
-                            </div>
+                            <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress'){{ $message }}@enderror</div>
                         </div>
-                        
-                        {{-- Tanggal Pengumpulan --}}
                         <div class="mb-3">
                             <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
-                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror" 
-                                id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan"
-                                value="{{ old('tanggal_pengumpulan') }}">
+                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror" id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan">
                             <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan'){{ $message }}@enderror</div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary">
-                            <span class="spinner-border spinner-border-sm d-none" role="status"
-                                aria-hidden="true"></span>
-                            Simpan Perubahan
+                            <span class="spinner-border spinner-border-sm d-none"></span> Simpan Perubahan
                         </button>
                     </div>
                 </div>
@@ -465,503 +350,132 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel"
-        aria-hidden="true">
+    {{-- ================== MODAL HAPUS ================== --}}
+    <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <form id="deleteForm" method="POST">
-                @csrf
-                @method('DELETE')
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="deleteDataModalLabel">Konfirmasi Hapus</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" id="deleteModalBody">
-                        Apakah Anda yakin ingin menghapus data ini?
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-danger" id="confirmDeleteButton">Hapus</button>
-                    </div>
-                </div>
-            </form>
+             <form id="deleteForm" method="POST"> @csrf @method('DELETE') <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title">Konfirmasi Hapus</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button> </div> <div class="modal-body" id="deleteModalBody"> Hapus data {{ strtoupper($jenisKegiatan) }} ini? </div> <div class="modal-footer"> <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button> <button type="submit" class="btn btn-danger" id="confirmDeleteButton">Hapus</button> </div> </div> </form>
         </div>
     </div>
 
 @endsection
 
 @push('scripts')
-    <script>
-        /**
-         * Inisialisasi Autocomplete Input Field
-         * @param {string} inputId - ID dari elemen input
-         * @param {string} suggestionsId - ID dari container untuk menampilkan suggestions
-         * @param {string} searchUrl - URL endpoint untuk fetch data autocomplete
-         */
-        function initAutocomplete(inputId, suggestionsId, searchUrl) {
-            const input = document.getElementById(inputId);
-            if (!input) return;
-            const suggestionsContainer = document.getElementById(suggestionsId);
-            let debounceTimer;
-            let activeSuggestionIndex = -1; // Untuk navigasi keyboard
+<script>
+    /** Autocomplete */
+    // ... (Fungsi initAutocomplete tidak perlu diubah) ...
+    function initAutocomplete(inputId, suggestionsId, searchUrl) { const input = document.getElementById(inputId); if (!input || !searchUrl) return; const suggestionsContainer = document.getElementById(suggestionsId); let debounceTimer; let activeSuggestionIndex = -1; input.addEventListener('input', function() { const query = this.value; clearTimeout(debounceTimer); if (query.length < 1) { if (suggestionsContainer) suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; return; } debounceTimer = setTimeout(() => { const finalSearchUrl = `${searchUrl}&query=${encodeURIComponent(query)}`; fetch(finalSearchUrl).then(response => { if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } return response.json(); }).then(data => { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; if (Array.isArray(data)) { data.forEach((item, index) => { const div = document.createElement('div'); div.textContent = item; div.classList.add('autocomplete-suggestion-item'); div.onclick = () => { input.value = item; suggestionsContainer.innerHTML = ''; }; div.onmouseover = () => { document.querySelectorAll(`#${suggestionsId} .autocomplete-suggestion-item`).forEach(el => el.classList.remove('active')); div.classList.add('active'); activeSuggestionIndex = index; }; suggestionsContainer.appendChild(div); }); } else { console.error('Autocomplete data is not an array:', data); } }).catch(error => console.error('Autocomplete error:', error)); }, 300); }); input.addEventListener('keydown', function(e) { const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item'); if (suggestions.length === 0) return; if (e.key === 'ArrowDown') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'ArrowUp') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'Enter') { if (activeSuggestionIndex > -1) { e.preventDefault(); input.value = suggestions[activeSuggestionIndex].textContent; suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } } else if (e.key === 'Escape') { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); function updateActiveSuggestion(suggestions, index) { suggestions.forEach(el => el.classList.remove('active')); if (suggestions[index]) suggestions[index].classList.add('active'); } document.addEventListener('click', (e) => { if (e.target.id !== inputId && suggestionsContainer) { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); }
 
-            input.addEventListener('input', function() {
-                const query = this.value;
-                clearTimeout(debounceTimer);
-                if (query.length < 1) { // Tampilkan rekomendasi bahkan dari 1 karakter
-                    if (suggestionsContainer) suggestionsContainer.innerHTML = '';
-                    activeSuggestionIndex = -1;
-                    return;
-                }
-                debounceTimer = setTimeout(() => {
-                    const finalSearchUrl = `${searchUrl}?query=${query}`;
-                    fetch(finalSearchUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            suggestionsContainer.innerHTML = ''; // Kosongkan suggestion lama
-                            activeSuggestionIndex = -1;
-                            data.forEach((item, index) => {
-                                const div = document.createElement('div');
-                                div.textContent = item;
-                                div.classList.add('autocomplete-suggestion-item');
+    // --- URL Basis BARU ---
+    const distribusiTriwulananBaseUrl = '/tim-distribusi/triwulanan'; // Sesuaikan
+    const currentJenisKegiatan = '{{ $jenisKegiatan }}'; // Ambil jenis kegiatan
 
-                                // Saat suggestion diklik, isi input dan tutup box
-                                div.onclick = () => {
-                                    input.value = item;
-                                    suggestionsContainer.innerHTML = '';
-                                };
-                                // Saat mouse hover, update active index
-                                div.onmouseover = () => {
-                                    document.querySelectorAll(
-                                        `#${suggestionsId} .autocomplete-suggestion-item`
-                                    ).forEach(el => el.classList.remove('active'));
-                                    div.classList.add('active');
-                                    activeSuggestionIndex = index;
-                                };
-                                suggestionsContainer.appendChild(div);
-                            });
-                        })
-                        .catch(error => console.error('Autocomplete error:', error));
-                }, 300); // Delay 300ms sebelum fetch
-            });
-
-            // Navigasi Keyboard (Arrow Up, Arrow Down, Enter, Escape)
-            input.addEventListener('keydown', function(e) {
-                const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item');
-                if (suggestions.length === 0) return;
-
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length;
-                    updateActiveSuggestion(suggestions, activeSuggestionIndex);
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length;
-                    updateActiveSuggestion(suggestions, activeSuggestionIndex);
-                } else if (e.key === 'Enter') {
-                    if (activeSuggestionIndex > -1) {
-                        e.preventDefault();
-                        input.value = suggestions[activeSuggestionIndex].textContent;
-                        suggestionsContainer.innerHTML = '';
-                        activeSuggestionIndex = -1;
-                    }
-                } else if (e.key === 'Escape') {
-                    suggestionsContainer.innerHTML = '';
-                    activeSuggestionIndex = -1;
-                }
-            });
-
-        function updateActiveSuggestion(suggestions, index) {
-            suggestions.forEach(el => el.classList.remove('active'));
-            if (suggestions[index]) {
-                suggestions[index].classList.add('active');
-            }
-        }
-
-        /**
-         * Meng-handle submit form via AJAX
-         * @param {Event} event - Event submit
-         * @param {HTMLFormElement} form - Elemen form
-         * @param {bootstrap.Modal} modalInstance - Instance modal Bootstrap
-         */
-        async function handleFormSubmitAjax(event, form, modalInstance) {
-            event.preventDefault();
-            const submitButton = form.querySelector('button[type="submit"]');
-            const spinner = submitButton.querySelector('.spinner-border');
-
+    /** Edit Data (Sudah Benar) */
     function editData(id) {
-        const editModalEl = document.getElementById('editDataModal');
-        if (!editModalEl) return;
-
-            try {
-                const formData = new FormData(form);
-                const response = await fetch(form.action, {
-                    method: form.method,
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': formData.get('_token')
-                    }
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    if (response.status === 422 && data.errors) {
-                        showFormErrors(form, data.errors);
-                    } else {
-                        alert(data.message || 'Terjadi kesalahan server.');
-                    }
-                } else {
-                    modalInstance.hide();
-                    location.reload();
-                }
-
-            } catch (error) {
-                console.error('Fetch error:', error);
-                alert('Tidak dapat terhubung ke server.');
-            } finally {
-                submitButton.disabled = false;
-                if (spinner) spinner.classList.add('d-none');
-            }
-        }
-
-        // --- SCRIPT UTAMA SETELAH DOKUMEN SIAP (DOM Ready) ---
-        document.addEventListener('DOMContentLoaded', function() {
-
-        });
-        // --- Inisialisasi Autocomplete ---
-        // Pastikan rute ini ada di web.php dan controllernya ada fungsi search
-        @if (Route::has('master.kegiatan.search'))
-            initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', '{{ route('master.kegiatan.search') }}');
-            initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions',
-                '{{ route('master.kegiatan.search') }}');
-        @else
-            console.warn('Rute "master.kegiatan.search" tidak ditemukan.');
-        @endif
-
-        // Pastikan rute ini ada di web.php dan controllernya ada fungsi search
-        @if (Route::has('master.petugas.search'))
-            initAutocomplete('pencacah', 'pencacah-suggestions', '{{ route('master.petugas.search') }}');
-            initAutocomplete('pengawas', 'pengawas-suggestions', '{{ route('master.petugas.search') }}');
-            initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions',
-                '{{ route('master.petugas.search') }}');
-            initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions',
-                '{{ route('master.petugas.search') }}');
-        @else
-            console.warn('Rute "master.petugas.search" tidak ditemukan.');
-        @endif
-
-
-        // --- Inisialisasi Handler AJAX Form ---
-        const tambahModalEl = document.getElementById('tambahDataModal');
-        const tambahForm = document.getElementById('tambahForm');
-        if (tambahModalEl && tambahForm) {
-            // PERBAIKAN BUG MODAL: Gunakan getOrCreateInstance
-            const tambahModal = bootstrap.Modal.getOrCreateInstance(tambahModalEl);
-            tambahForm.addEventListener('submit', (event) => {
-                handleFormSubmitAjax(event, tambahForm, tambahModal);
-            });
-            tambahModalEl.addEventListener('hidden.bs.modal', () => {
-                clearFormErrors(tambahForm);
-                tambahForm.reset();
-            });
-        }
-
-        const editModalEl = document.getElementById('editDataModal');
+        // ... (fungsi editData sudah benar dari jawaban sebelumnya) ...
+        const editModalEl = document.getElementById('editDataModal'); if (!editModalEl) return;
+        const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
         const editForm = document.getElementById('editForm');
-        if (editModalEl && editForm) {
-            // PERBAIKAN BUG MODAL: Gunakan getOrCreateInstance
-            const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
-            editForm.addEventListener('submit', (event) => {
-                handleFormSubmitAjax(event, editForm, editModal);
-            });
-            editModalEl.addEventListener('hidden.bs.modal', () => {
-                clearFormErrors(editForm);
-            });
-        }
+        editForm.action = `${distribusiTriwulananBaseUrl}/${id}`;
+        clearFormErrors(editForm);
+        const fallbackInput = editForm.querySelector('#edit_id_fallback');
+        if(fallbackInput) fallbackInput.value = id;
+        fetch(`${distribusiTriwulananBaseUrl}/${id}/edit`)
+            .then(response => { if (!response.ok) { return response.text().then(text => { throw new Error(text || 'Data tidak ditemukan'); }); } return response.json(); })
+            .then(data => {
+                document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
+                document.getElementById('edit_BS_Responden').value = data.BS_Responden || '';
+                document.getElementById('edit_pencacah').value = data.pencacah || '';
+                document.getElementById('edit_pengawas').value = data.pengawas || '';
+                document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian || ''; // Sudah Y-m-d
+                document.getElementById('edit_flag_progress').value = data.flag_progress || 'Belum Selesai';
+                document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan || ''; // Sudah Y-m-d
+                editModal.show();
+            })
+            .catch(error => { console.error("Error loading edit data:", error); alert('Tidak dapat memuat data. Error: ' + error.message); });
+    }
 
-
-        // --- Logika Select All & Bulk Delete ---
-        const selectAll = document.getElementById('selectAll');
-        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-        const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    /** Delete Data (Sudah Benar) */
+    function deleteData(id) {
+        // ... (fungsi deleteData sudah benar dari jawaban sebelumnya) ...
+        const deleteModalEl = document.getElementById('deleteDataModal'); if (!deleteModalEl) return;
+        const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
         const deleteForm = document.getElementById('deleteForm');
+        deleteForm.action = `${distribusiTriwulananBaseUrl}/${id}`;
+        let methodInput = deleteForm.querySelector('input[name="_method"]'); if (!methodInput) { methodInput = document.createElement('input'); methodInput.type = 'hidden'; methodInput.name = '_method'; deleteForm.appendChild(methodInput); } methodInput.value = 'DELETE';
+        deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
+        document.getElementById('deleteModalBody').innerText = `Apakah Anda yakin ingin menghapus data ${currentJenisKegiatan.toUpperCase()} ini?`;
+        const confirmBtn = document.getElementById('confirmDeleteButton');
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        newConfirmBtn.addEventListener('click', (e) => { e.preventDefault(); deleteForm.submit(); });
+        deleteModal.show();
+    }
 
-        function updateBulkDeleteBtnState() {
-            const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
-            if (bulkDeleteBtn) bulkDeleteBtn.disabled = checkedCount === 0;
+    /** AJAX Helpers (Sudah Benar) */
+    // ... (fungsi clearFormErrors, showFormErrors, handleFormSubmitAjax tidak perlu diubah) ...
+     function clearFormErrors(form) { form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid')); form.querySelectorAll('.invalid-feedback[data-field]').forEach(el => el.textContent = ''); }
+     function showFormErrors(form, errors) { for (const [field, messages] of Object.entries(errors)) { const input = form.querySelector(`[name="${field}"]`); const errorDiv = form.querySelector(`.invalid-feedback[data-field="${field}"]`); if (input) input.classList.add('is-invalid'); if (errorDiv) errorDiv.textContent = messages[0]; } }
+     async function handleFormSubmitAjax(event, form, modalInstance) { event.preventDefault(); const sb = form.querySelector('button[type="submit"]'); const sp = sb.querySelector('.spinner-border'); sb.disabled = true; if (sp) sp.classList.remove('d-none'); clearFormErrors(form); try { const fd = new FormData(form); const response = await fetch(form.action, { method: form.method, body: fd, headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': fd.get('_token') } }); const data = await response.json(); if (!response.ok) { if (response.status === 422 && data.errors) { showFormErrors(form, data.errors); } else { alert(data.message || 'Error.'); } } else { modalInstance.hide(); location.reload(); } } catch (error) { console.error('Fetch error:', error); alert('Tidak terhubung.'); } finally { sb.disabled = false; if (sp) sp.classList.add('d-none'); } }
+
+    /** DOM Ready */
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // --- Init Autocomplete (PERBAIKAN URL) ---
+        @if(Route::has('tim-distribusi.triwulanan.searchKegiatan'))
+             // Kirim jenis kegiatan saat ini ke URL search
+            const kegiatanSearchUrl = `{{ route("tim-distribusi.triwulanan.searchKegiatan", ['jenisKegiatan' => $jenisKegiatan]) }}?`;
+            initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', kegiatanSearchUrl);
+            initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', kegiatanSearchUrl);
+        @else console.warn('Rute tim-distribusi.triwulanan.searchKegiatan tidak ditemukan.'); @endif
+
+        @if(Route::has('tim-distribusi.triwulanan.searchPetugas'))
+            const petugasSearchUrl = '{{ route("tim-distribusi.triwulanan.searchPetugas") }}?'; // Hapus field=...
+            initAutocomplete('pencacah', 'pencacah-suggestions', petugasSearchUrl);
+            initAutocomplete('pengawas', 'pengawas-suggestions', petugasSearchUrl);
+            initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', petugasSearchUrl);
+            initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', petugasSearchUrl);
+        @else console.warn('Rute tim-distribusi.triwulanan.searchPetugas tidak ditemukan.'); @endif
+
+
+        // --- Init AJAX Form Handlers (Sudah Benar) ---
+        // ... (kode sama seperti sebelumnya) ...
+        const tme = document.getElementById('tambahDataModal'); const tf = document.getElementById('tambahForm'); if (tme && tf) { const tm = bootstrap.Modal.getOrCreateInstance(tme); tf.addEventListener('submit', (e) => handleFormSubmitAjax(e, tf, tm)); tme.addEventListener('hidden.bs.modal', () => { clearFormErrors(tf); tf.reset(); }); }
+        const eme = document.getElementById('editDataModal'); const ef = document.getElementById('editForm'); if (eme && ef) { const em = bootstrap.Modal.getOrCreateInstance(eme); ef.addEventListener('submit', (e) => handleFormSubmitAjax(e, ef, em)); eme.addEventListener('hidden.bs.modal', () => clearFormErrors(ef)); }
+
+        // --- Select All & Bulk Delete (Sudah Benar) ---
+        // ... (kode sama seperti sebelumnya) ...
+        const sa = document.getElementById('selectAll'); const rcb = document.querySelectorAll('.row-checkbox'); const bdb = document.getElementById('bulkDeleteBtn'); const df = document.getElementById('deleteForm'); function ubdbs() { const cc = document.querySelectorAll('.row-checkbox:checked').length; if (bdb) bdb.disabled = cc === 0; } sa?.addEventListener('change', () => { rcb.forEach(cb => cb.checked = sa.checked); ubdbs(); }); rcb.forEach(cb => cb.addEventListener('change', ubdbs)); ubdbs(); bdb?.addEventListener('click', () => { const count = document.querySelectorAll('.row-checkbox:checked').length; if (count === 0) return; const dme = document.getElementById('deleteDataModal'); if (!dme || !df) return; const dm = bootstrap.Modal.getOrCreateInstance(dme);
+        df.action = '{{ route("tim-distribusi.triwulanan.bulkDelete") }}'; let mi = df.querySelector('input[name="_method"]'); if (mi) mi.value = 'POST'; df.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove()); document.querySelectorAll('.row-checkbox:checked').forEach(cb => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'ids[]'; i.value = cb.value; df.appendChild(i); }); document.getElementById('deleteModalBody').innerText = `Hapus ${count} data terpilih?`; const ncb = document.getElementById('confirmDeleteButton').cloneNode(true); document.getElementById('confirmDeleteButton').parentNode.replaceChild(ncb, document.getElementById('confirmDeleteButton')); ncb.addEventListener('click', (e) => { e.preventDefault(); df.submit(); }); dm.show(); });
+
+        // --- Filters Per Page & Tahun (Sudah Benar) ---
+        const pps = document.getElementById('perPageSelect');
+        const ts = document.getElementById('tahunSelect'); // Ambil elemen tahun
+        function hfc() {
+            const cu = new URL(window.location.href);
+            const p = cu.searchParams;
+            if (pps) p.set('per_page', pps.value);
+            if (ts) p.set('tahun', ts.value); else p.delete('tahun'); // Handle jika filter tahun tidak ada
+            p.set('page', 1);
+            // Gunakan route helper dengan parameter jenisKegiatan
+            window.location.href = '{{ route("tim-distribusi.triwulanan.index", ["jenisKegiatan" => $jenisKegiatan]) }}' + '?' + p.toString();
         }
+        if (pps) pps.addEventListener('change', hfc);
+        if (ts) ts.addEventListener('change', hfc); // Tambahkan listener
 
-        selectAll?.addEventListener('change', () => {
-            rowCheckboxes.forEach(cb => cb.checked = selectAll.checked);
-            updateBulkDeleteBtnState();
-        });
-        rowCheckboxes.forEach(cb => cb.addEventListener('change', updateBulkDeleteBtnState));
-        updateBulkDeleteBtnState();
 
-        bulkDeleteBtn?.addEventListener('click', () => {
-            const count = document.querySelectorAll('.row-checkbox:checked').length;
-            if (count === 0) return;
+        // --- Fallback Error Modals (Sudah Benar) ---
+        // ... (kode sama seperti sebelumnya) ...
+        @if (session('error_modal') == 'tambahDataModal' && $errors->any()) const tmef = document.getElementById('tambahDataModal'); if (tmef) bootstrap.Modal.getOrCreateInstance(tmef).show(); @endif
+        @if (session('error_modal') == 'editDataModal' && $errors->any()) const eid_fb_input = document.getElementById('edit_id_fallback'); const eid_fb = eid_fb_input ? eid_fb_input.value : '{{ session('edit_id') }}'; if (eid_fb) { const emef = document.getElementById('editDataModal'); if(emef) { const edf = document.getElementById('editForm'); edf.action = `${distribusiTriwulananBaseUrl}/${eid_fb}`; bootstrap.Modal.getOrCreateInstance(emef).show(); @foreach ($errors->keys() as $f) const fel = edf.querySelector('[name="{{ $f }}"]'); if (fel) fel.classList.add('is-invalid'); const erel = edf.querySelector(`.invalid-feedback[data-field="{{ $f }}"]`); if (erel) erel.textContent = '{{ $errors->first($f) }}'; else { const erelById = edf.querySelector(`#edit_{{ $f }}_error`); if(erelById) erelById.textContent = '{{ $errors->first($f) }}'; } @endforeach } } @endif
 
-            const deleteModalEl = document.getElementById('deleteDataModal');
-            if (!deleteModalEl || !deleteForm) return;
+        // --- Auto-hide Alerts (Sudah Benar) ---
+        // ... (kode sama seperti sebelumnya) ...
+        const alertList = document.querySelectorAll('.alert-dismissible[role="alert"]'); alertList.forEach(function (alert) { if (!alert.closest('.modal')) { const autoHide = {{ session('auto_hide', 'false') ? 'true' : 'false' }}; if(autoHide) { setTimeout(() => { bootstrap.Alert.getOrCreateInstance(alert).close(); }, 5000); } } })
 
-            // PERBAIKAN BUG MODAL: Gunakan getOrCreateInstance
-            const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
+         // --- Script untuk Update Opsi Export Modal (Sudah Benar) ---
+         // ... (kode sama seperti sebelumnya) ...
+          const exportModalEl = document.getElementById('exportModal'); if(exportModalEl) { exportModalEl.addEventListener('show.bs.modal', function () { const currentPageOption = document.querySelector('#exportModal #dataRange option[value="current_page"]'); const allDataOption = document.querySelector('#exportModal #dataRange option[value="all"]'); const totalData = {{ $listData->total() }}; const currentPageData = {{ $listData->count() }}; if(currentPageOption) currentPageOption.textContent = `Hanya Halaman Ini (${currentPageData} data)`; if(allDataOption) allDataOption.textContent = `Semua Data (${totalData} data)`; document.querySelector('#exportForm input[name="tahun"]').value = '{{ $selectedTahun ?? date('Y') }}'; document.querySelector('#exportForm input[name="kegiatan"]').value = '{{ $selectedKegiatan ?? '' }}'; document.querySelector('#exportForm input[name="search"]').value = '{{ $search ?? '' }}'; document.querySelector('#exportForm input[name="page"]').value = '{{ $listData->currentPage() }}'; document.querySelector('#exportForm input[name="per_page"]').value = '{{ request('per_page', $listData->perPage()) }}'; }); }
 
-            deleteForm.action = '{{ route('tim-distribusi.triwulanan.bulkDelete') }}';
-            let methodInput = deleteForm.querySelector('input[name="_method"]');
-            if (methodInput) methodInput.value = 'POST';
-
-            deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
-            document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'ids[]';
-                input.value = cb.value;
-                deleteForm.appendChild(input);
-            });
-
-            document.getElementById('deleteModalBody').innerText =
-                `Apakah Anda yakin ingin menghapus ${count} data yang dipilih?`;
-
-            const newConfirmButton = document.getElementById('confirmDeleteButton').cloneNode(true);
-            document.getElementById('confirmDeleteButton').parentNode.replaceChild(newConfirmButton,
-                document.getElementById('confirmDeleteButton'));
-            newConfirmButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                deleteForm.submit();
-            });
-
-            deleteModal.show();
-        });
-
-        // --- Logika Dropdown Per Page ---
-        const perPageSelect = document.getElementById('perPageSelect');
-        if (perPageSelect) {
-            perPageSelect.addEventListener('change', function() {
-                const selectedValue = this.value;
-                const currentUrl = new URL(window.location.href);
-                const params = currentUrl.searchParams;
-                params.set('per_page', selectedValue);
-                params.set('page', 1);
-                window.location.href = currentUrl.pathname + '?' + params.toString();
-            });
-        }
-
-        // --- Logika Dropdown TAHUN ---
-        const tahunSelect = document.getElementById('tahunSelect');
-        if (tahunSelect) {
-            tahunSelect.addEventListener('change', function() {
-                const selectedTahun = this.value;
-                const currentUrl = new URL(window.location.href);
-                const params = currentUrl.searchParams;
-                params.set('tahun', selectedTahun);
-                params.set('page', 1);
-                window.location.href = currentUrl.pathname + '?' + params.toString();
-            });
-        }
-
-        @if (session('error_modal') == 'tambahDataModal' && $errors->any())
-            const tambahModalEl_fallback = document.getElementById('tambahDataModal');
-            if (tambahModalEl_fallback) {
-                // PERBAIKAN BUG MODAL
-                bootstrap.Modal.getOrCreateInstance(tambahModalEl_fallback).show();
-            }
-        @endif
-
-        @if (session('error_modal') == 'editDataModal' && $errors->any() && session('edit_id'))
-            const editId = {{ session('edit_id') }};
-            if (editId) {
-                editData(editId); // Panggil fungsi editData (yang sudah diperbaiki)
-
-                setTimeout(() => {
-                    const editForm_fallback = document.getElementById('editForm');
-                    @foreach ($errors->keys() as $field)
-                        const fieldElement = editForm_fallback.querySelector(
-                            '[name="{{ $field }}"]');
-                        if (fieldElement) {
-                            fieldElement.classList.add('is-invalid');
-                        }
-                        const errorElement = editForm_fallback.querySelector(
-                            `.invalid-feedback[data-field="{{ $field }}"]`);
-                        if (errorElement) {
-                            errorElement.textContent = '{{ $errors->first($field) }}';
-                        }
-                    @endforeach
-                }, 500);
-            }
-        @endif
-        // Export All Data
-        document.getElementById('exportAllBtn')?.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            let form = document.createElement('form');
-            form.method = 'GET';
-            form.action =
-                '{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}';
-
-            let inputs = {
-                'dataRange': 'all',
-                'exportFormat': document.getElementById('exportFormat')?.value || 'excel',
-                'kegiatan': document.querySelector('[name="kegiatan"]')?.value || '',
-                'search': document.querySelector('[name="search"]')?.value || ''
-            };
-
-            Object.keys(inputs).forEach(key => {
-                if (inputs[key]) {
-                    let input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = inputs[key];
-                    form.appendChild(input);
-                }
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-        });
-        // Export Current Page
-        document.getElementById('exportCurrentBtn')?.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            let form = document.createElement('form');
-            form.method = 'GET';
-            form.action =
-                '{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}';
-
-            let urlParams = new URLSearchParams(window.location.search);
-
-            let inputs = {
-                'dataRange': 'current_page',
-                'exportFormat': document.getElementById('exportFormat')?.value || 'excel',
-                'kegiatan': urlParams.get('kegiatan') || document.querySelector('[name="kegiatan"]')
-                    ?.value || '',
-                'search': urlParams.get('search') || document.querySelector('[name="search"]')
-                    ?.value || '',
-                'page': urlParams.get('page') || '1',
-                'per_page': urlParams.get('per_page') || '20'
-            };
-
-            Object.keys(inputs).forEach(key => {
-                if (inputs[key]) {
-                    let input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = inputs[key];
-                    form.appendChild(input);
-                }
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-        });
-        // ========== EXPORT ALL DATA ==========
-        const exportAllBtn = document.getElementById('exportAllBtn');
-        if (exportAllBtn) {
-            exportAllBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                console.log('=== EXPORT ALL DATA ===');
-
-                const exportFormat = document.getElementById('exportFormat')?.value || 'excel';
-
-                // Ambil filter kegiatan dari URL (lebih akurat)
-                const urlParams = new URLSearchParams(window.location.search);
-                const kegiatanFilter = urlParams.get('kegiatan') || '';
-                const searchInput = urlParams.get('search') || document.querySelector('input[name="search"]')
-                    ?.value || '';
-
-                console.log('Kegiatan Filter:', kegiatanFilter);
-                console.log('Search:', searchInput);
-
-                const params = new URLSearchParams({
-                    'dataRange': 'all',
-                    'exportFormat': exportFormat,
-                    'kegiatan': kegiatanFilter,
-                    'search': searchInput
-                });
-
-                const exportUrl =
-                    '{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}' + '?' +
-                    params.toString();
-
-                console.log('Export URL:', exportUrl);
-
-                const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
-                if (modal) modal.hide();
-
-                window.location.href = exportUrl;
-            });
-        }
-
-        // ========== EXPORT CURRENT PAGE ==========
-        const exportCurrentBtn = document.getElementById('exportCurrentBtn');
-        if (exportCurrentBtn) {
-            exportCurrentBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                console.log('=== EXPORT CURRENT PAGE ===');
-                console.log('Current URL:', window.location.href);
-
-                // Ambil SEMUA parameter dari URL saat ini
-                const urlParams = new URLSearchParams(window.location.search);
-
-                // Debug: tampilkan semua parameter
-                console.log('All URL Parameters:');
-                for (let [key, value] of urlParams.entries()) {
-                    console.log(`  ${key}: ${value}`);
-                }
-
-                const exportFormat = document.getElementById('exportFormat')?.value || 'excel';
-
-                // PENTING: Ambil filter kegiatan dari URL
-                const kegiatanFilter = urlParams.get('kegiatan') || '';
-                const searchInput = urlParams.get('search') || '';
-                const currentPage = urlParams.get('page') || '1';
-                const perPage = urlParams.get('per_page') || '20';
-
-                console.log('Parameters to send:');
-                console.log('  dataRange: current_page');
-                console.log('  kegiatan:', kegiatanFilter);
-                console.log('  search:', searchInput);
-                console.log('  page:', currentPage);
-                console.log('  per_page:', perPage);
-
-                const params = new URLSearchParams({
-                    'dataRange': 'current_page',
-                    'exportFormat': exportFormat,
-                    'kegiatan': kegiatanFilter,
-                    'search': searchInput,
-                    'page': currentPage,
-                    'per_page': perPage
-                });
-
-                const exportUrl =
-                    '{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}' + '?' +
-                    params.toString();
-
-                console.log('Final Export URL:', exportUrl);
-
-                const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
-                if (modal) modal.hide();
-
-                window.location.href = exportUrl;
-            });
-        }
-        // --- Auto-hide Alert Sukses/Error (Non-Modal) ---
-        const autoHideAlerts = document.querySelectorAll('.alert-dismissible[role="alert"]');
-        autoHideAlerts.forEach(alert => {
-            if (!alert.closest('.modal')) {
-                setTimeout(() => {
-                    // PERBAIKAN BUG MODAL
-                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-                    if (bsAlert) {
-                        bsAlert.close();
-                    }
-                }, 5000);
-            }
-        });
-    </script>
+    });
+</script>
 @endpush

@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SosialTriwulananExport;
 
 class SosialTriwulanController extends Controller
 {
@@ -55,10 +57,10 @@ class SosialTriwulanController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('BS_Responden', 'like', "%{$search}%")
-                  ->orWhere('pencacah', 'like', "%{$search}%")
-                  ->orWhere('pengawas', 'like', "%{$search}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$search}%") // Bisa cari nama kegiatan spesifik
-                  ->orWhere('flag_progress', 'like', "%{$search}%");
+                    ->orWhere('pencacah', 'like', "%{$search}%")
+                    ->orWhere('pengawas', 'like', "%{$search}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$search}%") // Bisa cari nama kegiatan spesifik
+                    ->orWhere('flag_progress', 'like', "%{$search}%");
             });
         }
 
@@ -82,7 +84,7 @@ class SosialTriwulanController extends Controller
             ->get();
 
         $masterKegiatanList = MasterKegiatan::where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%') // Hanya tampilkan master Seruti
-                                            ->orderBy('nama_kegiatan')->get();
+            ->orderBy('nama_kegiatan')->get();
 
         // 7. Kirim ke View BARU
         return view('timSosial.triwulanan.sosialTriwulanan', compact( // Path view baru
@@ -135,7 +137,10 @@ class SosialTriwulanController extends Controller
 
         // Tambahkan tahun_kegiatan jika ada kolomnya
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         SosialTriwulanan::create($validatedData);
@@ -191,7 +196,7 @@ class SosialTriwulanController extends Controller
             'tanggal_pengumpulan' => 'nullable|date',
         ];
 
-        $customMessages = [ /* ... sama seperti store ... */ ];
+        $customMessages = [ /* ... sama seperti store ... */];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
@@ -210,7 +215,10 @@ class SosialTriwulanController extends Controller
         $validatedData = $validator->validated();
 
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         $sosial_triwulanan->update($validatedData);
@@ -221,8 +229,8 @@ class SosialTriwulanController extends Controller
         // Redirect ke index dengan filter yang relevan (misal: TW dari nama kegiatan)
         $tw = $this->extractTW($validatedData['nama_kegiatan']);
         // Ganti nama route ke index yang baru
-        return redirect()->route('sosial.triwulanan.index', ['jenisKegiatan' => 'seruti', /* 'tw' => $tw, */ 'tahun' => $selectedTahun ?? date('Y') ]) 
-                         ->with(['success' => 'Data Seruti berhasil diperbarui!', 'auto_hide' => true]);
+        return redirect()->route('sosial.triwulanan.index', ['jenisKegiatan' => 'seruti', /* 'tw' => $tw, */ 'tahun' => $selectedTahun ?? date('Y')])
+            ->with(['success' => 'Data Seruti berhasil diperbarui!', 'auto_hide' => true]);
     }
 
     /**
@@ -237,14 +245,14 @@ class SosialTriwulanController extends Controller
         $sosial_triwulanan->delete();
 
         if (request()->ajax() || request()->wantsJson()) {
-             return response()->json(['success' => 'Data Seruti berhasil dihapus!']);
+            return response()->json(['success' => 'Data Seruti berhasil dihapus!']);
         }
 
         // Redirect ke index dengan filter yang relevan
         $tw = $this->extractTW($namaKegiatan);
         // Ganti nama route ke index yang baru
-        return redirect()->route('sosial.triwulanan.index', ['jenisKegiatan' => 'seruti', /* 'tw' => $tw */ 'tahun' => session('selected_tahun', date('Y')) ])
-                         ->with(['success' => 'Data Seruti berhasil dihapus!', 'auto_hide' => true]);
+        return redirect()->route('sosial.triwulanan.index', ['jenisKegiatan' => 'seruti', /* 'tw' => $tw */ 'tahun' => session('selected_tahun', date('Y'))])
+            ->with(['success' => 'Data Seruti berhasil dihapus!', 'auto_hide' => true]);
     }
 
     /**
@@ -269,7 +277,7 @@ class SosialTriwulanController extends Controller
      */
     public function searchPetugas(Request $request)
     {
-         $request->validate(['query' => 'nullable|string|max:100']);
+        $request->validate(['query' => 'nullable|string|max:100']);
         $query = $request->input('query', '');
         $data = MasterPetugas::query()
             ->where('nama_petugas', 'LIKE', "%{$query}%")
@@ -278,25 +286,74 @@ class SosialTriwulanController extends Controller
         return response()->json($data);
     }
 
-     /**
-      * Cari kegiatan Seruti (autocomplete). (Copy dari controller lain)
-      */
+    /**
+     * Cari kegiatan Seruti (autocomplete). (Copy dari controller lain)
+     */
     public function searchKegiatan(Request $request)
     {
-         $request->validate(['query' => 'nullable|string|max:100']);
-         $query = $request->input('query', '');
+        $request->validate(['query' => 'nullable|string|max:100']);
+        $query = $request->input('query', '');
 
-         $data = MasterKegiatan::query()
-             ->where('nama_kegiatan', 'LIKE', "Seruti%") // Filter hanya Seruti
-             ->where('nama_kegiatan', 'LIKE', "%{$query}%")
-             ->limit(10)
-             ->pluck('nama_kegiatan');
+        $data = MasterKegiatan::query()
+            ->where('nama_kegiatan', 'LIKE', "Seruti%") // Filter hanya Seruti
+            ->where('nama_kegiatan', 'LIKE', "%{$query}%")
+            ->limit(10)
+            ->pluck('nama_kegiatan');
 
-         return response()->json($data);
+        return response()->json($data);
     }
 
     private function extractTW(string $nama): string
     {
         return preg_match('/Seruti\-(TW[1-4])/', $nama, $m) ? $m[1] : 'TW1';
+    }
+
+    public function export(Request $request, $jenisKegiatan = 'seruti')
+    {
+        // Validasi jenis kegiatan
+        $validJenis = ['seruti'];
+        if (!in_array(strtolower($jenisKegiatan), $validJenis)) {
+            abort(404);
+        }
+        // Validasi input
+        $request->validate([
+            'dataRange' => 'required|in:all,current_page',
+            'dataFormat' => 'required|in:formatted_values,raw_values',
+            'exportFormat' => 'required|in:excel,csv,word',
+        ]);
+        $dataRange = $request->input('dataRange', 'all');
+        $dataFormat = $request->input('dataFormat');
+        $exportFormat = $request->input('exportFormat');
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+        $tahun = $request->input('tahun', date('Y'));
+        $currentPage = $request->input('page', 1);
+        $perPage = $request->input('per_page', 20);
+        // Buat instance export class
+        $exportClass = new SosialTriwulananExport(
+            $dataRange,
+            $dataFormat,
+            $jenisKegiatan,
+            $kegiatan,
+            $search,
+            $tahun,
+            $currentPage,
+            $perPage
+        );
+        // Generate nama file
+        $fileName = 'Sosial_Triwulanan_Seruti';
+        if (!empty($kegiatan)) {
+            $fileName .= '_' . str_replace(' ', '_', $kegiatan);
+        }
+        $fileName .= '_' . date('Ymd_His');
+        // Export berdasarkan format
+        if ($exportFormat == 'excel') {
+            return Excel::download($exportClass, $fileName . '.xlsx');
+        } elseif ($exportFormat == 'csv') {
+            return Excel::download($exportClass, $fileName . '.csv');
+        } elseif ($exportFormat == 'word') {
+            return $exportClass->exportToWord();
+        }
+        return back()->with('error', 'Format ekspor tidak didukung.');
     }
 }
