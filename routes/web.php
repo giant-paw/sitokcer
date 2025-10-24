@@ -26,12 +26,9 @@ use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\ProfileController;
 
 
-
 Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect('/home');
-    }
-    return view('welcome');
+    // Langsung arahkan semua pengunjung di root (/) ke halaman login
+    return redirect()->route('login');
 });
 
 // Rute otentikasi (login, register, dll) dari Breeze
@@ -39,7 +36,6 @@ require __DIR__ . '/auth.php';
 
 Route::middleware('auth')->group(function () {
 
-    // Halaman "Home" internal aplikasi Anda (setelah login)
     Route::get('/home', fn () => view('home'))->name('home');
 
     // Rute /dashboard bawaan Breeze kita redirect ke 'home' internal Anda
@@ -209,7 +205,7 @@ Route::middleware('auth')->group(function () {
     });
 
     /* --- TIM NWA --- */
-    Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
+    Route::prefix('nwa')->name('nwa.')->group(function () {
         Route::prefix('tahunan')->name('tahunan.')->group(function () {
             Route::get('/', [NwaTahunanController::class, 'index'])->name('index');
             Route::post('/', [NwaTahunanController::class, 'store'])->name('store');

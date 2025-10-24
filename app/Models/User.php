@@ -18,7 +18,7 @@ class User extends Authenticatable
      *
      * @var string
      */
-    protected $table = 'user'; // Sesuaikan nama tabel
+    protected $table = 'users'; // Sesuaikan nama tabel
 
     /**
      * Primary key tabel.
