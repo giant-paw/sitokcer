@@ -758,16 +758,14 @@
             @else
                 console.warn('Rute "master.kegiatan.search" tidak ditemukan.');
             @endif
-            @if (Route::has('master.petugas.search'))
-                initAutocomplete('pencacah', 'pencacah-suggestions', '{{ route('master.petugas.search') }}');
-                initAutocomplete('pengawas', 'pengawas-suggestions', '{{ route('master.petugas.search') }}');
-                initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions',
-                    '{{ route('master.petugas.search') }}');
-                initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions',
-                    '{{ route('master.petugas.search') }}');
-            @else
-                console.warn('Rute "master.petugas.search" tidak ditemukan.');
-            @endif
+            @if(Route::has('tim-distribusi.tahunan.searchPetugas'))
+            const petugasSearchUrl = '{{ route("tim-distribusi.tahunan.searchPetugas") }}?'; // Tambah ?
+            // Hapus parameter 'field' jika tidak dipakai controller
+            initAutocomplete('pencacah', 'pencacah-suggestions', petugasSearchUrl);
+            initAutocomplete('pengawas', 'pengawas-suggestions', petugasSearchUrl);
+            initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', petugasSearchUrl);
+            initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', petugasSearchUrl);
+        @else console.warn('Rute tim-distribusi.tahunan.searchPetugas tidak ada.'); @endif
 
             // --- Inisialisasi Handler AJAX Form ---
             const tambahModalEl = document.getElementById('tambahDataModal');

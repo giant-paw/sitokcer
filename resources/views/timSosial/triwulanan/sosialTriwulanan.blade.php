@@ -734,12 +734,12 @@
 
             // --- Init Autocomplete ---
             // Gunakan route helper untuk URL yang benar
-            @if (Route::has('sosial.triwulanan.searchKegiatan'))
-                const kegiatanSearchUrl = '{{ route('sosial.triwulanan.searchKegiatan') }}?'; // Tambah ?
-                initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', kegiatanSearchUrl);
-                initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', kegiatanSearchUrl);
+            @if (Route::has('master.kegiatan.search'))
+                initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', '{{ route('master.kegiatan.search') }}');
+                initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions',
+                    '{{ route('master.kegiatan.search') }}');
             @else
-                console.warn('Rute sosial.triwulanan.searchKegiatan tidak ditemukan.');
+                console.warn('Rute kegiatan search tidak ada.');
             @endif
 
             @if (Route::has('sosial.triwulanan.searchPetugas'))

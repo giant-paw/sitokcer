@@ -715,15 +715,15 @@
             @else
                 console.warn('Rute kegiatan search tidak ada.');
             @endif
-            @if (Route::has('master.petugas.search'))
-                initAutocomplete('pencacah', 'pencacah-suggestions', '{{ route('master.petugas.search') }}');
-                initAutocomplete('pengawas', 'pengawas-suggestions', '{{ route('master.petugas.search') }}');
-                initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions',
-                    '{{ route('master.petugas.search') }}');
-                initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions',
-                    '{{ route('master.petugas.search') }}');
+            @if (Route::has('tim-produksi.tahunan.searchPetugas'))
+                // Gunakan rute searchPetugas yang benar
+                const petugasSearchUrl = '{{ route('tim-produksi.tahunan.searchPetugas') }}';
+                initAutocomplete('pencacah', 'pencacah-suggestions', petugasSearchUrl);
+                initAutocomplete('pengawas', 'pengawas-suggestions', petugasSearchUrl);
+                initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', petugasSearchUrl);
+                initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', petugasSearchUrl);
             @else
-                console.warn('Rute petugas search tidak ada.');
+                console.warn('Rute tim-produksi.tahunan.searchPetugas tidak ada.');
             @endif
 
             // Init AJAX Form Handlers
