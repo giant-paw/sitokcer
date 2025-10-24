@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Master\MasterPetugas;
 use App\Models\Master\MasterKegiatan;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\NwaTahunanExport;
 
 class NwaTahunanController extends Controller
 {
@@ -233,8 +235,46 @@ class NwaTahunanController extends Controller
             ->pluck('nama_petugas');
         return response()->json($data);
     }
-
-    /**
-     * [BARU] Menghapus beberapa data tahunan sekaligus (bulk delete).
-     */
+    public function export(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'dataRange' => 'required|in:all,current_page',
+            'dataFormat' => 'required|in:formatted_values,raw_values',
+            'exportFormat' => 'required|in:excel,csv,word',
+        ]);
+        $dataRange = $request->input('dataRange', 'all');
+        $dataFormat = $request->input('dataFormat');
+        $exportFormat = $request->input('exportFormat');
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+        $tahun = $request->input('tahun', date('Y'));
+        $currentPage = $request->input('page', 1);
+        $perPage = $request->input('per_page', 20);
+        // Buat instance export class
+        $exportClass = new NwaTahunanExport(
+            $dataRange,
+            $dataFormat,
+            $kegiatan,
+            $search,
+            $tahun,
+            $currentPage,
+            $perPage
+        );
+        // Generate nama file
+        $fileName = 'NWA_Tahunan';
+        if (!empty($kegiatan)) {
+            $fileName .= '_' . str_replace(' ', '_', $kegiatan);
+        }
+        $fileName .= '_' . date('Ymd_His');
+        // Export berdasarkan format
+        if ($exportFormat == 'excel') {
+            return Excel::download($exportClass, $fileName . '.xlsx');
+        } elseif ($exportFormat == 'csv') {
+            return Excel::download($exportClass, $fileName . '.csv');
+        } elseif ($exportFormat == 'word') {
+            return $exportClass->exportToWord();
+        }
+        return back()->with('error', 'Format ekspor tidak didukung.');
+    }
 }
