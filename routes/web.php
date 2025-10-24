@@ -63,10 +63,12 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         // export
         Route::get('/export', [SosialTahunanController::class, 'export'])->name('export');
 
+        Route::post('/import', [SosialTahunanController::class, 'import'])->name('import');
+        Route::get('/download-template', [SosialTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
+
         Route::get('/{id}/edit', [SosialTahunanController::class, 'edit'])->name('edit');
         Route::put('/{id}', [SosialTahunanController::class, 'update'])->name('update');
         Route::delete('/{id}', [SosialTahunanController::class, 'destroy'])->name('destroy');
-
     });
 
     Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
@@ -80,13 +82,15 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         Route::get('/{jenisKegiatan}/export', [SosialTriwulanController::class, 'export'])->name('export')
             ->where('jenisKegiatan', 'seruti');
 
+        Route::post('/import', [SosialTriwulanController::class, 'import'])->name('import');
+        Route::get('/template', [SosialTriwulanController::class, 'downloadTemplate'])->name('downloadTemplate');
+
         // Rute-rute yang menggunakan {id}
         Route::get('/{id}/edit', [SosialTriwulanController::class, 'edit'])->name('edit');
         Route::put('/{id}', [SosialTriwulanController::class, 'update'])->name('update');
         Route::delete('/{id}', [SosialTriwulanController::class, 'destroy'])->name('destroy');
 
         Route::get('/{jenisKegiatan?}', [SosialTriwulanController::class, 'index'])->name('index');
-
     });
 
     // --- ROUTE SOSIAL SEMESTERAN (SAKERNAS/SUSENAS) (SUDAH BENAR) ---
@@ -100,6 +104,9 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 
         Route::get('/{jenisKegiatan}/export', [SosialSemesteranController::class, 'export'])->name('export')
             ->where('jenisKegiatan', 'sakernas|susenas');
+
+        Route::post('/import', [SosialSemesteranController::class, 'import'])->name('import');
+        Route::get('/download-template', [SosialSemesteranController::class, 'downloadTemplate'])->name('downloadTemplate');
 
         // Rute-rute yang menggunakan {id}
         Route::get('/{id}/edit', [SosialSemesteranController::class, 'edit'])->name('edit');
@@ -192,7 +199,7 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::get('/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
         Route::get('/search-kegiatan', [App\Http\Controllers\Distribusi\DistribusiTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
         Route::get('/export', [DistribusiTahunanController::class, 'export'])->name('export');
-    }); 
+    });
 
     // ============ TRIWULANAN============
     Route::prefix('triwulanan')->name('triwulanan.')->group(function () {

@@ -35,7 +35,56 @@
 @endpush
 
 @section('content')
+
     <div class="container-fluid">
+        {{-- Alert Success --}}
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        {{-- Alert Error --}}
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        {{-- Alert Import Errors - TARUH DI SINI --}}
+        @if (session('import_errors'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Beberapa baris gagal diimport:</strong>
+                <ul class="mb-0">
+                    @foreach (session('import_errors') as $error)
+                        <li>{{ $error['error'] }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if (session('import_errors'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert" id="importErrorAlert">
+                <strong>Beberapa baris gagal diimport:</strong>
+                <ul class="mb-0">
+                    @foreach (session('import_errors') as $error)
+                        <li>{{ $error['error'] }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @push('scripts')
+            <script>
+                // Auto hide setelah 10 detik
+                setTimeout(function() {
+                    $('#importErrorAlert').fadeOut('slow');
+                }, 10000);
+            </script>
+        @endpush
+
         <div class="card">
             <div class="card-header bg-light">
                 <h4 class="card-title mb-0">LIST TARGET KEGIATAN TAHUNAN TIM SOSIAL</h4>
@@ -45,7 +94,9 @@
                     <div class="d-flex flex-wrap gap-2">
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                             data-bs-target="#tambahDataModal"><i class="bi bi-plus-circle"></i> Tambah Baru</button>
-                        <button type="button" class="btn btn-secondary"><i class="bi bi-upload"></i> Import</button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
                         <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
                             <i class="bi bi-download"></i> Ekspor Hasil
                         </button>
@@ -129,7 +180,8 @@
                                 name="search" value="{{ request('search') }}">
                         </div>
                         <div class="col-md-3 col-12">
-                            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i> Cari</button>
+                            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i>
+                                Cari</button>
                         </div>
                     </div>
                 </form>
@@ -206,6 +258,57 @@
                 <div>
                     {{ $listData->links() ?? '' }}
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Import Data -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('sosial.tahunan.import') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importModalLabel">Import Data dari Excel</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Alert info -->
+                        <div class="alert alert-info" role="alert">
+                            <small>
+                                <strong>Format yang didukung:</strong> Excel (.xlsx, .xls) atau CSV<br>
+                                <strong>Ukuran maksimal:</strong> 10 MB<br>
+                                <strong>Catatan:</strong> ID akan di-generate otomatis
+                            </small>
+                        </div>
+                        <!-- Download template -->
+                        <div class="mb-3">
+                            <a href="{{ route('sosial.tahunan.downloadTemplate') }}" class="btn btn-sm btn-secondary">
+                                <i class="bi bi-download"></i> Download Template Excel
+                            </a>
+                        </div>
+                        <!-- File input -->
+                        <div class="mb-3">
+                            <label for="importFile" class="form-label">Pilih File</label>
+                            <input type="file" class="form-control" id="importFile" name="file" required
+                                accept=".xlsx,.xls,.csv">
+                            <div class="form-text">
+                                Pastikan format kolom sesuai dengan template
+                            </div>
+                        </div>
+                        <!-- Preview area (optional) -->
+                        <div id="filePreview" class="d-none">
+                            <small class="text-muted">File dipilih: <span id="fileName"></span></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -513,6 +616,15 @@
 
 @push('scripts')
     <script>
+        document.getElementById('importFile').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                document.getElementById('fileName').textContent = fileName;
+                document.getElementById('filePreview').classList.remove('d-none');
+            } else {
+                document.getElementById('filePreview').classList.add('d-none');
+            }
+        });
         /** Autocomplete */
         function initAutocomplete(inputId, suggestionsId, searchUrl) {
             // ... (Fungsi ini sudah SANGAT BAGUS, tidak perlu diubah) ...

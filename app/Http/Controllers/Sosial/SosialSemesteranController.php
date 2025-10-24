@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Sosial;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sosial\SosialSemesteran; 
+use App\Models\Sosial\SosialSemesteran;
 use Illuminate\Http\Request;
 use App\Models\Master\MasterPetugas;
 use App\Models\Master\MasterKegiatan;
@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SosialSemesteranExport;
+use App\Imports\SosialSemesteranImport;
 
 class SosialSemesteranController extends Controller
 {
@@ -59,10 +60,10 @@ class SosialSemesteranController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('BS_Responden', 'like', "%{$search}%")
-                  ->orWhere('pencacah', 'like', "%{$search}%")
-                  ->orWhere('pengawas', 'like', "%{$search}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$search}%")
-                  ->orWhere('flag_progress', 'like', "%{$search}%");
+                    ->orWhere('pencacah', 'like', "%{$search}%")
+                    ->orWhere('pengawas', 'like', "%{$search}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$search}%")
+                    ->orWhere('flag_progress', 'like', "%{$search}%");
             });
         }
 
@@ -87,7 +88,7 @@ class SosialSemesteranController extends Controller
 
         // Ambil master kegiatan hanya untuk jenis yang relevan
         $masterKegiatanList = MasterKegiatan::where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
-                                            ->orderBy('nama_kegiatan')->get();
+            ->orderBy('nama_kegiatan')->get();
 
         // 7. Kirim ke View BARU
         return view('timSosial.semesteran.sosialSemesteran', compact( // Path view baru
@@ -105,7 +106,7 @@ class SosialSemesteranController extends Controller
     // --- store, edit, update, destroy, bulkDelete, searchPetugas, searchKegiatan ---
     // (Kode dari jawaban sebelumnya sudah benar dan mengikuti pola $id manual)
     // ... (salin dari jawaban sebelumnya jika perlu) ...
-        /**
+    /**
      * Simpan data baru (AJAX ready).
      */
     public function store(Request $request)
@@ -143,7 +144,10 @@ class SosialSemesteranController extends Controller
         $validatedData = $validator->validated();
 
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         SosialSemesteran::create($validatedData);
@@ -199,7 +203,7 @@ class SosialSemesteranController extends Controller
             'tanggal_pengumpulan' => 'nullable|date',
         ];
 
-        $customMessages = [ /* ... sama seperti store ... */ ];
+        $customMessages = [ /* ... sama seperti store ... */];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
@@ -218,7 +222,10 @@ class SosialSemesteranController extends Controller
         $validatedData = $validator->validated();
 
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         $sosial_semesteran->update($validatedData);
@@ -230,7 +237,7 @@ class SosialSemesteranController extends Controller
         $jenisKegiatan = str_starts_with(strtolower($validatedData['nama_kegiatan']), 'sakernas') ? 'sakernas' : 'susenas';
         $selectedTahun = $request->input('tahun', date('Y')); // Ambil tahun dari request atau default
         return redirect()->route('sosial.semesteran.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $selectedTahun])
-                         ->with(['success' => 'Data Semesteran berhasil diperbarui!', 'auto_hide' => true]);
+            ->with(['success' => 'Data Semesteran berhasil diperbarui!', 'auto_hide' => true]);
     }
 
     /**
@@ -247,13 +254,13 @@ class SosialSemesteranController extends Controller
         $sosial_semesteran->delete();
 
         if (request()->ajax() || request()->wantsJson()) {
-             return response()->json(['success' => 'Data Semesteran berhasil dihapus!']);
+            return response()->json(['success' => 'Data Semesteran berhasil dihapus!']);
         }
 
         // Redirect ke index dengan filter yang relevan
         $jenisKegiatan = str_starts_with(strtolower($namaKegiatan), 'sakernas') ? 'sakernas' : 'susenas';
         return redirect()->route('sosial.semesteran.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $tahunDariData])
-                         ->with(['success' => 'Data Semesteran berhasil dihapus!', 'auto_hide' => true]);
+            ->with(['success' => 'Data Semesteran berhasil dihapus!', 'auto_hide' => true]);
     }
 
     /**
@@ -278,7 +285,7 @@ class SosialSemesteranController extends Controller
      */
     public function searchPetugas(Request $request)
     {
-         $request->validate(['query' => 'nullable|string|max:100']);
+        $request->validate(['query' => 'nullable|string|max:100']);
         $query = $request->input('query', '');
         $data = MasterPetugas::query()
             ->where('nama_petugas', 'LIKE', "%{$query}%")
@@ -287,39 +294,39 @@ class SosialSemesteranController extends Controller
         return response()->json($data);
     }
 
-     /**
-      * Cari kegiatan Semesteran (Sakernas/Susenas - autocomplete).
-      */
+    /**
+     * Cari kegiatan Semesteran (Sakernas/Susenas - autocomplete).
+     */
     public function searchKegiatan(Request $request)
     {
-         $request->validate([
+        $request->validate([
             'query' => 'nullable|string|max:100',
             'jenis' => 'nullable|string|in:sakernas,susenas' // Tambah parameter jenis
-         ]);
-         $query = $request->input('query', '');
-         $jenis = $request->input('jenis'); // Ambil jenis dari request
+        ]);
+        $query = $request->input('query', '');
+        $jenis = $request->input('jenis'); // Ambil jenis dari request
 
-         $kegiatanQuery = MasterKegiatan::query();
+        $kegiatanQuery = MasterKegiatan::query();
 
-         // Filter berdasarkan jenis jika ada
-         if ($jenis === 'sakernas') {
+        // Filter berdasarkan jenis jika ada
+        if ($jenis === 'sakernas') {
             $kegiatanQuery->where('nama_kegiatan', 'LIKE', 'Sakernas%');
-         } elseif ($jenis === 'susenas') {
+        } elseif ($jenis === 'susenas') {
             $kegiatanQuery->where('nama_kegiatan', 'LIKE', 'Susenas%');
-         } else {
-             // Jika jenis tidak spesifik (misal dari halaman lain), cari keduanya
+        } else {
+            // Jika jenis tidak spesifik (misal dari halaman lain), cari keduanya
             $kegiatanQuery->where(function ($q) {
                 $q->where('nama_kegiatan', 'LIKE', 'Sakernas%')
-                  ->orWhere('nama_kegiatan', 'LIKE', 'Susenas%');
+                    ->orWhere('nama_kegiatan', 'LIKE', 'Susenas%');
             });
-         }
+        }
 
-         $data = $kegiatanQuery
-             ->where('nama_kegiatan', 'LIKE', "%{$query}%")
-             ->limit(10)
-             ->pluck('nama_kegiatan');
+        $data = $kegiatanQuery
+            ->where('nama_kegiatan', 'LIKE', "%{$query}%")
+            ->limit(10)
+            ->pluck('nama_kegiatan');
 
-         return response()->json($data);
+        return response()->json($data);
     }
     public function export(Request $request, $jenisKegiatan)
     {
@@ -370,5 +377,78 @@ class SosialSemesteranController extends Controller
             return $exportClass->exportToWord();
         }
         return back()->with('error', 'Format ekspor tidak didukung.');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls|max:2048'
+        ]);
+        try {
+            $import = new SosialSemesteranImport();
+            Excel::import($import, $request->file('file'));
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $formattedErrors = array_map(function ($err) {
+                return ['error' => $err['error']];
+            }, $errors);
+            if ($successCount > 0 && count($errors) > 0) {
+                return redirect()->back()
+                    ->with('import_errors', $formattedErrors)
+                    ->with('success', "{$successCount} data berhasil diimport");
+            } elseif ($successCount === 0 && count($errors) > 0) {
+                return redirect()->back()
+                    ->with('import_errors', $formattedErrors)
+                    ->with('error', 'Semua data gagal diimport');
+            }
+            return redirect()->back()
+                ->with('success', "Import berhasil! Total {$successCount} data ditambahkan");
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Import gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadTemplate()
+    {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Header
+        $headers = ['Nama Kegiatan', 'BS Responden', 'Pencacah', 'Pengawas', 'Target Penyelesaian', 'Flag Progress', 'Tanggal Pengumpulan'];
+        $sheet->fromArray([$headers], null, 'A1');
+        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:G1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFD9EAD3');
+
+        // Sample data
+        $sheet->setCellValue('A2', 'Sakernas/Susenas');
+        $sheet->setCellValue('B2', 'BS001');
+        $sheet->setCellValue('C2', 'Ani Rahmawati');
+        $sheet->setCellValue('D2', 'Budi Hariyadi');
+        $sheet->setCellValue('E2', '2025-07-11');
+        $sheet->setCellValue('F2', 'BELUM');
+        $sheet->setCellValue('G2', '2025-06-14');
+
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Petunjuk
+        $sheet->setCellValue('A4', 'PETUNJUK:');
+        $sheet->getStyle('A4')->getFont()->setBold(true);
+        $sheet->setCellValue('A5', '1. Semua kolom wajib diisi (tidak boleh kosong)');
+        $sheet->setCellValue('A6', '2. Nama Kegiatan, Pencacah, Pengawas harus mengandung huruf');
+        $sheet->setCellValue('A7', '3. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY');
+        $sheet->setCellValue('A8', '4. Flag Progress hanya boleh: BELUM atau SELESAI');
+        $sheet->setCellValue('A9', '5. Hapus baris sample sebelum upload');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $fileName = 'Template_Import_Sosial_Semesteran.xlsx';
+        $temp_file = tempnam(sys_get_temp_dir(), $fileName);
+        $writer->save($temp_file);
+
+        return response()->download($temp_file, $fileName)->deleteFileAfterSend(true);
     }
 }
