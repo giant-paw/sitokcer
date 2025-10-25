@@ -646,7 +646,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/master/kegiatan/search', [MasterKegiatanController::class, 'search'])->name('master.kegiatan.search');
 
-<<<<<<< HEAD
     /* --- USER (HANYA ADMIN) --- */
     // Rute ini dilindungi oleh 'auth' (harus login)
     // DAN 'role:admin' (harus admin)
@@ -675,22 +674,6 @@ Route::middleware('auth')->group(function () {
 // JANGAN masukkan ini ke dalam grup middleware 'auth'.
 // =========================================================================
 require __DIR__ . '/auth.php';
-=======
-
-    /* --- MANAJEMEN USER (ADMIN ONLY) --- */
-    // Grup ini dilindungi oleh Gate 'access-admin-areas' yang kita buat
-    Route::middleware('can:access-admin-areas')
-        ->prefix('users')
-        ->name('users.')
-        ->controller(UserController::class)
-        ->group(function () {
-
-            Route::get('/', 'index')->name('index');
-        });
-
-});
->>>>>>> b5f047e9b0b9758bca457f90c4fe8bf0e95f9600
-=======
 
 
     /* --- MASTER PETUGAS --- */
@@ -725,4 +708,3 @@ require __DIR__ . '/auth.php';
 });
 
 require __DIR__.'/auth.php';
->>>>>>> baruuujay
