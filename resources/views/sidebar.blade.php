@@ -24,7 +24,7 @@
 
         {{-- Dashboards --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-grid-1x2-fill menu-icon"></i>
                 <span>Dashboards</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -47,7 +47,7 @@
 
         {{-- Tim Sosial --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('sosial.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-people-fill menu-icon"></i>
                 <span>Tim Sosial</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -58,7 +58,7 @@
                 </li>
 
                 <li class="menu-item has-dropdown {{ request()->is('sosial/triwulanan*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Triwulan</span>
                          <i class="bi bi-chevron-right dropdown-arrow-icon"></i> {{-- Ditambahkan agar konsisten --}}
                     </a>
@@ -69,13 +69,13 @@
                     </ul>
                 </li>
 
+                {{-- SOSIAL SEMESTERAN --}}
                 <li class="menu-item has-dropdown {{ request()->routeIs('sosial.semesteran.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Semesteran</span>
                          <i class="bi bi-chevron-right dropdown-arrow-icon"></i> {{-- Ditambahkan agar konsisten --}}
                     </a>
                     <ul class="submenu">
-                        {{-- Link ke route index baru, passing 'sakernas' atau 'susenas' sebagai jenisKegiatan --}}
                         <li class="{{ request()->is('sosial/semesteran/sakernas*') ? 'active-link' : '' }}">
                             <a
                                 href="{{ route('sosial.semesteran.index', ['jenisKegiatan' => 'sakernas']) }}">Sakernas</a>
@@ -91,7 +91,7 @@
 
         {{-- Tim Distribusi --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('tim-distribusi.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-truck menu-icon"></i>
                 <span>Tim Distribusi</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -103,7 +103,7 @@
 
                 <li
                     class="menu-item has-dropdown {{ request()->routeIs('tim-distribusi.triwulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Triwulanan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
@@ -123,7 +123,7 @@
 
                 <li
                     class="menu-item has-dropdown {{ request()->routeIs('tim-distribusi.bulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Distribusi Bulanan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
@@ -160,7 +160,7 @@
 
         {{-- Tim Produksi --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('tim-produksi.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-graph-up-arrow menu-icon"></i>
                 <span>Tim Produksi</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -172,18 +172,16 @@
 
                 <li
                     class="menu-item has-dropdown {{ request()->routeIs('tim-produksi.caturwulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Caturwulan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
                     <ul class="submenu">
-
                         <li class="{{ request()->is('tim-produksi/caturwulanan/upp*') ? 'active-link' : '' }}">
                             <a
                                 href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan padi palawija']) }}">Ubinan
                                 Padi Palawija</a>
                         </li>
-
                         <li class="{{ request()->is('tim-produksi/caturwulanan/uup*') ? 'active-link' : '' }}">
                             <a
                                 href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'updating utp palawija']) }}">Updating
@@ -194,16 +192,17 @@
 
                 <li
                     class="menu-item has-dropdown {{ request()->routeIs('tim-produksi.triwulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Triwulan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('tim-produksi/triwulanan/sktr*') ? 'active-link' : '' }}"><a
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sktr*') ? 'active-link' : '' }}">
+                            <a
                                 href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sktr']) }}">SKTR</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/tpi*') ? 'active-link' : '' }}"><a
-                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'tpi']) }}">TPI</a>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/tpi*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'tpi']) }}">TPI</a>
                         </li>
                         <li class="{{ request()->is('tim-produksi/triwulanan/sphbst*') ? 'active-link' : '' }}">
                             <a
@@ -213,7 +212,8 @@
                             <a
                                 href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphtbf']) }}">SPHTBF</a>
                         </li>
-                        <li class="{{ request()->is('tim-produksi/triwulanan/sphth*') ? 'active-link' : '' }}"><a
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sphth*') ? 'active-link' : '' }}">
+                            <a
                                 href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphth']) }}">SPHTH</a>
                         </li>
                         <li class="{{ request()->is('tim-produksi/triwulanan/airbersih*') ? 'active-link' : '' }}">
@@ -224,7 +224,7 @@
                 </li>
 
                 <li class="menu-item has-dropdown {{ request()->routeIs('tim-produksi.bulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Bulanan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
@@ -270,7 +270,7 @@
 
         {{-- Tim NWA --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('nwa.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-bar-chart-line-fill menu-icon"></i>
                 <span>Tim NWA</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -279,8 +279,9 @@
                 <li class="{{ request()->routeIs('nwa.tahunan.*') ? 'active-link' : '' }}">
                     <a href="{{ route('nwa.tahunan.index') }}">NWA Tahunan</a>
                 </li>
+
                 <li class="menu-item has-dropdown {{ request()->routeIs('nwa.triwulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>NWA Triwulanan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
@@ -304,7 +305,7 @@
 
         {{-- Rekapitulasi --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('rekapitulasi.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-file-earmark-text-fill menu-icon"></i>
                 <span>Rekapitulasi</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -691,6 +692,10 @@
              let current = activeSubmenuItem.closest('.menu-item.has-dropdown');
              while (current) {
                 current.classList.add('active');
+                const toggle = current.querySelector(':scope > .dropdown-toggle');
+                if (toggle) {
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
                 current = current.parentElement.closest('.menu-item.has-dropdown');
              }
         }

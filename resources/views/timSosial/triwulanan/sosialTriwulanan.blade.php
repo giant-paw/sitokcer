@@ -184,11 +184,98 @@
             @endif
         </div>
     </div>
+    {{-- Tombol Import & Download Template --}}
+    <div class="row mb-3">
+        <div class="col-12">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bx bx-upload"></i> Import Excel
+            </button>
+            <a href="{{ route('sosial.triwulanan.downloadTemplate') }}" class="btn btn-info">
+                <i class="bx bx-download"></i> Download Template
+            </a>
+        </div>
+    </div>
 
-    {{-- ================================================= --}}
-    {{-- ==              MODAL SECTIONS                 == --}}
-    {{-- ================================================= --}}
+    {{-- Alert Success --}}
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
+    {{-- Alert Error --}}
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    {{-- Alert Import Errors --}}
+    @if (session('import_errors'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Beberapa baris gagal diimport:</strong>
+            <ul class="mb-0">
+                @foreach (session('import_errors') as $error)
+                    <li>{{ $error['error'] }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    <!-- Modal Import Data -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('sosial.triwulanan.import') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importModalLabel">Import Data dari Excel</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Alert info -->
+                        <div class="alert alert-info" role="alert">
+                            <small>
+                                <strong>Format yang didukung:</strong> Excel (.xlsx, .xls) atau CSV<br>
+                                <strong>Ukuran maksimal:</strong> 10 MB<br>
+                                <strong>Catatan:</strong> ID akan di-generate otomatis
+                            </small>
+                        </div>
+                        <!-- Download template -->
+                        <div class="mb-3">
+                            <a href="{{ route('sosial.triwulanan.downloadTemplate') }}" class="btn btn-sm btn-secondary">
+                                <i class="bi bi-download"></i> Download Template Excel
+                            </a>
+                        </div>
+                        <!-- File input -->
+                        <div class="mb-3">
+                            <label for="importFile" class="form-label">Pilih File</label>
+                            <input type="file" class="form-control" id="importFile" name="file" required
+                                accept=".xlsx,.xls,.csv">
+                            <div class="form-text">
+                                Pastikan format kolom sesuai dengan template
+                            </div>
+                        </div>
+                        <!-- Preview area (optional) -->
+                        <div id="filePreview" class="d-none">
+                            <small class="text-muted">File dipilih: <span id="fileName"></span></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Ekspor -->
     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form action="{{ route('sosial.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan ?? 'seruti']) }}" method="GET" id="exportForm">

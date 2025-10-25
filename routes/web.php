@@ -40,6 +40,7 @@ use App\Http\Controllers\Master\MasterKegiatanController;
 
 // USER
 use App\Http\Controllers\User\UserController;
+use App\Models\Distribusi\DistribusiTahunan;
 
 Route::get('/', function () {
     return redirect()->route('login');

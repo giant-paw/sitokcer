@@ -183,10 +183,58 @@
         </div>
     </div>
 
-    {{-- ================================================= --}}
-    {{-- ==              MODAL SECTIONS                 == --}}
-    {{-- ================================================= --}}
+    <!-- Modal Import Data -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('sosial.semesteran.import') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importModalLabel">Import Data dari Excel</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
 
+                    <div class="modal-body">
+                        <!-- Alert info -->
+                        <div class="alert alert-info" role="alert">
+                            <small>
+                                <strong>Format yang didukung:</strong> Excel (.xlsx, .xls) atau CSV<br>
+                                <strong>Ukuran maksimal:</strong> 10 MB<br>
+                                <strong>Catatan:</strong> ID akan di-generate otomatis
+                            </small>
+                        </div>
+                        <!-- Download template -->
+                        <div class="mb-3">
+                            <a href="{{ route('sosial.semesteran.downloadTemplate') }}" class="btn btn-sm btn-secondary">
+                                <i class="bi bi-download"></i> Download Template Excel
+                            </a>
+                        </div>
+                        <!-- File input -->
+                        <div class="mb-3">
+                            <label for="importFile" class="form-label">Pilih File</label>
+                            <input type="file" class="form-control" id="importFile" name="file" required
+                                accept=".xlsx,.xls,.csv">
+                            <div class="form-text">
+                                Pastikan format kolom sesuai dengan template
+                            </div>
+                        </div>
+                        <!-- Preview area (optional) -->
+                        <div id="filePreview" class="d-none">
+                            <small class="text-muted">File dipilih: <span id="fileName"></span></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ekspor -->
     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form action="{{ route('sosial.semesteran.export', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET">

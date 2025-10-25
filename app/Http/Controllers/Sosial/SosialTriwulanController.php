@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SosialTriwulananExport;
+use App\Imports\SosialTriwulananImport;
 
 class SosialTriwulanController extends Controller
 {
@@ -355,5 +356,97 @@ class SosialTriwulanController extends Controller
             return $exportClass->exportToWord();
         }
         return back()->with('error', 'Format ekspor tidak didukung.');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls|max:2048'
+        ]);
+        try {
+            $import = new SosialTriwulananImport();
+            Excel::import($import, $request->file('file'));
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            if (count($errors) > 0) {
+                $formattedErrors = array_map(function ($error) {
+                    return ['error' => $error['error']];
+                }, $errors);
+                if ($successCount > 0) {
+                    return redirect()->back()
+                        ->with('import_errors', $formattedErrors)
+                        ->with('success', "{$successCount} data berhasil diimport");
+                } else {
+                    return redirect()->back()
+                        ->with('import_errors', $formattedErrors)
+                        ->with('error', 'Semua data gagal diimport');
+                }
+            }
+            return redirect()->back()
+                ->with('success', "Import berhasil! Total {$successCount} data ditambahkan");
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Import gagal: ' . $e->getMessage());
+        }
+    }
+    /**
+     * Download template Excel untuk import
+     */
+    public function downloadTemplate()
+    {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        // Header
+        $headers = ['Nama Kegiatan', 'BS Responden', 'Pencacah', 'Pengawas', 'Target Penyelesaian', 'Flag Progress', 'Tanggal Pengumpulan'];
+        $sheet->fromArray([$headers], null, 'A1');
+        // Style header
+        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:G1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFFFD966'); // Warna kuning untuk Triwulanan
+        // Sample data
+        $sheet->setCellValue('A2', 'Survey Triwulan I 2025');
+        $sheet->setCellValue('B2', 'BS001');
+        $sheet->setCellValue('C2', 'Ahmad Hasan');
+        $sheet->setCellValue('D2', 'Budi Santoso');
+        $sheet->setCellValue('E2', '2025-03-31');
+        $sheet->setCellValue('F2', 'BELUM');
+        $sheet->setCellValue('G2', '2025-03-15');
+        $sheet->setCellValue('A3', 'Survey Triwulan II 2025');
+        $sheet->setCellValue('B3', 'BS002');
+        $sheet->setCellValue('C3', 'Siti Aminah');
+        $sheet->setCellValue('D3', 'Eko Prasetyo');
+        $sheet->setCellValue('E3', '2025-06-30');
+        $sheet->setCellValue('F3', 'SELESAI');
+        $sheet->setCellValue('G3', '2025-06-25');
+        // Auto width
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        // Instructions
+        $sheet->setCellValue('A5', 'PETUNJUK PENGISIAN:');
+        $sheet->getStyle('A5')->getFont()->setBold(true)->setSize(12);
+        $sheet->getStyle('A5')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFE2EFDA');
+
+        $sheet->setCellValue('A6', '1. Semua kolom WAJIB diisi (tidak boleh kosong)');
+        $sheet->setCellValue('A7', '2. Nama Kegiatan, Pencacah, Pengawas harus berisi huruf (tidak boleh hanya angka)');
+        $sheet->setCellValue('A8', '3. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY (contoh: 2025-03-31 atau 31/03/2025)');
+        $sheet->setCellValue('A9', '4. Flag Progress hanya boleh: BELUM atau SELESAI');
+        $sheet->setCellValue('A10', '5. Hapus baris contoh dan petunjuk ini sebelum import');
+        $sheet->setCellValue('A11', '6. Triwulan I (Jan-Mar), Triwulan II (Apr-Jun), Triwulan III (Jul-Sep), Triwulan IV (Okt-Des)');
+        // Style instructions
+        foreach (range(6, 11) as $row) {
+            $sheet->getStyle("A{$row}")->getAlignment()->setWrapText(true);
+        }
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+        $fileName = 'Template_Import_Sosial_Triwulanan.xlsx';
+        $temp_file = tempnam(sys_get_temp_dir(), $fileName);
+
+        $writer->save($temp_file);
+
+        return response()->download($temp_file, $fileName)->deleteFileAfterSend(true);
     }
 }
