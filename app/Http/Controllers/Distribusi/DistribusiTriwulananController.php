@@ -14,6 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\DistribusiTriwulananExport;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Illuminate\Validation\Rule;
+use App\Imports\DistribusiTriwulananImport;
 
 class DistribusiTriwulananController extends Controller
 {
@@ -54,9 +55,9 @@ class DistribusiTriwulananController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('BS_Responden', 'like', "%{$search}%")
-                  ->orWhere('pencacah', 'like', "%{$search}%")
-                  ->orWhere('pengawas', 'like', "%{$search}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$search}%");
+                    ->orWhere('pencacah', 'like', "%{$search}%")
+                    ->orWhere('pengawas', 'like', "%{$search}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$search}%");
             });
         }
 
@@ -81,7 +82,7 @@ class DistribusiTriwulananController extends Controller
 
         // Ambil master kegiatan hanya untuk jenis yang relevan
         $masterKegiatanList = MasterKegiatan::where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
-                                            ->orderBy('nama_kegiatan')->get();
+            ->orderBy('nama_kegiatan')->get();
 
         // 7. Kirim ke View
         return view('timDistribusi.distribusiTriwulanan', compact(
@@ -110,11 +111,11 @@ class DistribusiTriwulananController extends Controller
             'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], // Sesuaikan opsi
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-         $customMessages = [
+        $customMessages = [
             'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar.',
             'pencacah.exists'      => 'Nama pencacah tidak terdaftar.',
             'pengawas.exists'      => 'Nama pengawas tidak terdaftar.',
-         ];
+        ];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
@@ -126,7 +127,10 @@ class DistribusiTriwulananController extends Controller
 
         $validatedData = $validator->validated();
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         DistribusiTriwulanan::create($validatedData);
@@ -169,7 +173,7 @@ class DistribusiTriwulananController extends Controller
             'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-         $customMessages = [ /* ... sama seperti store ... */ ];
+        $customMessages = [ /* ... sama seperti store ... */];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
@@ -183,7 +187,10 @@ class DistribusiTriwulananController extends Controller
 
         $validatedData = $validator->validated();
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try {
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
+            } catch (\Exception $e) {
+            }
         }
 
         $distribusi_triwulanan->update($validatedData);
@@ -203,7 +210,7 @@ class DistribusiTriwulananController extends Controller
         $distribusi_triwulanan->delete();
 
         if (request()->ajax() || request()->wantsJson()) {
-             return response()->json(['success' => 'Data berhasil dihapus!']);
+            return response()->json(['success' => 'Data berhasil dihapus!']);
         }
         return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
@@ -226,7 +233,7 @@ class DistribusiTriwulananController extends Controller
      */
     public function searchPetugas(Request $request)
     {
-         $request->validate(['query' => 'nullable|string|max:100']);
+        $request->validate(['query' => 'nullable|string|max:100']);
         $query = $request->input('query', '');
         $data = MasterPetugas::query()
             ->where('nama_petugas', 'LIKE', "%{$query}%")
@@ -235,28 +242,28 @@ class DistribusiTriwulananController extends Controller
         return response()->json($data);
     }
 
-     /**
-      * Cari kegiatan (autocomplete).
-      */
+    /**
+     * Cari kegiatan (autocomplete).
+     */
     public function searchKegiatan(Request $request, $jenisKegiatan = null) // Tambah $jenisKegiatan opsional
     {
-         $request->validate(['query' => 'nullable|string|max:100']);
-         $query = $request->input('query', '');
-         $kegiatanQuery = MasterKegiatan::query();
+        $request->validate(['query' => 'nullable|string|max:100']);
+        $query = $request->input('query', '');
+        $kegiatanQuery = MasterKegiatan::query();
 
-         // Filter berdasarkan jenisKegiatan jika diberikan di URL
-         if ($jenisKegiatan) {
-             $jenisKegiatanLower = strtolower($jenisKegiatan);
-             if (in_array($jenisKegiatanLower, ['spunp', 'shkk'])) {
-                 $kegiatanQuery->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan) . '%');
-             }
-         }
+        // Filter berdasarkan jenisKegiatan jika diberikan di URL
+        if ($jenisKegiatan) {
+            $jenisKegiatanLower = strtolower($jenisKegiatan);
+            if (in_array($jenisKegiatanLower, ['spunp', 'shkk'])) {
+                $kegiatanQuery->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan) . '%');
+            }
+        }
 
-         $data = $kegiatanQuery
-             ->where('nama_kegiatan', 'LIKE', "%{$query}%")
-             ->limit(10)
-             ->pluck('nama_kegiatan');
-         return response()->json($data);
+        $data = $kegiatanQuery
+            ->where('nama_kegiatan', 'LIKE', "%{$query}%")
+            ->limit(10)
+            ->pluck('nama_kegiatan');
+        return response()->json($data);
     }
 
     // PERBAIKAN 4: Method export yang benar
@@ -295,5 +302,78 @@ class DistribusiTriwulananController extends Controller
         }
 
         return back()->with('error', 'Format ekspor tidak didukung.');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls|max:2048'
+        ]);
+        try {
+            $import = new DistribusiTriwulananImport();
+            Excel::import($import, $request->file('file'));
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $formattedErrors = array_map(function ($err) {
+                return ['error' => $err['error']];
+            }, $errors);
+            if ($successCount > 0 && count($errors) > 0) {
+                return redirect()->back()
+                    ->with('import_errors', $formattedErrors)
+                    ->with('success', "{$successCount} data berhasil diimport");
+            } elseif ($successCount === 0 && count($errors) > 0) {
+                return redirect()->back()
+                    ->with('import_errors', $formattedErrors)
+                    ->with('error', 'Semua data gagal diimport');
+            }
+            return redirect()->back()
+                ->with('success', "Import berhasil! Total {$successCount} data ditambahkan");
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Import gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadTemplate()
+    {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Header
+        $headers = ['Nama Kegiatan', 'BS Responden', 'Pencacah', 'Pengawas', 'Target Penyelesaian', 'Flag Progress', 'Tanggal Pengumpulan'];
+        $sheet->fromArray([$headers], null, 'A1');
+        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:G1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFD9EAD3');
+
+        // Sample data
+        $sheet->setCellValue('A2', 'SPUNP/SHKK');
+        $sheet->setCellValue('B2', 'BS001');
+        $sheet->setCellValue('C2', 'Ani Rahmawati');
+        $sheet->setCellValue('D2', 'Budi Hariyadi');
+        $sheet->setCellValue('E2', '2025-07-11');
+        $sheet->setCellValue('F2', 'BELUM');
+        $sheet->setCellValue('G2', '2025-06-14');
+
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Petunjuk
+        $sheet->setCellValue('A4', 'PETUNJUK:');
+        $sheet->getStyle('A4')->getFont()->setBold(true);
+        $sheet->setCellValue('A5', '1. Semua kolom wajib diisi (tidak boleh kosong)');
+        $sheet->setCellValue('A6', '2. Nama Kegiatan, Pencacah, Pengawas harus mengandung huruf');
+        $sheet->setCellValue('A7', '3. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY');
+        $sheet->setCellValue('A8', '4. Flag Progress hanya boleh: BELUM atau SELESAI');
+        $sheet->setCellValue('A9', '5. Hapus baris sample sebelum upload');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $fileName = 'Template_Import_Sosial_Semesteran.xlsx';
+        $temp_file = tempnam(sys_get_temp_dir(), $fileName);
+        $writer->save($temp_file);
+
+        return response()->download($temp_file, $fileName)->deleteFileAfterSend(true);
     }
 }

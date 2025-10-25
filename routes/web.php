@@ -40,6 +40,7 @@ use App\Http\Controllers\Master\MasterKegiatanController;
 
 // USER
 use App\Http\Controllers\User\UserController;
+use App\Models\Distribusi\DistribusiTahunan;
 
 // HOME
 Route::get('/', fn() => view('home'))->name('home');
@@ -199,6 +200,8 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::get('/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
         Route::get('/search-kegiatan', [App\Http\Controllers\Distribusi\DistribusiTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
         Route::get('/export', [DistribusiTahunanController::class, 'export'])->name('export');
+        Route::post('/import', [DistribusiTahunanController::class, 'import'])->name('import');
+        Route::get('/download-template', [DistribusiTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
     });
 
     // ============ TRIWULANAN============
@@ -230,6 +233,9 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::get('/{jenisKegiatan}', [DistribusiTriwulananController::class, 'index'])
             ->name('index')
             ->where('jenisKegiatan', 'spunp|shkk'); //zamm
+
+        Route::post('/import', [DistribusiTriwulananController::class, 'import'])->name('import');
+        Route::get('/download-template', [DistribusiTriwulananController::class, 'downloadTemplate'])->name('downloadTemplate');
     });
 
     // ============ BULANAN ============
@@ -267,6 +273,9 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::get('/{jenisKegiatan}', [DistribusiBulananController::class, 'index'])
             ->name('index')
             ->where('jenisKegiatan', 'vhts|hkd|shpb|shp|shpj|shpbg');
+
+        Route::post('/import', [DistribusiBulananController::class, 'import'])->name('import');
+        Route::get('/download-template', [DistribusiBulananController::class, 'downloadTemplate'])->name('downloadTemplate');
     });
 });
 
@@ -282,6 +291,8 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
         Route::post('/bulk-delete', [ProduksiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
 
         Route::get('/export', [ProduksiTahunanController::class, 'export'])->name('export');
+        Route::post('/import', [ProduksiTahunanController::class, 'import'])->name('import');
+        Route::get('/download-template', [ProduksiTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
 
         Route::get('/{id}/edit', [ProduksiTahunanController::class, 'edit'])->name('edit');
         Route::put('/{id}', [ProduksiTahunanController::class, 'update'])->name('update');

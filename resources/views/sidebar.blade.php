@@ -11,7 +11,7 @@
 
         {{-- Dashboards --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-grid-1x2-fill menu-icon"></i>
                 <span>Dashboards</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -34,7 +34,7 @@
 
         {{-- Tim Sosial --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('sosial.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-people-fill menu-icon"></i>
                 <span>Tim Sosial</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -44,10 +44,11 @@
                     <a href="{{ route('sosial.tahunan.index') }}">Sosial Tahunan</a>
                 </li>
 
-                <!-- SOSIAL TRIWULAN -->
+                {{-- SOSIAL TRIWULAN --}}
                 <li class="menu-item has-dropdown {{ request()->is('sosial/triwulanan*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Triwulan</span>
+                        <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
                     <ul class="submenu">
                         <li class="{{ request()->is('sosial/triwulanan/seruti*') ? 'active-link' : '' }}">
@@ -56,12 +57,13 @@
                     </ul>
                 </li>
 
+                {{-- SOSIAL SEMESTERAN --}}
                 <li class="menu-item has-dropdown {{ request()->routeIs('sosial.semesteran.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Semesteran</span>
+                        <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
                     <ul class="submenu">
-                        {{-- Link ke route index baru, passing 'sakernas' atau 'susenas' sebagai jenisKegiatan --}}
                         <li class="{{ request()->is('sosial/semesteran/sakernas*') ? 'active-link' : '' }}">
                             <a
                                 href="{{ route('sosial.semesteran.index', ['jenisKegiatan' => 'sakernas']) }}">Sakernas</a>
@@ -77,7 +79,7 @@
 
         {{-- Tim Distribusi --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('tim-distribusi.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-truck menu-icon"></i>
                 <span>Tim Distribusi</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -89,7 +91,7 @@
 
                 <li
                     class="menu-item has-dropdown {{ request()->routeIs('tim-distribusi.triwulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Triwulanan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
@@ -109,7 +111,7 @@
 
                 <li
                     class="menu-item has-dropdown {{ request()->routeIs('tim-distribusi.bulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Distribusi Bulanan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
@@ -146,7 +148,7 @@
 
         {{-- Tim Produksi --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('tim-produksi.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-graph-up-arrow menu-icon"></i>
                 <span>Tim Produksi</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -158,20 +160,16 @@
 
                 <li
                     class="menu-item has-dropdown {{ request()->routeIs('tim-produksi.caturwulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Caturwulan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
                     <ul class="submenu">
-
-                        <!-- Ubinan Padi -->
                         <li class="{{ request()->is('tim-produksi/caturwulanan/upp*') ? 'active-link' : '' }}">
                             <a
                                 href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan padi palawija']) }}">Ubinan
                                 Padi Palawija</a>
                         </li>
-
-                        <!-- Ubinan UTP -->
                         <li class="{{ request()->is('tim-produksi/caturwulanan/uup*') ? 'active-link' : '' }}">
                             <a
                                 href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'updating utp palawija']) }}">Updating
@@ -182,16 +180,17 @@
 
                 <li
                     class="menu-item has-dropdown {{ request()->routeIs('tim-produksi.triwulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Triwulan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
                     <ul class="submenu">
-                        <li class="{{ request()->is('tim-produksi/triwulanan/sktr*') ? 'active-link' : '' }}"><a
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sktr*') ? 'active-link' : '' }}">
+                            <a
                                 href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sktr']) }}">SKTR</a>
                         </li>
-                        <li class="{{ request()->is('produksi/kegiatan-triwulan/tpi*') ? 'active-link' : '' }}"><a
-                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'tpi']) }}">TPI</a>
+                        <li class="{{ request()->is('tim-produksi/triwulanan/tpi*') ? 'active-link' : '' }}">
+                            <a href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'tpi']) }}">TPI</a>
                         </li>
                         <li class="{{ request()->is('tim-produksi/triwulanan/sphbst*') ? 'active-link' : '' }}">
                             <a
@@ -201,7 +200,8 @@
                             <a
                                 href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphtbf']) }}">SPHTBF</a>
                         </li>
-                        <li class="{{ request()->is('tim-produksi/triwulanan/sphth*') ? 'active-link' : '' }}"><a
+                        <li class="{{ request()->is('tim-produksi/triwulanan/sphth*') ? 'active-link' : '' }}">
+                            <a
                                 href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => 'sphth']) }}">SPHTH</a>
                         </li>
                         <li class="{{ request()->is('tim-produksi/triwulanan/airbersih*') ? 'active-link' : '' }}">
@@ -212,7 +212,7 @@
                 </li>
 
                 <li class="menu-item has-dropdown {{ request()->routeIs('tim-produksi.bulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>Kegiatan Bulanan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
@@ -258,7 +258,7 @@
 
         {{-- Tim NWA --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('nwa.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-bar-chart-line-fill menu-icon"></i>
                 <span>Tim NWA</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -267,8 +267,9 @@
                 <li class="{{ request()->routeIs('nwa.tahunan.*') ? 'active-link' : '' }}">
                     <a href="{{ route('nwa.tahunan.index') }}">NWA Tahunan</a>
                 </li>
+
                 <li class="menu-item has-dropdown {{ request()->routeIs('nwa.triwulanan.*') ? 'active' : '' }}">
-                    <a href="#" class="dropdown-toggle">
+                    <a href="#" class="dropdown-toggle" aria-expanded="false">
                         <span>NWA Triwulanan</span>
                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
@@ -292,7 +293,7 @@
 
         {{-- Rekapitulasi --}}
         <li class="menu-item has-dropdown {{ request()->routeIs('rekapitulasi.*') ? 'active' : '' }}">
-            <a href="#" class="dropdown-toggle">
+            <a href="#" class="dropdown-toggle" aria-expanded="false">
                 <i class="bi bi-file-earmark-text-fill menu-icon"></i>
                 <span>Rekapitulasi</span>
                 <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
@@ -322,13 +323,11 @@
                 <span>Master Kegiatan</span>
             </a>
         </li>
-
-        <!-- USER -->
     </ul>
 </aside>
 
 <style>
-    /* ===== RESET & BASE ===== */
+    /* ===== PREMIUM SIDEBAR STYLES ===== */
     * {
         margin: 0;
         padding: 0;
@@ -337,39 +336,17 @@
 
     /* ===== SIDEBAR CONTAINER ===== */
     .sidebar {
-        width: 270px;
-        background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
-        color: #fff;
+        width: 100%;
         height: 100%;
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
-        overflow-y: auto;
         display: flex;
         flex-direction: column;
-    }
-
-    /* Scrollbar Styling */
-    .sidebar::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .sidebar::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.1);
-    }
-
-    .sidebar::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 3px;
-        transition: background 0.3s ease;
-    }
-
-    .sidebar::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.3);
+        padding: 1rem 0;
     }
 
     /* ===== SIDEBAR MENU ===== */
     .sidebar-menu {
         list-style: none;
-        padding: 15px 12px;
+        padding: 0 12px;
         flex-grow: 1;
     }
 
@@ -382,47 +359,46 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        color: rgba(255, 255, 255, 0.85);
+        color: rgba(30, 41, 59, 0.8);
         text-decoration: none;
-        padding: 11px 14px;
-        border-radius: 8px;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 12px 16px;
+        border-radius: 10px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         font-size: 0.925rem;
         font-weight: 500;
         position: relative;
+        overflow: hidden;
     }
 
-    .sidebar-menu>li>a:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        transform: translateX(3px);
-    }
-
-    /* Accent Bar on Hover */
     .sidebar-menu>li>a::before {
         content: '';
         position: absolute;
         left: 0;
-        top: 50%;
-        transform: translateY(-50%);
+        top: 0;
+        bottom: 0;
         width: 3px;
-        height: 0;
-        background: #3498db;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transform: scaleY(0);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         border-radius: 0 3px 3px 0;
-        transition: height 0.25s ease;
+    }
+
+    .sidebar-menu>li>a:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        color: #667eea;
+        transform: translateX(4px);
     }
 
     .sidebar-menu>li>a:hover::before {
-        height: 65%;
+        transform: scaleY(1);
     }
 
     /* ===== MENU ICON ===== */
     .menu-icon {
-        font-size: 1.15rem;
-        width: 22px;
+        font-size: 1.2rem;
+        width: 24px;
         text-align: center;
         flex-shrink: 0;
-        opacity: 0.9;
     }
 
     /* ===== DROPDOWN TOGGLE ===== */
@@ -436,17 +412,15 @@
         flex-grow: 1;
     }
 
-    /* === [BARU] ARROW ICON === */
+    /* Arrow Icon */
     .dropdown-arrow-icon {
         margin-left: auto;
         flex-shrink: 0;
         font-size: 0.8rem;
-        /* Sesuaikan ukuran */
-        color: rgba(255, 255, 255, 0.6);
+        color: rgba(30, 41, 59, 0.5);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* [BARU] Style untuk arrow di submenu (sedikit lebih kecil) */
     .submenu .dropdown-toggle .dropdown-arrow-icon {
         font-size: 0.75rem;
     }
@@ -455,12 +429,13 @@
     .submenu {
         list-style: none;
         padding: 0;
-        margin: 0 0 0 18px;
-        border-left: 2px solid rgba(255, 255, 255, 0.12);
+        margin: 4px 0 0 20px;
+        border-left: 2px solid rgba(102, 126, 234, 0.15);
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-            padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+            margin 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .submenu li {
@@ -469,18 +444,18 @@
 
     .submenu a {
         font-size: 0.875rem;
-        padding: 9px 14px;
-        color: rgba(255, 255, 255, 0.75);
+        padding: 10px 16px;
+        color: rgba(30, 41, 59, 0.7);
         font-weight: 400;
-        border-radius: 6px;
-        margin: 3px 0;
+        border-radius: 8px;
+        margin: 2px 0;
         gap: 10px;
     }
 
     .submenu a:hover {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.08);
-        transform: translateX(3px);
+        color: #667eea;
+        background: rgba(102, 126, 234, 0.08);
+        transform: translateX(4px);
     }
 
     .submenu a::before {
@@ -489,75 +464,89 @@
 
     /* Nested Submenu Styling */
     .submenu .submenu {
-        margin-left: 12px;
-        border-left-color: rgba(255, 255, 255, 0.08);
+        margin-left: 16px;
+        border-left-color: rgba(102, 126, 234, 0.1);
     }
 
     .submenu .submenu a {
         font-size: 0.85rem;
-        padding: 8px 12px;
-        color: rgba(255, 255, 255, 0.7);
+        padding: 8px 14px;
+        color: rgba(30, 41, 59, 0.65);
     }
 
     /* ===== ACTIVE STATES ===== */
-
     /* Active Dropdown */
     .menu-item.has-dropdown.active>.submenu {
-        max-height: 1500px;
-        /* Nilai besar untuk menampung semua item */
-        padding: 6px 0;
+        max-height: 2000px;
+        padding: 8px 0;
+        margin-top: 6px;
     }
 
     .menu-item.has-dropdown.active>.dropdown-toggle {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
+        color: #667eea;
     }
 
-    /* === [BARU] Rotasi untuk Ikon Arrow === */
+    /* Rotasi Arrow saat Aktif */
     .menu-item.has-dropdown.active>.dropdown-toggle .dropdown-arrow-icon {
         transform: rotate(90deg);
-        color: rgba(255, 255, 255, 0.9);
+        color: #667eea;
     }
 
     /* Active Link (Current Page) */
     .sidebar-menu li.active-link>a {
-        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: #fff;
-        box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         font-weight: 600;
+        transform: translateX(4px);
     }
 
     .sidebar-menu li.active-link>a:hover {
-        background: linear-gradient(135deg, #2980b9 0%, #2471a3 100%);
-        transform: translateX(0);
+        background: linear-gradient(135deg, #5568d3 0%, #653a8a 100%);
+        transform: translateX(4px);
     }
 
     .sidebar-menu li.active-link>a::before {
-        height: 0;
+        transform: scaleY(1);
+        background: #fff;
     }
 
     .sidebar-menu li.active-link>a .menu-icon {
-        opacity: 1;
+        color: #fff;
     }
 
     /* Active Submenu Link */
     .submenu li.active-link>a {
-        color: #3498db;
+        color: #667eea;
         font-weight: 600;
-        background: rgba(52, 152, 219, 0.12);
+        background: rgba(102, 126, 234, 0.15);
+        border-left: 3px solid #667eea;
+        padding-left: 13px;
     }
 
     .submenu li.active-link>a:hover {
-        background: rgba(52, 152, 219, 0.2);
+        background: rgba(102, 126, 234, 0.22);
     }
 
-    /* ===== RESPONSIVE ADJUSTMENTS ===== */
-    @media (max-width: 768px) {
-        .sidebar {
-            width: 100%;
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 991.98px) {
+        .sidebar-menu {
+            padding: 0 10px;
+        }
+
+        .sidebar-menu li a {
+            font-size: 0.9rem;
+            padding: 11px 14px;
+        }
+
+        .submenu a {
+            font-size: 0.85rem;
+            padding: 9px 14px;
         }
     }
 
+    /* Hapus after yang tidak perlu */
     .sidebar-menu a.dropdown-toggle::after {
         display: none;
     }
@@ -566,35 +555,44 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const dropdownToggles = document.querySelectorAll('.sidebar .dropdown-toggle');
-
         // Handle dropdown toggle clicks
         dropdownToggles.forEach(toggle => {
             toggle.addEventListener('click', function(e) {
                 e.preventDefault();
-
+                e.stopPropagation();
                 const parentMenuItem = this.closest('.menu-item.has-dropdown');
                 const parentLevel = parentMenuItem.parentElement;
-
                 // Close other dropdowns at the same level
                 const siblings = parentLevel.querySelectorAll(
                     ':scope > .menu-item.has-dropdown.active');
                 siblings.forEach(sibling => {
                     if (sibling !== parentMenuItem) {
                         sibling.classList.remove('active');
+                        const siblingToggle = sibling.querySelector(
+                            ':scope > .dropdown-toggle');
+                        if (siblingToggle) {
+                            siblingToggle.setAttribute('aria-expanded', 'false');
+                        }
                     }
                 });
-
                 // Toggle current dropdown
                 parentMenuItem.classList.toggle('active');
+
+                // Update aria-expanded
+                const isActive = parentMenuItem.classList.contains('active');
+                this.setAttribute('aria-expanded', isActive);
             });
         });
-
         // Auto-open parent dropdowns for active submenu items
         const activeSubmenuItem = document.querySelector('.submenu .active-link');
         if (activeSubmenuItem) {
             let current = activeSubmenuItem.closest('.menu-item.has-dropdown');
             while (current) {
                 current.classList.add('active');
+                const toggle = current.querySelector(':scope > .dropdown-toggle');
+                if (toggle) {
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
                 current = current.parentElement.closest('.menu-item.has-dropdown');
             }
         }
