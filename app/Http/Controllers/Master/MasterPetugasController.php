@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Master;
 use App\Http\Controllers\Controller;
 use App\Models\Master\MasterPetugas;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator; 
-use Illuminate\Validation\Rule; 
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MasterPetugasController extends Controller
@@ -19,8 +19,8 @@ class MasterPetugasController extends Controller
         $search = $request->input('search');
         $query->when($search, function ($q, $term) {
             $q->where('nama_petugas', 'like', "%{$term}%")
-              ->orWhere('nik', 'like', "%{$term}%")
-              ->orWhere('kategori', 'like', "%{$term}%");
+                ->orWhere('nik', 'like', "%{$term}%")
+                ->orWhere('kategori', 'like', "%{$term}%");
         });
 
         $perPage = $request->input('per_page', 15);
@@ -31,9 +31,10 @@ class MasterPetugasController extends Controller
         }
 
         $petugas = $query->orderBy('created_at', 'desc')
-                         ->paginate($perPage)
-                         ->withQueryString();
+            ->paginate($perPage)
+            ->withQueryString();
 
+        // Path view yang benar sesuai dengan struktur file Anda
         return view('masterPetugas.masterPetugas', compact('petugas', 'search'));
     }
 
@@ -55,30 +56,37 @@ class MasterPetugasController extends Controller
 
         if ($validator->fails()) {
             return back()
-                    ->withErrors($validator)
-                    ->withInput()
-                    ->with('error_modal', 'tambahDataModal');
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_modal', 'tambahDataModal');
         }
 
         $validatedData = $validator->validated();
 
-        MasterPetugas::create($validatedData); 
+        MasterPetugas::create($validatedData);
 
         return redirect()->route('master.petugas.index')->with('success', 'Data petugas berhasil ditambahkan.');
     }
 
-    
+    public function show(MasterPetugas $petugas)
+    {
+        // Pastikan view path ini ada: 'resources/views/master/petugas/show.blade.php'
+        return view('masterPetugas.show', compact('petugas'));
+    }
+
+
     public function edit(MasterPetugas $petugas)
     {
-        if ($petugas->tgl_lahir instanceof \Carbon\Carbon) {
+        // Pastikan model Anda memiliki casting untuk tgl_lahir
+        if ($petugas->tgl_lahir) {
              $petugas->tgl_lahir_formatted = $petugas->tgl_lahir->format('Y-m-d');
         } else {
-             $petugas->tgl_lahir_formatted = null; // Atau format default jika bukan objek Carbon
+             $petugas->tgl_lahir_formatted = null;
         }
         return response()->json($petugas);
     }
 
-   
+
     public function update(Request $request, MasterPetugas $petugas)
     {
         $validator = Validator::make($request->all(), [
@@ -103,10 +111,10 @@ class MasterPetugasController extends Controller
 
         if ($validator->fails()) {
             return back()
-                    ->withErrors($validator)
-                    ->withInput()
-                    ->with('error_modal', 'editDataModal')
-                    ->with('edit_id', $petugas->id_petugas); 
+                ->withErrors($validator, 'edit_error')
+                ->withInput()
+                ->with('error_modal', 'editDataModal')
+                ->with('edit_id', $petugas->id_petugas);
         }
 
         $validatedData = $validator->validated();
@@ -137,7 +145,7 @@ class MasterPetugasController extends Controller
     {
         $filename = 'master_petugas_' . date('Ymd_His') . '.csv';
         $headers = [
-            'Content-Type' => 'text/csv; charset=utf-8', 
+            'Content-Type' => 'text/csv; charset=utf-8',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
@@ -158,7 +166,7 @@ class MasterPetugasController extends Controller
                     $p->posisi,
                     $p->email,
                     $p->pendidikan,
-                    $p->tgl_lahir ? ($p->tgl_lahir instanceof \Carbon\Carbon ? $p->tgl_lahir->format('d/m/Y') : $p->tgl_lahir) : '', 
+                    $p->tgl_lahir ? ($p->tgl_lahir instanceof \Carbon\Carbon ? $p->tgl_lahir->format('d/m/Y') : $p->tgl_lahir) : '',
                     $p->kecamatan,
                     $p->pekerjaan,
                 ]);
@@ -173,8 +181,9 @@ class MasterPetugasController extends Controller
         $query = $request->input('query', '');
 
         $data = MasterPetugas::where('nama_petugas', 'LIKE', "%{$query}%")
-                             ->limit(10)
-                             ->pluck('nama_petugas');
+            ->limit(10)
+            ->pluck('nama_petugas');
         return response()->json($data);
     }
 }
+

@@ -27,12 +27,18 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
         // UBAH DARI 'email' MENJADI 'username'
 =======
         // [ DIUBAH ] dari 'email' menjadi 'username'
 >>>>>>> b5f047e9b0b9758bca457f90c4fe8bf0e95f9600
         return [
             'username' => ['required', 'string'],
+=======
+        // KEMBALIKAN KE 'email'
+        return [
+            'email' => ['required', 'string', 'email'], // Ditambah validasi email
+>>>>>>> baruuujay
             'password' => ['required', 'string'],
         ];
     }
@@ -46,6 +52,7 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         // UBAH DARI 'email' MENJADI 'username'
 =======
@@ -61,6 +68,15 @@ class LoginRequest extends FormRequest
                 // [ DIUBAH ] dari 'email' menjadi 'username'
 >>>>>>> b5f047e9b0b9758bca457f90c4fe8bf0e95f9600
                 'username' => __('auth.failed'),
+=======
+        // KEMBALIKAN KE 'email'
+        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                // KEMBALIKAN KE 'email'
+                'email' => __('auth.failed'),
+>>>>>>> baruuujay
             ]);
         }
 
@@ -84,11 +100,16 @@ class LoginRequest extends FormRequest
 
         throw ValidationException::withMessages([
 <<<<<<< HEAD
+<<<<<<< HEAD
             // UBAH DARI 'email' MENJADI 'username'
 =======
             // [ DIUBAH ] dari 'email' menjadi 'username'
 >>>>>>> b5f047e9b0b9758bca457f90c4fe8bf0e95f9600
             'username' => trans('auth.throttle', [
+=======
+            // KEMBALIKAN KE 'email'
+            'email' => trans('auth.throttle', [
+>>>>>>> baruuujay
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -101,6 +122,7 @@ class LoginRequest extends FormRequest
     public function throttleKey(): string
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
         // UBAH DARI 'email' MENJADI 'username'
 =======
         // [ DIUBAH ] dari $this->input('email')
@@ -108,3 +130,10 @@ class LoginRequest extends FormRequest
         return Str::transliterate(Str::lower($this->input('username')).'|'.$this->ip());
     }
 }
+=======
+        // KEMBALIKAN KE 'email'
+        return Str::transliterate(Str::lower($this->input('email')).'|'.$this->ip());
+    }
+}
+
+>>>>>>> baruuujay
