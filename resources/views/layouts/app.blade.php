@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>@yield('title', 'Sitokcer')</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,15 +19,37 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
-        body {
-            overflow-y: hidden;
-            background-color: #f8f9fa;
-            font-family: sans-serif;
+        /* ===== PREMIUM GLOBAL STYLES ===== */
+        :root {
+            --sidebar-width: 280px;
+            --header-height: 64px;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.1);
+            --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            overflow: hidden;
+            height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ===== PAGE WRAPPER ===== */
         .page-wrapper {
             display: flex;
             height: 100vh;
+            position: relative;
         }
 
         #sidebar-wrapper {
@@ -50,12 +72,18 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
+            height: calc(100vh - var(--header-height));
         }
 
         #content-wrapper {
             flex-grow: 1;
             overflow-y: auto;
-            padding: 1.5rem;
+            overflow-x: hidden;
+            padding: 2rem;
+            background: transparent;
+            transition: margin-left 0.4s var(--transition-smooth);
+            scroll-behavior: smooth;
         }
 
         /* [BARU] CSS untuk mencegah transisi saat halaman dimuat */

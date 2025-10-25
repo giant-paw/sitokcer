@@ -649,6 +649,268 @@
             </form>
         </div>
     </div>
+    <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{{ route('tim-produksi.tahunan.store') }}" method="POST" id="tambahForm">
+                {{-- ID Form & Rute --}}
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="tambahDataModalLabel">Tambah Data Baru</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {{-- Pastikan $masterKegiatanList dikirim dari Controller --}}
+                        <div class="mb-3 autocomplete-container">
+                            <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror"
+                                id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
+                                placeholder="Ketik untuk mencari..." required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
+                            <div class="invalid-feedback" data-field="nama_kegiatan">
+                                @error('nama_kegiatan')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="BS_Responden" class="form-label">Blok Sensus/Responden <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror"
+                                id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
+                            <div class="invalid-feedback" data-field="BS_Responden">
+                                @error('BS_Responden')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="mb-3 autocomplete-container">
+                            <label for="pencacah" class="form-label">Pencacah <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror"
+                                id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required
+                                autocomplete="off">
+                            <div class="autocomplete-suggestions" id="pencacah-suggestions"></div>
+                            <div class="invalid-feedback" data-field="pencacah">
+                                @error('pencacah')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="mb-3 autocomplete-container">
+                            <label for="pengawas" class="form-label">Pengawas <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror"
+                                id="pengawas" name="pengawas" value="{{ old('pengawas') }}" required
+                                autocomplete="off">
+                            <div class="autocomplete-suggestions" id="pengawas-suggestions"></div>
+                            <div class="invalid-feedback" data-field="pengawas">
+                                @error('pengawas')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="target_penyelesaian" class="form-label">Target Penyelesaian <span
+                                    class="text-danger">*</span></label>
+                            <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror"
+                                id="target_penyelesaian" name="target_penyelesaian"
+                                value="{{ old('target_penyelesaian') }}" required>
+                            <div class="invalid-feedback" data-field="target_penyelesaian">
+                                @error('target_penyelesaian')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="flag_progress" class="form-label">Flag Progress <span
+                                    class="text-danger">*</span></label>
+                            <select class="form-select @error('flag_progress') is-invalid @enderror" id="flag_progress"
+                                name="flag_progress" required>
+                                <option value="Belum Selesai"
+                                    {{ old('flag_progress') == 'Belum Selesai' ? 'selected' : '' }}>Belum Selesai</option>
+                                <option value="Selesai" {{ old('flag_progress') == 'Selesai' ? 'selected' : '' }}>Selesai
+                                </option>
+                            </select>
+                            <div class="invalid-feedback" data-field="flag_progress">
+                                @error('flag_progress')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            {{-- Sesuaikan label dan required (nullable di controller) --}}
+                            <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
+                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror"
+                                id="tanggal_pengumpulan" name="tanggal_pengumpulan"
+                                value="{{ old('tanggal_pengumpulan') }}">
+                            <div class="invalid-feedback" data-field="tanggal_pengumpulan">
+                                @error('tanggal_pengumpulan')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"
+                                aria-hidden="true"></span>
+                            Simpan
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="editForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editDataModalLabel">Edit Data</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+
+                        {{-- Nama Kegiatan --}}
+                        <div class="mb-3 autocomplete-container">
+                            <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror"
+                                id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required
+                                autocomplete="off">
+                            <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
+                            <div class="invalid-feedback" data-field="nama_kegiatan">
+                                @error('nama_kegiatan')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- BS Responden --}}
+                        <div class="mb-3">
+                            <label for="edit_BS_Responden" class="form-label">Blok Sensus/Responden <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('BS_Responden') is-invalid @enderror"
+                                id="edit_BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
+                            <div class="invalid-feedback" data-field="BS_Responden">
+                                @error('BS_Responden')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Pencacah --}}
+                        <div class="mb-3 autocomplete-container">
+                            <label for="edit_pencacah" class="form-label">Pencacah <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('pencacah') is-invalid @enderror"
+                                id="edit_pencacah" name="pencacah" value="{{ old('pencacah') }}" required
+                                autocomplete="off">
+                            <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
+                            <div class="invalid-feedback" data-field="pencacah">
+                                @error('pencacah')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Pengawas --}}
+                        <div class="mb-3 autocomplete-container">
+                            <label for="edit_pengawas" class="form-label">Pengawas <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('pengawas') is-invalid @enderror"
+                                id="edit_pengawas" name="pengawas" value="{{ old('pengawas') }}" required
+                                autocomplete="off">
+                            <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div>
+                            <div class="invalid-feedback" data-field="pengawas">
+                                @error('pengawas')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Target Penyelesaian --}}
+                        <div class="mb-3">
+                            <label for="edit_target_penyelesaian" class="form-label">Tanggal Target Penyelesaian <span
+                                    class="text-danger">*</span></label>
+                            <input type="date" class="form-control @error('target_penyelesaian') is-invalid @enderror"
+                                id="edit_target_penyelesaian" name="target_penyelesaian"
+                                value="{{ old('target_penyelesaian') }}" required>
+                            <div class="invalid-feedback" data-field="target_penyelesaian">
+                                @error('target_penyelesaian')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Flag Progress --}}
+                        <div class="mb-3">
+                            <label for="edit_flag_progress" class="form-label">Flag Progress <span
+                                    class="text-danger">*</span></label>
+                            <select class="form-select @error('flag_progress') is-invalid @enderror"
+                                id="edit_flag_progress" name="flag_progress" required>
+
+                                {{-- Tambahkan logic 'selected' di sini --}}
+                                <option value="Belum Selesai"
+                                    {{ old('flag_progress') == 'Belum Selesai' ? 'selected' : '' }}>Belum Selesai</option>
+                                <option value="Selesai" {{ old('flag_progress') == 'Selesai' ? 'selected' : '' }}>Selesai
+                                </option>
+
+                            </select>
+                            <div class="invalid-feedback" data-field="flag_progress">
+                                @error('flag_progress')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Tanggal Pengumpulan --}}
+                        <div class="mb-3">
+                            <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
+                            <input type="date" class="form-control @error('tanggal_pengumpulan') is-invalid @enderror"
+                                id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan"
+                                value="{{ old('tanggal_pengumpulan') }}">
+                            <div class="invalid-feedback" data-field="tanggal_pengumpulan">
+                                @error('tanggal_pengumpulan')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"
+                                aria-hidden="true"></span>
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="deleteForm" method="POST"> @csrf @method('DELETE') <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Konfirmasi Hapus</h5> <button type="button" class="btn-close"
+                            data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="deleteModalBody"> Hapus data ini? </div>
+                    <div class="modal-footer"> <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Batal</button> <button type="submit" class="btn btn-danger"
+                            id="confirmDeleteButton">Hapus</button> </div>
+                </div>
+            </form>
+        </div>
+    </div>
 
 @endsection
 

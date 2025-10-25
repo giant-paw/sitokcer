@@ -108,11 +108,11 @@
                  <ul class="nav nav-tabs"> {{-- Gunakan nav-tabs --}}
                     <li class="nav-item">
                         <a class="nav-link {{ empty($selectedKegiatan) ? 'active' : '' }}"
-                           href="{{ route('tim-distribusi.tahunan.index', ['tahun' => $selectedTahun ?? date('Y')]) }}">
-                           Semua Kegiatan
+                            href="{{ route('tim-distribusi.tahunan.index', ['tahun' => $selectedTahun ?? date('Y')]) }}">
+                            Semua Kegiatan
                         </a>
                     </li>
-                    @foreach($kegiatanCounts ?? [] as $kegiatan)
+                    @foreach ($kegiatanCounts ?? [] as $kegiatan)
                         <li class="nav-item">
                             <a class="nav-link {{ ($selectedKegiatan ?? '') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
                                href="{{ route('tim-distribusi.tahunan.index', ['kegiatan' => $kegiatan->nama_kegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
@@ -306,199 +306,415 @@
 
 @endsection
 @push('scripts')
-<script>
-    /** Autocomplete */
-    // ... (Fungsi initAutocomplete tidak perlu diubah) ...
-    function initAutocomplete(inputId, suggestionsId, searchUrl) { const input = document.getElementById(inputId); if (!input || !searchUrl) return; const suggestionsContainer = document.getElementById(suggestionsId); let debounceTimer; let activeSuggestionIndex = -1; input.addEventListener('input', function() { const query = this.value; clearTimeout(debounceTimer); if (query.length < 1) { if (suggestionsContainer) suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; return; } debounceTimer = setTimeout(() => { const finalSearchUrl = `${searchUrl}&query=${encodeURIComponent(query)}`; fetch(finalSearchUrl).then(response => { if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } return response.json(); }).then(data => { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; if (Array.isArray(data)) { data.forEach((item, index) => { const div = document.createElement('div'); div.textContent = item; div.classList.add('autocomplete-suggestion-item'); div.onclick = () => { input.value = item; suggestionsContainer.innerHTML = ''; }; div.onmouseover = () => { document.querySelectorAll(`#${suggestionsId} .autocomplete-suggestion-item`).forEach(el => el.classList.remove('active')); div.classList.add('active'); activeSuggestionIndex = index; }; suggestionsContainer.appendChild(div); }); } else { console.error('Autocomplete data is not an array:', data); } }).catch(error => console.error('Autocomplete error:', error)); }, 300); }); input.addEventListener('keydown', function(e) { const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item'); if (suggestions.length === 0) return; if (e.key === 'ArrowDown') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'ArrowUp') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'Enter') { if (activeSuggestionIndex > -1) { e.preventDefault(); input.value = suggestions[activeSuggestionIndex].textContent; suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } } else if (e.key === 'Escape') { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); function updateActiveSuggestion(suggestions, index) { suggestions.forEach(el => el.classList.remove('active')); if (suggestions[index]) suggestions[index].classList.add('active'); } document.addEventListener('click', (e) => { if (e.target.id !== inputId && suggestionsContainer) { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); }
-
-    // --- URL Basis BARU ---
-    const distribusiTahunanBaseUrl = '/tim-distribusi/tahunan'; // Sesuaikan jika prefix beda
-
-    /** Edit Data */
-    function editData(id) {
-        const editModalEl = document.getElementById('editDataModal'); if (!editModalEl) return;
-        const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
-        const editForm = document.getElementById('editForm');
-
-        // Gunakan URL baru
-        editForm.action = `${distribusiTahunanBaseUrl}/${id}`;
-        clearFormErrors(editForm);
-        // Set ID fallback
-        const fallbackInput = editForm.querySelector('#edit_id_fallback');
-        if(fallbackInput) fallbackInput.value = id;
-
-
-        // Gunakan URL baru
-        fetch(`${distribusiTahunanBaseUrl}/${id}/edit`)
-            .then(response => { if (!response.ok) { return response.text().then(text => { throw new Error(text || 'Data tidak ditemukan'); }); } return response.json(); })
-            .then(data => {
-                document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
-                document.getElementById('edit_BS_Responden').value = data.BS_Responden || '';
-                document.getElementById('edit_pencacah').value = data.pencacah || '';
-                document.getElementById('edit_pengawas').value = data.pengawas || '';
-
-                // --- PERBAIKAN: Sederhanakan assignment tanggal ---
-                document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian || ''; // Sudah Y-m-d
-                document.getElementById('edit_flag_progress').value = data.flag_progress || 'Belum Selesai';
-                document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan || ''; // Sudah Y-m-d
-
-                editModal.show();
-            })
-            .catch(error => { console.error("Error loading edit data:", error); alert('Tidak dapat memuat data Distribusi. Error: ' + error.message); });
-    }
-
-    /** Delete Data */
-    function deleteData(id) {
-        const deleteModalEl = document.getElementById('deleteDataModal'); if (!deleteModalEl) return;
-        const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
-        const deleteForm = document.getElementById('deleteForm');
-
-        // Gunakan URL baru
-        deleteForm.action = `${distribusiTahunanBaseUrl}/${id}`;
-
-        let methodInput = deleteForm.querySelector('input[name="_method"]'); if (!methodInput) { methodInput = document.createElement('input'); methodInput.type = 'hidden'; methodInput.name = '_method'; deleteForm.appendChild(methodInput); } methodInput.value = 'DELETE';
-        deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
-        document.getElementById('deleteModalBody').innerText = 'Apakah Anda yakin ingin menghapus data ini?';
-        // Perbaikan: Re-attach event listener ke tombol konfirmasi baru
-        const confirmBtn = document.getElementById('confirmDeleteButton');
-        const newConfirmBtn = confirmBtn.cloneNode(true);
-        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-        newConfirmBtn.addEventListener('click', (e) => { e.preventDefault(); deleteForm.submit(); });
-
-        deleteModal.show();
-    }
-
-    /** AJAX Helpers */
-    // ... (Fungsi clearFormErrors, showFormErrors, handleFormSubmitAjax tidak perlu diubah) ...
-    function clearFormErrors(form) { form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid')); form.querySelectorAll('.invalid-feedback[data-field]').forEach(el => el.textContent = ''); }
-    function showFormErrors(form, errors) { for (const [field, messages] of Object.entries(errors)) { const input = form.querySelector(`[name="${field}"]`); const errorDiv = form.querySelector(`.invalid-feedback[data-field="${field}"]`); if (input) input.classList.add('is-invalid'); if (errorDiv) errorDiv.textContent = messages[0]; } }
-    async function handleFormSubmitAjax(event, form, modalInstance) { event.preventDefault(); const sb = form.querySelector('button[type="submit"]'); const sp = sb.querySelector('.spinner-border'); sb.disabled = true; if (sp) sp.classList.remove('d-none'); clearFormErrors(form); try { const fd = new FormData(form); const response = await fetch(form.action, { method: form.method, body: fd, headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': fd.get('_token') } }); const data = await response.json(); if (!response.ok) { if (response.status === 422 && data.errors) { showFormErrors(form, data.errors); } else { alert(data.message || 'Error.'); } } else { modalInstance.hide(); location.reload(); } } catch (error) { console.error('Fetch error:', error); alert('Tidak terhubung.'); } finally { sb.disabled = false; if (sp) sp.classList.add('d-none'); } }
-
-    /** DOM Ready */
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // --- Init Autocomplete ---
-        // Gunakan route helper yang benar
-         @if(Route::has('tim-distribusi.tahunan.searchKegiatan')) // TAMBAHKAN INI
-            const kegiatanSearchUrl = '{{ route("tim-distribusi.tahunan.searchKegiatan") }}?'; // Tambah ?
-            initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', kegiatanSearchUrl);
-            initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', kegiatanSearchUrl);
-        @elseif(Route::has('master.kegiatan.search')) // Fallback jika tidak ada route spesifik
-             const kegiatanSearchUrl = '{{ route("master.kegiatan.search") }}?'; // Tambah ?
-             initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', kegiatanSearchUrl);
-             initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', kegiatanSearchUrl);
-        @else console.warn('Rute searchKegiatan tidak ditemukan.'); @endif
-
-        @if(Route::has('tim-distribusi.tahunan.searchPetugas'))
-            const petugasSearchUrl = '{{ route("tim-distribusi.tahunan.searchPetugas") }}?'; // Tambah ?
-            // Hapus parameter 'field' jika tidak dipakai controller
-            initAutocomplete('pencacah', 'pencacah-suggestions', petugasSearchUrl);
-            initAutocomplete('pengawas', 'pengawas-suggestions', petugasSearchUrl);
-            initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', petugasSearchUrl);
-            initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', petugasSearchUrl);
-        @else console.warn('Rute tim-distribusi.tahunan.searchPetugas tidak ada.'); @endif
-
-
-        // --- Init AJAX Form Handlers ---
-        const tme = document.getElementById('tambahDataModal'); const tf = document.getElementById('tambahForm'); if (tme && tf) { const tm = bootstrap.Modal.getOrCreateInstance(tme); tf.addEventListener('submit', (e) => handleFormSubmitAjax(e, tf, tm)); tme.addEventListener('hidden.bs.modal', () => { clearFormErrors(tf); tf.reset(); }); }
-        const eme = document.getElementById('editDataModal'); const ef = document.getElementById('editForm'); if (eme && ef) { const em = bootstrap.Modal.getOrCreateInstance(eme); ef.addEventListener('submit', (e) => handleFormSubmitAjax(e, ef, em)); eme.addEventListener('hidden.bs.modal', () => clearFormErrors(ef)); }
-
-        // --- Select All & Bulk Delete ---
-        const sa = document.getElementById('selectAll'); const rcb = document.querySelectorAll('.row-checkbox'); const bdb = document.getElementById('bulkDeleteBtn'); const df = document.getElementById('deleteForm'); function ubdbs() { const cc = document.querySelectorAll('.row-checkbox:checked').length; if (bdb) bdb.disabled = cc === 0; } sa?.addEventListener('change', () => { rcb.forEach(cb => cb.checked = sa.checked); ubdbs(); }); rcb.forEach(cb => cb.addEventListener('change', ubdbs)); ubdbs(); bdb?.addEventListener('click', () => { const count = document.querySelectorAll('.row-checkbox:checked').length; if (count === 0) return; const dme = document.getElementById('deleteDataModal'); if (!dme || !df) return; const dm = bootstrap.Modal.getOrCreateInstance(dme);
-        df.action = '{{ route("tim-distribusi.tahunan.bulkDelete") }}'; // Gunakan route baru
-        let mi = df.querySelector('input[name="_method"]'); if (mi) mi.value = 'POST';
-        df.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove()); document.querySelectorAll('.row-checkbox:checked').forEach(cb => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'ids[]'; i.value = cb.value; df.appendChild(i); }); document.getElementById('deleteModalBody').innerText = `Hapus ${count} data terpilih?`;
-        // Re-attach event listener ke tombol konfirmasi baru di modal hapus
-        const confirmBtnBulk = dme.querySelector('#confirmDeleteButton');
-        const newConfirmBtnBulk = confirmBtnBulk.cloneNode(true);
-        confirmBtnBulk.parentNode.replaceChild(newConfirmBtnBulk, confirmBtnBulk);
-        newConfirmBtnBulk.addEventListener('click', (e) => { e.preventDefault(); df.submit(); });
-
-        dm.show(); });
-
-        // --- Filters Per Page & Tahun ---
-        const pps = document.getElementById('perPageSelect');
-        const ts = document.getElementById('tahunSelect'); // Ambil elemen tahun jika ada
-        function hfc() {
-            const cu = new URL(window.location.href);
-            const p = cu.searchParams;
-            if (pps) p.set('per_page', pps.value);
-            if (ts) p.set('tahun', ts.value); else p.delete('tahun');
-            p.set('page', 1);
-            window.location.href = '{{ route("tim-distribusi.tahunan.index") }}' + '?' + p.toString();
-        }
-        if (pps) pps.addEventListener('change', hfc);
-        if (ts) ts.addEventListener('change', hfc);
-
-
-        // --- Fallback Error Modals ---
-        @if (session('error_modal') == 'tambahDataModal' && $errors->any())
-            const tmef = document.getElementById('tambahDataModal');
-            if (tmef) bootstrap.Modal.getOrCreateInstance(tmef).show();
-        @endif
-
-        @if (session('error_modal') == 'editDataModal' && $errors->any())
-            const eid_fb_input = document.getElementById('edit_id_fallback'); // Cari input fallback
-            const eid_fb = eid_fb_input ? eid_fb_input.value : '{{ session('edit_id') }}'; // Ambil ID
-            if (eid_fb) {
-                const emef = document.getElementById('editDataModal');
-                if(emef) {
-                    const edf = document.getElementById('editForm');
-                    edf.action = `${distribusiTahunanBaseUrl}/${eid_fb}`; // Set action
-                    bootstrap.Modal.getOrCreateInstance(emef).show();
-                    // Terapkan error (tanpa timeout)
-                    @foreach ($errors->keys() as $f)
-                        const fel = edf.querySelector('[name="{{ $f }}"]');
-                        if (fel) fel.classList.add('is-invalid');
-                        const erel = edf.querySelector(`.invalid-feedback[data-field="{{ $f }}"]`); // Cari data-field
-                        // Isi pesan error jika elemen ditemukan
-                        if (erel) erel.textContent = '{{ $errors->first($f) }}';
-                        // Jika tidak ada data-field, coba cari by ID (fallback)
-                        else {
-                             const erelById = edf.querySelector(`#edit_{{ $f }}_error`); // Misal: #edit_nama_kegiatan_error
-                             if(erelById) erelById.textContent = '{{ $errors->first($f) }}';
-                        }
-                    @endforeach
+    <script>
+        /** Autocomplete */
+        // ... (Fungsi initAutocomplete tidak perlu diubah) ...
+        function initAutocomplete(inputId, suggestionsId, searchUrl) {
+            const input = document.getElementById(inputId);
+            if (!input || !searchUrl) return;
+            const suggestionsContainer = document.getElementById(suggestionsId);
+            let debounceTimer;
+            let activeSuggestionIndex = -1;
+            input.addEventListener('input', function() {
+                const query = this.value;
+                clearTimeout(debounceTimer);
+                if (query.length < 1) {
+                    if (suggestionsContainer) suggestionsContainer.innerHTML = '';
+                    activeSuggestionIndex = -1;
+                    return;
                 }
-            }
-        @endif
-
-
-        // --- Auto-hide Alerts ---
-        const alertList = document.querySelectorAll('.alert-dismissible[role="alert"]');
-        alertList.forEach(function (alert) {
-            if (!alert.closest('.modal')) {
-                const autoHide = {{ session('auto_hide', 'false') ? 'true' : 'false' }};
-                if(autoHide) {
-                    setTimeout(() => {
-                        bootstrap.Alert.getOrCreateInstance(alert).close();
-                    }, 5000); // 5 detik
-                 }
-            }
-        })
-
-         // --- Script untuk Update Opsi Export Modal ---
-         const exportModalEl = document.getElementById('exportModal');
-         if(exportModalEl) {
-             exportModalEl.addEventListener('show.bs.modal', function () {
-                const currentPageOption = document.querySelector('#exportModal #dataRange option[value="current_page"]');
-                const allDataOption = document.querySelector('#exportModal #dataRange option[value="all"]');
-                const totalData = {{ $listData->total() }};
-                const currentPageData = {{ $listData->count() }};
-
-                if(currentPageOption) currentPageOption.textContent = `Hanya Halaman Ini (${currentPageData} data)`;
-                if(allDataOption) allDataOption.textContent = `Semua Data (${totalData} data)`;
-
-                // Update hidden inputs di form export
-                document.querySelector('#exportForm input[name="tahun"]').value = '{{ $selectedTahun ?? date('Y') }}';
-                document.querySelector('#exportForm input[name="kegiatan"]').value = '{{ $selectedKegiatan ?? '' }}';
-                document.querySelector('#exportForm input[name="search"]').value = '{{ $search ?? '' }}';
-                document.querySelector('#exportForm input[name="page"]').value = '{{ $listData->currentPage() }}';
-                document.querySelector('#exportForm input[name="per_page"]').value = '{{ request('per_page', $listData->perPage()) }}';
+                debounceTimer = setTimeout(() => {
+                    const finalSearchUrl = `${searchUrl}&query=${encodeURIComponent(query)}`;
+                    fetch(finalSearchUrl).then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    }).then(data => {
+                        suggestionsContainer.innerHTML = '';
+                        activeSuggestionIndex = -1;
+                        if (Array.isArray(data)) {
+                            data.forEach((item, index) => {
+                                const div = document.createElement('div');
+                                div.textContent = item;
+                                div.classList.add('autocomplete-suggestion-item');
+                                div.onclick = () => {
+                                    input.value = item;
+                                    suggestionsContainer.innerHTML = '';
+                                };
+                                div.onmouseover = () => {
+                                    document.querySelectorAll(
+                                        `#${suggestionsId} .autocomplete-suggestion-item`
+                                    ).forEach(el => el.classList.remove(
+                                        'active'));
+                                    div.classList.add('active');
+                                    activeSuggestionIndex = index;
+                                };
+                                suggestionsContainer.appendChild(div);
+                            });
+                        } else {
+                            console.error('Autocomplete data is not an array:', data);
+                        }
+                    }).catch(error => console.error('Autocomplete error:', error));
+                }, 300);
             });
-         }
+            input.addEventListener('keydown', function(e) {
+                const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item');
+                if (suggestions.length === 0) return;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length;
+                    updateActiveSuggestion(suggestions, activeSuggestionIndex);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length;
+                    updateActiveSuggestion(suggestions, activeSuggestionIndex);
+                } else if (e.key === 'Enter') {
+                    if (activeSuggestionIndex > -1) {
+                        e.preventDefault();
+                        input.value = suggestions[activeSuggestionIndex].textContent;
+                        suggestionsContainer.innerHTML = '';
+                        activeSuggestionIndex = -1;
+                    }
+                } else if (e.key === 'Escape') {
+                    suggestionsContainer.innerHTML = '';
+                    activeSuggestionIndex = -1;
+                }
+            });
+
+            function updateActiveSuggestion(suggestions, index) {
+                suggestions.forEach(el => el.classList.remove('active'));
+                if (suggestions[index]) suggestions[index].classList.add('active');
+            }
+            document.addEventListener('click', (e) => {
+                if (e.target.id !== inputId && suggestionsContainer) {
+                    suggestionsContainer.innerHTML = '';
+                    activeSuggestionIndex = -1;
+                }
+            });
+        }
+
+        // --- URL Basis BARU ---
+        const distribusiTahunanBaseUrl = '/tim-distribusi/tahunan'; // Sesuaikan jika prefix beda
+
+        /** Edit Data */
+        function editData(id) {
+            const editModalEl = document.getElementById('editDataModal');
+            if (!editModalEl) return;
+            const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
+            const editForm = document.getElementById('editForm');
+
+            // Gunakan URL baru
+            editForm.action = `${distribusiTahunanBaseUrl}/${id}`;
+            clearFormErrors(editForm);
+            // Set ID fallback
+            const fallbackInput = editForm.querySelector('#edit_id_fallback');
+            if (fallbackInput) fallbackInput.value = id;
 
 
-    });
-</script>
+            // Gunakan URL baru
+            fetch(`${distribusiTahunanBaseUrl}/${id}/edit`)
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(text || 'Data tidak ditemukan');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
+                    document.getElementById('edit_BS_Responden').value = data.BS_Responden || '';
+                    document.getElementById('edit_pencacah').value = data.pencacah || '';
+                    document.getElementById('edit_pengawas').value = data.pengawas || '';
+
+                    // --- PERBAIKAN: Sederhanakan assignment tanggal ---
+                    document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian ||
+                        ''; // Sudah Y-m-d
+                    document.getElementById('edit_flag_progress').value = data.flag_progress || 'Belum Selesai';
+                    document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan ||
+                        ''; // Sudah Y-m-d
+
+                    editModal.show();
+                })
+                .catch(error => {
+                    console.error("Error loading edit data:", error);
+                    alert('Tidak dapat memuat data Distribusi. Error: ' + error.message);
+                });
+        }
+
+        /** Delete Data */
+        function deleteData(id) {
+            const deleteModalEl = document.getElementById('deleteDataModal');
+            if (!deleteModalEl) return;
+            const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
+            const deleteForm = document.getElementById('deleteForm');
+
+            // Gunakan URL baru
+            deleteForm.action = `${distribusiTahunanBaseUrl}/${id}`;
+
+            let methodInput = deleteForm.querySelector('input[name="_method"]');
+            if (!methodInput) {
+                methodInput = document.createElement('input');
+                methodInput.type = 'hidden';
+                methodInput.name = '_method';
+                deleteForm.appendChild(methodInput);
+            }
+            methodInput.value = 'DELETE';
+            deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
+            document.getElementById('deleteModalBody').innerText = 'Apakah Anda yakin ingin menghapus data ini?';
+            // Perbaikan: Re-attach event listener ke tombol konfirmasi baru
+            const confirmBtn = document.getElementById('confirmDeleteButton');
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            newConfirmBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                deleteForm.submit();
+            });
+
+            deleteModal.show();
+        }
+
+        /** AJAX Helpers */
+        // ... (Fungsi clearFormErrors, showFormErrors, handleFormSubmitAjax tidak perlu diubah) ...
+        function clearFormErrors(form) {
+            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.invalid-feedback[data-field]').forEach(el => el.textContent = '');
+        }
+
+        function showFormErrors(form, errors) {
+            for (const [field, messages] of Object.entries(errors)) {
+                const input = form.querySelector(`[name="${field}"]`);
+                const errorDiv = form.querySelector(`.invalid-feedback[data-field="${field}"]`);
+                if (input) input.classList.add('is-invalid');
+                if (errorDiv) errorDiv.textContent = messages[0];
+            }
+        }
+        async function handleFormSubmitAjax(event, form, modalInstance) {
+            event.preventDefault();
+            const sb = form.querySelector('button[type="submit"]');
+            const sp = sb.querySelector('.spinner-border');
+            sb.disabled = true;
+            if (sp) sp.classList.remove('d-none');
+            clearFormErrors(form);
+            try {
+                const fd = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: fd,
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': fd.get('_token')
+                    }
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    if (response.status === 422 && data.errors) {
+                        showFormErrors(form, data.errors);
+                    } else {
+                        alert(data.message || 'Error.');
+                    }
+                } else {
+                    modalInstance.hide();
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                alert('Tidak terhubung.');
+            } finally {
+                sb.disabled = false;
+                if (sp) sp.classList.add('d-none');
+            }
+        }
+
+        /** DOM Ready */
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // --- Init Autocomplete ---
+            // Gunakan route helper yang benar
+            @if (Route::has('tim-distribusi.tahunan.searchKegiatan')) // TAMBAHKAN INI
+                const kegiatanSearchUrl = '{{ route('tim-distribusi.tahunan.searchKegiatan') }}?'; // Tambah ?
+                initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', kegiatanSearchUrl);
+                initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', kegiatanSearchUrl);
+            @elseif (Route::has('master.kegiatan.search')) // Fallback jika tidak ada route spesifik
+                const kegiatanSearchUrl = '{{ route('master.kegiatan.search') }}?'; // Tambah ?
+                initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', kegiatanSearchUrl);
+                initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', kegiatanSearchUrl);
+            @else
+                console.warn('Rute searchKegiatan tidak ditemukan.');
+            @endif
+
+            @if (Route::has('tim-distribusi.tahunan.searchPetugas'))
+                const petugasSearchUrl = '{{ route('tim-distribusi.tahunan.searchPetugas') }}?'; // Tambah ?
+                // Hapus parameter 'field' jika tidak dipakai controller
+                initAutocomplete('pencacah', 'pencacah-suggestions', petugasSearchUrl);
+                initAutocomplete('pengawas', 'pengawas-suggestions', petugasSearchUrl);
+                initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', petugasSearchUrl);
+                initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', petugasSearchUrl);
+            @else
+                console.warn('Rute tim-distribusi.tahunan.searchPetugas tidak ada.');
+            @endif
+
+
+            // --- Init AJAX Form Handlers ---
+            const tme = document.getElementById('tambahDataModal');
+            const tf = document.getElementById('tambahForm');
+            if (tme && tf) {
+                const tm = bootstrap.Modal.getOrCreateInstance(tme);
+                tf.addEventListener('submit', (e) => handleFormSubmitAjax(e, tf, tm));
+                tme.addEventListener('hidden.bs.modal', () => {
+                    clearFormErrors(tf);
+                    tf.reset();
+                });
+            }
+            const eme = document.getElementById('editDataModal');
+            const ef = document.getElementById('editForm');
+            if (eme && ef) {
+                const em = bootstrap.Modal.getOrCreateInstance(eme);
+                ef.addEventListener('submit', (e) => handleFormSubmitAjax(e, ef, em));
+                eme.addEventListener('hidden.bs.modal', () => clearFormErrors(ef));
+            }
+
+            // --- Select All & Bulk Delete ---
+            const sa = document.getElementById('selectAll');
+            const rcb = document.querySelectorAll('.row-checkbox');
+            const bdb = document.getElementById('bulkDeleteBtn');
+            const df = document.getElementById('deleteForm');
+
+            function ubdbs() {
+                const cc = document.querySelectorAll('.row-checkbox:checked').length;
+                if (bdb) bdb.disabled = cc === 0;
+            }
+            sa?.addEventListener('change', () => {
+                rcb.forEach(cb => cb.checked = sa.checked);
+                ubdbs();
+            });
+            rcb.forEach(cb => cb.addEventListener('change', ubdbs));
+            ubdbs();
+            bdb?.addEventListener('click', () => {
+                const count = document.querySelectorAll('.row-checkbox:checked').length;
+                if (count === 0) return;
+                const dme = document.getElementById('deleteDataModal');
+                if (!dme || !df) return;
+                const dm = bootstrap.Modal.getOrCreateInstance(dme);
+                df.action = '{{ route('tim-distribusi.tahunan.bulkDelete') }}'; // Gunakan route baru
+                let mi = df.querySelector('input[name="_method"]');
+                if (mi) mi.value = 'POST';
+                df.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
+                document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
+                    const i = document.createElement('input');
+                    i.type = 'hidden';
+                    i.name = 'ids[]';
+                    i.value = cb.value;
+                    df.appendChild(i);
+                });
+                document.getElementById('deleteModalBody').innerText = `Hapus ${count} data terpilih?`;
+                // Re-attach event listener ke tombol konfirmasi baru di modal hapus
+                const confirmBtnBulk = dme.querySelector('#confirmDeleteButton');
+                const newConfirmBtnBulk = confirmBtnBulk.cloneNode(true);
+                confirmBtnBulk.parentNode.replaceChild(newConfirmBtnBulk, confirmBtnBulk);
+                newConfirmBtnBulk.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    df.submit();
+                });
+
+                dm.show();
+            });
+
+            // --- Filters Per Page & Tahun ---
+            const pps = document.getElementById('perPageSelect');
+            const ts = document.getElementById('tahunSelect'); // Ambil elemen tahun jika ada
+            function hfc() {
+                const cu = new URL(window.location.href);
+                const p = cu.searchParams;
+                if (pps) p.set('per_page', pps.value);
+                if (ts) p.set('tahun', ts.value);
+                else p.delete('tahun');
+                p.set('page', 1);
+                window.location.href = '{{ route('tim-distribusi.tahunan.index') }}' + '?' + p.toString();
+            }
+            if (pps) pps.addEventListener('change', hfc);
+            if (ts) ts.addEventListener('change', hfc);
+
+
+            // --- Fallback Error Modals ---
+            @if (session('error_modal') == 'tambahDataModal' && $errors->any())
+                const tmef = document.getElementById('tambahDataModal');
+                if (tmef) bootstrap.Modal.getOrCreateInstance(tmef).show();
+            @endif
+
+            @if (session('error_modal') == 'editDataModal' && $errors->any())
+                const eid_fb_input = document.getElementById('edit_id_fallback'); // Cari input fallback
+                const eid_fb = eid_fb_input ? eid_fb_input.value : '{{ session('edit_id') }}'; // Ambil ID
+                if (eid_fb) {
+                    const emef = document.getElementById('editDataModal');
+                    if (emef) {
+                        const edf = document.getElementById('editForm');
+                        edf.action = `${distribusiTahunanBaseUrl}/${eid_fb}`; // Set action
+                        bootstrap.Modal.getOrCreateInstance(emef).show();
+                        // Terapkan error (tanpa timeout)
+                        @foreach ($errors->keys() as $f)
+                            const fel = edf.querySelector('[name="{{ $f }}"]');
+                            if (fel) fel.classList.add('is-invalid');
+                            const erel = edf.querySelector(
+                                `.invalid-feedback[data-field="{{ $f }}"]`); // Cari data-field
+                            // Isi pesan error jika elemen ditemukan
+                            if (erel) erel.textContent = '{{ $errors->first($f) }}';
+                            // Jika tidak ada data-field, coba cari by ID (fallback)
+                            else {
+                                const erelById = edf.querySelector(
+                                    `#edit_{{ $f }}_error`); // Misal: #edit_nama_kegiatan_error
+                                if (erelById) erelById.textContent = '{{ $errors->first($f) }}';
+                            }
+                        @endforeach
+                    }
+                }
+            @endif
+
+
+            // --- Auto-hide Alerts ---
+            const alertList = document.querySelectorAll('.alert-dismissible[role="alert"]');
+            alertList.forEach(function(alert) {
+                if (!alert.closest('.modal')) {
+                    const autoHide = {{ session('auto_hide', 'false') ? 'true' : 'false' }};
+                    if (autoHide) {
+                        setTimeout(() => {
+                            bootstrap.Alert.getOrCreateInstance(alert).close();
+                        }, 5000); // 5 detik
+                    }
+                }
+            })
+
+            // --- Script untuk Update Opsi Export Modal ---
+            const exportModalEl = document.getElementById('exportModal');
+            if (exportModalEl) {
+                exportModalEl.addEventListener('show.bs.modal', function() {
+                    const currentPageOption = document.querySelector(
+                        '#exportModal #dataRange option[value="current_page"]');
+                    const allDataOption = document.querySelector(
+                        '#exportModal #dataRange option[value="all"]');
+                    const totalData = {{ $listData->total() }};
+                    const currentPageData = {{ $listData->count() }};
+
+                    if (currentPageOption) currentPageOption.textContent =
+                        `Hanya Halaman Ini (${currentPageData} data)`;
+                    if (allDataOption) allDataOption.textContent = `Semua Data (${totalData} data)`;
+
+                    // Update hidden inputs di form export
+                    document.querySelector('#exportForm input[name="tahun"]').value =
+                        '{{ $selectedTahun ?? date('Y') }}';
+                    document.querySelector('#exportForm input[name="kegiatan"]').value =
+                        '{{ $selectedKegiatan ?? '' }}';
+                    document.querySelector('#exportForm input[name="search"]').value =
+                        '{{ $search ?? '' }}';
+                    document.querySelector('#exportForm input[name="page"]').value =
+                        '{{ $listData->currentPage() }}';
+                    document.querySelector('#exportForm input[name="per_page"]').value =
+                        '{{ request('per_page', $listData->perPage()) }}';
+                });
+            }
+
+
+        });
+    </script>
 @endpush

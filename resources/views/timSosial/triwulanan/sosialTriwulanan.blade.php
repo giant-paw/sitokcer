@@ -184,6 +184,17 @@
             @endif
         </div>
     </div>
+    {{-- Tombol Import & Download Template --}}
+    <div class="row mb-3">
+        <div class="col-12">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bx bx-upload"></i> Import Excel
+            </button>
+            <a href="{{ route('sosial.triwulanan.downloadTemplate') }}" class="btn btn-info">
+                <i class="bx bx-download"></i> Download Template
+            </a>
+        </div>
+    </div>
 
     {{-- ================================================= --}}
     {{-- ==              MODAL SECTIONS                 == --}}

@@ -303,6 +303,15 @@
 @endsection
 @push('scripts')
     <script>
+        document.getElementById('importFile').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                document.getElementById('fileName').textContent = fileName;
+                document.getElementById('filePreview').classList.remove('d-none');
+            } else {
+                document.getElementById('filePreview').classList.add('d-none');
+            }
+        });
         /** Autocomplete */
         function initAutocomplete(inputId, suggestionsId, searchUrl) {
             // ... (Fungsi ini sudah SANGAT BAGUS, tidak perlu diubah) ...
