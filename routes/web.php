@@ -41,28 +41,14 @@ use App\Http\Controllers\Master\MasterKegiatanController;
 // USER
 use App\Http\Controllers\User\UserController;
 
-// =========================================================================
-// RUTE PUBLIK (BISA DIAKSES TANPA LOGIN)
-// =========================================================================
 
-// HOME
-Route::get('/', fn () => view('home'))->name('home');
-
-// =========================================================================
-// RUTE YANG DILINDUNGI (HARUS LOGIN)
-// =========================================================================
-// Semua rute di dalam grup ini akan otomatis dialihkan ke halaman login
-// jika pengguna belum terautentikasi.
-// =========================================================================
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
 Route::middleware('auth')->group(function () {
 
-    /* DASHBOARD */
-    // Asumsi: Halaman dashboard harus login. Jika dashboard Anda publik, pindahkan ke luar grup.
-    // Breeze akan membuatkan rute /dashboard baru, Anda bisa sesuaikan ini
-    // Route::get('/dashboard', function () {
-    //     return view('dashboard');
-    // })->name('dashboard');
+    Route::get('/home', fn () => view('home'))->name('home');
     
     Route::get('/dashboard-distribusi', [DashboardDistribusiController::class, 'index'])->name('dashboard.distribusi');
     Route::get('/dashboard-nwa', [DashboardNwaController::class, 'index'])->name('dashboard.nwa');
@@ -355,7 +341,7 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-    Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
+    Route::prefix('nwa')->name('nwa.')->group(function () {
 
         // --- ROUTE NWA TAHUNAN (DIROMBAK) ---
         Route::prefix('tahunan')->name('tahunan.')->group(function () {
