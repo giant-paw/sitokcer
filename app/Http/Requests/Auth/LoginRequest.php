@@ -87,5 +87,4 @@ class LoginRequest extends FormRequest
         // KEMBALIKAN KE 'email'
         return Str::transliterate(Str::lower($this->input('email')).'|'.$this->ip());
     }
-}
-
+};
