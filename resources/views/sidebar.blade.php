@@ -323,6 +323,15 @@
             </a>
         </li>
 
+        @can('access-admin-areas')
+            <li class="{{ request()->routeIs('users.*') ? 'active-link' : '' }}">
+                <a href="{{ route('users.index') }}">
+                    <i class="bi bi-person-fill-gear menu-icon"></i>
+                    <span>Manajemen User</span>
+                </a>
+            </li>
+        @endcan
+
         <!-- USER -->
 
         @if(auth()->user() && auth()->user()->role == 'admin')

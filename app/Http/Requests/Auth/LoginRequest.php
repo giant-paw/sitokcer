@@ -26,7 +26,11 @@ class LoginRequest extends FormRequest
      */
     public function rules(): array
     {
+<<<<<<< HEAD
         // UBAH DARI 'email' MENJADI 'username'
+=======
+        // [ DIUBAH ] dari 'email' menjadi 'username'
+>>>>>>> b5f047e9b0b9758bca457f90c4fe8bf0e95f9600
         return [
             'username' => ['required', 'string'],
             'password' => ['required', 'string'],
@@ -42,12 +46,20 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+<<<<<<< HEAD
         // UBAH DARI 'email' MENJADI 'username'
+=======
+        // [ DIUBAH ] dari $this->only('email', 'password')
+>>>>>>> b5f047e9b0b9758bca457f90c4fe8bf0e95f9600
         if (! Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
+<<<<<<< HEAD
                 // UBAH DARI 'email' MENJADI 'username'
+=======
+                // [ DIUBAH ] dari 'email' menjadi 'username'
+>>>>>>> b5f047e9b0b9758bca457f90c4fe8bf0e95f9600
                 'username' => __('auth.failed'),
             ]);
         }
@@ -71,7 +83,11 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
+<<<<<<< HEAD
             // UBAH DARI 'email' MENJADI 'username'
+=======
+            // [ DIUBAH ] dari 'email' menjadi 'username'
+>>>>>>> b5f047e9b0b9758bca457f90c4fe8bf0e95f9600
             'username' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
@@ -84,7 +100,11 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
+<<<<<<< HEAD
         // UBAH DARI 'email' MENJADI 'username'
+=======
+        // [ DIUBAH ] dari $this->input('email')
+>>>>>>> b5f047e9b0b9758bca457f90c4fe8bf0e95f9600
         return Str::transliterate(Str::lower($this->input('username')).'|'.$this->ip());
     }
 }
