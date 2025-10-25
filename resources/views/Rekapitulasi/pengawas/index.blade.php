@@ -15,6 +15,24 @@
         margin-bottom: var(--spacing-lg, 1.5rem); /* Gunakan spacing global */
     }
 
+    .dropdown-menu .dropdown-item {
+            /* Paksa warna teks jadi gelap. Sesuaikan var() jika perlu. */
+            color: var(--dark-color, #343a40) !important;
+        }
+
+        .dropdown-menu .dropdown-item:hover,
+        .dropdown-menu .dropdown-item:focus {
+            /* Pastikan teks tetap gelap saat di-hover */
+            color: var(--color-gray-900, #1f2937) !important;
+            background-color: var(--color-gray-100, #f3f4f6) !important;
+        }
+
+        .dropdown-menu .dropdown-item:disabled,
+        .dropdown-menu .dropdown-item.disabled {
+            color: #adb5bd !important;
+            /* Warna abu-abu standar untuk disabled */
+        }
+
     /* Memastikan filter card di atas data card */
     .card.elegant-card.filter-card {
         position: relative;

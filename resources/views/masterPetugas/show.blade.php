@@ -3,6 +3,154 @@
 @section('title', 'Detail Petugas')
 @section('header-title', 'Detail Petugas')
 
+@push('styles')
+    {{-- CSS Kustom untuk Halaman Detail --}}
+    <style>
+        /* Header Halaman Detail */
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-md, 1rem);
+            /* Menggunakan variabel spacing dari global */
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md, 1rem);
+        }
+
+        /* Tombol Kembali (Komponen Baru) */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm, 0.5rem);
+            padding: 0.5rem 0.75rem;
+            background-color: var(--color-gray-100, #f3f4f6);
+            color: var(--color-gray-700, #374151);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: var(--border-radius-sm, 0.375rem);
+            font-weight: 500;
+            text-decoration: none;
+            transition: var(--transition-base, all 0.2s ease-in-out);
+        }
+
+        .btn-back:hover {
+            background-color: var(--color-gray-200, #e5e7eb);
+            color: var(--color-gray-900, #111827);
+        }
+
+        .header-info {
+            margin: 0;
+        }
+
+        /* Judul Halaman (menggunakan style .page-title & .page-subtitle dari global) */
+        .detail-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--color-gray-800, #1f2937);
+            margin-bottom: 4px;
+        }
+
+        .detail-subtitle {
+            font-size: 0.9375rem;
+            color: var(--color-gray-500, #6b7280);
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: var(--spacing-sm, 0.5rem);
+            flex-wrap: wrap;
+        }
+
+        /* Kartu Detail (Komponen Baru) */
+        .detail-card {
+            background: var(--card-bg, #ffffff);
+            border-radius: var(--border-radius-xl, 1rem);
+            border: 1px solid var(--border-color, #e5e7eb);
+            overflow: hidden;
+            margin-bottom: var(--spacing-lg, 1.5rem); /* Gunakan margin global */
+            height: 100%; /* Untuk menyamakan tinggi di grid */
+        }
+
+        .detail-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm, 0.5rem);
+            padding: var(--spacing-md, 1rem) var(--spacing-lg, 1.5rem);
+            border-bottom: 1px solid var(--border-color, #e5e7eb);
+            background: var(--color-gray-50, #f9fafb);
+        }
+
+        .card-header-icon {
+            flex-shrink: 0;
+            color: var(--primary-color, #4A90E2);
+            /* Sesuaikan warnanya jika perlu */
+        }
+
+        .card-header-title {
+            font-size: 1.125rem;
+            /* 18px */
+            font-weight: 600;
+            color: var(--color-gray-900, #111827);
+            margin: 0;
+        }
+
+        .detail-card-body {
+            padding: var(--spacing-lg, 1.5rem);
+        }
+
+        /* Daftar Info (Komponen Baru) */
+        .info-item {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            /* Lebar label tetap */
+            gap: var(--spacing-md, 1rem);
+            padding: var(--spacing-sm, 0.5rem) 0;
+        }
+
+        .info-item+.info-item {
+            border-top: 1px solid var(--color-gray-100, #f3f4f6);
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--color-gray-500, #6b7280);
+            font-size: var(--font-size-sm, 0.875rem);
+        }
+
+        .info-value {
+            font-weight: 500;
+            color: var(--color-gray-800, #1f2937);
+            font-size: var(--font-size-sm, 0.875rem);
+            word-break: break-word; /* Agar teks panjang tidak overflow */
+        }
+
+        .contact-link {
+            color: var(--primary-color, #4A90E2);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-link:hover {
+            text-decoration: underline;
+        }
+
+         /* Badge dari global.css sudah ada */
+         .badge.badge-blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+        }
+        .badge.badge-purple {
+            background: rgba(139, 92, 246, 0.1);
+            color: #7c3aed;
+        }
+    </style>
+@endpush
+
 @section('content')
     <div class="container-fluid px-4 py-4">
 
@@ -18,32 +166,14 @@
                     Kembali
                 </a>
                 <div class="header-info">
-                    <h2 class="detail-title">{{ $petugas->nama_petugas }}</h2>
-                    <p class="detail-subtitle">Informasi lengkap petugas</p>
+                    {{-- [DIUBAH] Menggunakan kelas .page-title dan .page-subtitle --}}
+                    <h2 class="page-title">{{ $petugas->nama_petugas }}</h2>
+                    <p class="page-subtitle">Informasi lengkap petugas</p>
                 </div>
-            </div>
-            <div class="header-actions">
-                <a href="{{ route('master.petugas.index', ['edit_id' => $petugas->id_petugas]) }}"
-                    class="btn-action-header btn-edit">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                    </svg>
-                    Edit
-                </a>
-                <button type="button" class="btn-action-header btn-delete" data-bs-toggle="modal"
-                    data-bs-target="#deleteDataModal" onclick="deleteData({{ $petugas->id_petugas }})">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                    Hapus
-                </button>
             </div>
         </div>
 
-        {{-- Detail Cards --}}
+        {{-- Detail Cards (Struktur kustom dipertahankan) --}}
         <div class="row g-4">
             {{-- Informasi Utama --}}
             <div class="col-lg-6">
@@ -66,8 +196,9 @@
                         <div class="info-item">
                             <label class="info-label">Kategori</label>
                             <div class="info-value">
-                                @if($petugas->kategori)
-                                    <span class="badge badge-{{ $petugas->kategori == 'Mitra' ? 'blue' : 'purple' }}">
+                                @if ($petugas->kategori)
+                                    {{-- [DIUBAH] Badge dari global.css --}}
+                                    <span class="badge {{ $petugas->kategori == 'Mitra' ? 'badge-blue' : 'badge-purple' }}">
                                         {{ $petugas->kategori }}
                                     </span>
                                 @else
@@ -77,11 +208,11 @@
                         </div>
                         <div class="info-item">
                             <label class="info-label">NIK</label>
-                            <div class="info-value">{{ $petugas->nik ?? '-' }}</div>
+                            <div class="info-value text-secondary">{{ $petugas->nik ?? '-' }}</div> {{-- [DIUBAH] text-secondary --}}
                         </div>
                         <div class="info-item">
                             <label class="info-label">Posisi</label>
-                            <div class="info-value">{{ $petugas->posisi ?? '-' }}</div>
+                            <div class="info-value text-secondary">{{ $petugas->posisi ?? '-' }}</div> {{-- [DIUBAH] text-secondary --}}
                         </div>
                     </div>
                 </div>
@@ -105,7 +236,7 @@
                         <div class="info-item">
                             <label class="info-label">No. HP</label>
                             <div class="info-value">
-                                @if($petugas->no_hp)
+                                @if ($petugas->no_hp)
                                     <a href="tel:{{ $petugas->no_hp }}" class="contact-link">
                                         {{ $petugas->no_hp }}
                                     </a>
@@ -117,7 +248,7 @@
                         <div class="info-item">
                             <label class="info-label">Email</label>
                             <div class="info-value">
-                                @if($petugas->email)
+                                @if ($petugas->email)
                                     <a href="mailto:{{ $petugas->email }}" class="contact-link">
                                         {{ $petugas->email }}
                                     </a>
@@ -128,11 +259,11 @@
                         </div>
                         <div class="info-item">
                             <label class="info-label">Alamat</label>
-                            <div class="info-value">{{ $petugas->alamat ?? '-' }}</div>
+                            <div class="info-value text-secondary">{{ $petugas->alamat ?? '-' }}</div> {{-- [DIUBAH] text-secondary --}}
                         </div>
                         <div class="info-item">
                             <label class="info-label">Kecamatan</label>
-                            <div class="info-value">{{ $petugas->kecamatan ?? '-' }}</div>
+                            <div class="info-value text-secondary">{{ $petugas->kecamatan ?? '-' }}</div> {{-- [DIUBAH] text-secondary --}}
                         </div>
                     </div>
                 </div>
@@ -156,17 +287,17 @@
                     <div class="detail-card-body">
                         <div class="info-item">
                             <label class="info-label">Tanggal Lahir</label>
-                            <div class="info-value">
+                            <div class="info-value text-secondary"> {{-- [DIUBAH] text-secondary --}}
                                 {{ $petugas->tgl_lahir ? $petugas->tgl_lahir->isoFormat('D MMMM YYYY') : '-' }}
                             </div>
                         </div>
                         <div class="info-item">
                             <label class="info-label">Pendidikan Terakhir</label>
-                            <div class="info-value">{{ $petugas->pendidikan ?? '-' }}</div>
+                            <div class="info-value text-secondary">{{ $petugas->pendidikan ?? '-' }}</div> {{-- [DIUBAH] text-secondary --}}
                         </div>
                         <div class="info-item">
                             <label class="info-label">Pekerjaan</label>
-                            <div class="info-value">{{ $petugas->pekerjaan ?? '-' }}</div>
+                            <div class="info-value text-secondary">{{ $petugas->pekerjaan ?? '-' }}</div> {{-- [DIUBAH] text-secondary --}}
                         </div>
                     </div>
                 </div>
@@ -188,18 +319,18 @@
                     <div class="detail-card-body">
                         <div class="info-item">
                             <label class="info-label">ID Petugas</label>
-                            <div class="info-value text-monospace">{{ $petugas->id_petugas }}</div>
+                            <div class="info-value text-monospace text-secondary">{{ $petugas->id_petugas }}</div> {{-- [DIUBAH] text-secondary --}}
                         </div>
-                        @if($petugas->created_at)
+                        @if ($petugas->created_at)
                             <div class="info-item">
                                 <label class="info-label">Tanggal Dibuat</label>
-                                <div class="info-value">{{ $petugas->created_at->isoFormat('D MMMM YYYY, HH:mm') }}</div>
+                                <div class="info-value text-secondary">{{ $petugas->created_at->isoFormat('D MMMM YYYY, HH:mm') }}</div>
                             </div>
                         @endif
-                        @if($petugas->updated_at)
+                        @if ($petugas->updated_at)
                             <div class="info-item">
                                 <label class="info-label">Terakhir Diperbarui</label>
-                                <div class="info-value">{{ $petugas->updated_at->isoFormat('D MMMM YYYY, HH:mm') }}</div>
+                                <div class="info-value text-secondary">{{ $petugas->updated_at->isoFormat('D MMMM YYYY, HH:mm') }}</div>
                             </div>
                         @endif
                     </div>
@@ -208,7 +339,7 @@
         </div>
     </div>
 
-    {{-- Modal Delete --}}
+    {{-- Modal Delete (Sudah sesuai global.css) --}}
     <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form id="deleteForm" method="POST">
@@ -238,7 +369,10 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="button" class="btn-danger" id="confirmDeleteButton">Ya, Hapus</button>
+                        <button type="button" class="btn-danger" id="confirmDeleteButton">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            Ya, Hapus
+                        </button>
                     </div>
                 </div>
             </form>
@@ -248,368 +382,38 @@
 @endsection
 
 @push('scripts')
-    <script>
-        function deleteData(id) {
-            const deleteForm = document.getElementById('deleteForm');
-            deleteForm.action = `/master-petugas/${id}`;
-            document.getElementById('deleteModalBody').innerText = 'Apakah Anda yakin ingin menghapus data petugas ini? Tindakan ini tidak dapat dibatalkan.';
-            document.getElementById('confirmDeleteButton').onclick = function () {
-                deleteForm.submit();
+<script>
+    /** Delete Data */
+    function deleteData(id) {
+        const deleteForm = document.getElementById('deleteForm');
+        // Set action URL
+        deleteForm.action = `{{ url('master-petugas') }}/${id}`; // Menggunakan url() helper
+        
+        // Pastikan modal body text benar
+        document.getElementById('deleteModalBody').innerText = 'Apakah Anda yakin ingin menghapus data petugas ini? Tindakan ini tidak dapat dibatalkan.';
+        
+        // Re-attach listener untuk konfirmasi
+        const confirmBtn = document.getElementById('confirmDeleteButton');
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        
+        newConfirmBtn.addEventListener('click', () => {
+            deleteForm.submit();
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+         // Auto-hide alerts
+        const aha = document.querySelectorAll('.alert-success');
+        aha.forEach(a => {
+            if (!a.closest('.modal')) {
+                setTimeout(() => {
+                    a.style.transition = 'opacity 0.5s ease';
+                    a.style.opacity = '0';
+                    setTimeout(() => a.remove(), 500);
+                }, 5000);
             }
-        }
-    </script>
-@endpush
-
-@push('styles')
-    <style>
-        /* Detail Header */
-        .detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex: 1;
-        }
-
-        .btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            background: #f3f4f6;
-            color: #6b7280;
-            border-radius: 10px;
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .btn-back:hover {
-            background: #e5e7eb;
-            color: #374151;
-            transform: translateX(-4px);
-        }
-
-        .header-info {
-            flex: 1;
-        }
-
-        .detail-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 4px;
-        }
-
-        .detail-subtitle {
-            font-size: 0.9375rem;
-            color: #6b7280;
-            margin: 0;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 12px;
-        }
-
-        .btn-action-header {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            border-radius: 10px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-
-        .btn-action-header:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn-edit {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: #ffffff;
-        }
-
-        .btn-delete {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: #ffffff;
-        }
-
-        /* Detail Card */
-        .detail-card {
-            background: #ffffff;
-            border-radius: 16px;
-            border: 1px solid #e5e7eb;
-            overflow: hidden;
-            height: 100%;
-        }
-
-        .detail-card-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #f3f4f6;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .card-header-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .card-header-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin: 0;
-        }
-
-        .detail-card-body {
-            padding: 24px;
-        }
-
-        /* Info Items */
-        .info-item {
-            padding: 16px 0;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .info-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .info-item:first-child {
-            padding-top: 0;
-        }
-
-        .info-label {
-            font-size: 0.8125rem;
-            font-weight: 500;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .info-value {
-            font-size: 0.9375rem;
-            color: #1f2937;
-            font-weight: 500;
-        }
-
-        .text-monospace {
-            font-family: 'Courier New', monospace;
-            background: #f3f4f6;
-            padding: 4px 8px;
-            border-radius: 6px;
-            display: inline-block;
-            font-size: 0.875rem;
-        }
-
-        /* Contact Link */
-        .contact-link {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .contact-link:hover {
-            color: #5568d3;
-            text-decoration: underline;
-        }
-
-        /* Badge */
-        .badge {
-            display: inline-flex;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8125rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-blue {
-            background: rgba(59, 130, 246, 0.1);
-            color: #2563eb;
-        }
-
-        .badge-purple {
-            background: rgba(139, 92, 246, 0.1);
-            color: #7c3aed;
-        }
-
-        /* Modal Styles */
-        .modern-modal .modal-header {
-            padding: 24px;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .modern-modal .modal-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .modal-close {
-            background: #f3f4f6;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: #6b7280;
-        }
-
-        .modal-close:hover {
-            background: #e5e7eb;
-            color: #374151;
-        }
-
-        .modal-header-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: #ffffff;
-        }
-
-        .modal-header-danger .modal-title {
-            color: #ffffff;
-        }
-
-        .modal-close-white {
-            background: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-        }
-
-        .modal-close-white:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .modern-modal .modal-body {
-            padding: 24px;
-        }
-
-        .modern-modal .modal-footer {
-            padding: 20px 24px;
-            border-top: 1px solid #f3f4f6;
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        .delete-icon {
-            text-align: center;
-            color: #ef4444;
-            margin-bottom: 16px;
-        }
-
-        .delete-text {
-            text-align: center;
-            font-size: 0.9375rem;
-            color: #6b7280;
-            margin: 0;
-        }
-
-        /* Button Styles */
-        .btn-secondary,
-        .btn-danger {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #6b7280;
-        }
-
-        .btn-secondary:hover {
-            background: #e5e7eb;
-            color: #4b5563;
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: #ffffff;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .detail-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .header-left {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .btn-back {
-                width: fit-content;
-            }
-
-            .header-actions {
-                width: 100%;
-            }
-
-            .btn-action-header {
-                flex: 1;
-                justify-content: center;
-            }
-
-            .detail-title {
-                font-size: 1.5rem;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .header-actions {
-                flex-direction: column;
-            }
-
-            .btn-action-header {
-                width: 100%;
-            }
-        }
-    </style>
+        });
+    });
+</script>
 @endpush

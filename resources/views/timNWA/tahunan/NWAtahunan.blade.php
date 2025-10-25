@@ -70,9 +70,8 @@
                         Tambah Baru
                     </button>
                     <button type="button" class="btn-action btn-secondary" style="background: #f3f4f6; color: #6b7280;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="17 8 12 3 7 8"></polyline>
                             <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -81,9 +80,8 @@
                     </button>
                     <button type="button" class="btn-action btn-success" data-bs-toggle="modal"
                         data-bs-target="#exportModal">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -92,9 +90,8 @@
                     </button>
                     <button type="button" class="btn-action btn-danger" data-bs-target="#deleteDataModal" id="bulkDeleteBtn"
                         disabled>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="3 6 5 6 21 6"></polyline>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                         </svg>
@@ -119,8 +116,7 @@
                         <label class="filter-label">Tahun:</label>
                         <select class="filter-select" id="tahunSelect">
                             @foreach ($availableTahun ?? [date('Y')] as $tahun)
-                                <option value="{{ $tahun }}"
-                                    {{ ($selectedTahun ?? date('Y')) == $tahun ? 'selected' : '' }}>
+                                <option value="{{ $tahun }}" {{ ($selectedTahun ?? date('Y')) == $tahun ? 'selected' : '' }}>
                                     {{ $tahun }}
                                 </option>
                             @endforeach
@@ -136,9 +132,8 @@
                         <input type="text" class="search-input" placeholder="Cari..." name="search"
                             value="{{ $search ?? '' }}">
                         <button class="search-btn" type="submit">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <path d="m21 21-4.35-4.35"></path>
                             </svg>
@@ -151,18 +146,16 @@
             @if (session('success'))
                 <div class="alert-success">
                     <div class="alert-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                             <polyline points="22 4 12 14.01 9 11.01"></polyline>
                         </svg>
                     </div>
                     <span>{{ session('success') }}</span>
                     <button type="button" class="alert-close" data-bs-dismiss="alert">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
@@ -202,113 +195,113 @@
             {{-- 10. [DIHAPUS] Search form sudah dipindah ke toolbar --}}
             {{-- <form action ... </form> --}}
 
-            {{-- 11. [DIUBAH] Menggunakan .table-wrapper dan .data-table --}}
-            <div class="table-wrapper">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            {{-- 12. [DIUBAH] Menggunakan .th-checkbox dan .table-checkbox --}}
-                            <th class="th-checkbox">
-                                <input type="checkbox" class="table-checkbox" id="selectAll">
-                            </th>
-                            <th>Nama Kegiatan</th>
-                            <th>BS/Responden</th>
-                            <th>Pencacah</th>
-                            <th>Pengawas</th>
-                            <th>Target Selesai</th>
-                            <th>Progress</th>
-                            <th>Tgl Kumpul</th>
-                            <th class="th-action">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($listData ?? [] as $item)
+                {{-- 11. [DIUBAH] Menggunakan .table-wrapper dan .data-table --}}
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
                             <tr>
-                                {{-- 13. [DIUBAH] Menggunakan .td-checkbox dan .table-checkbox --}}
-                                <td class="td-checkbox">
-                                    <input type="checkbox" class="table-checkbox row-checkbox"
-                                        value="{{ $item->id_nwa }}">
-                                </td>
-                                <td>{{ $item->nama_kegiatan }}</td>
-                                <td class="text-secondary">{{ $item->BS_Responden }}</td>
-                                <td class="text-secondary">{{ $item->pencacah }}</td>
-                                <td class="text-secondary">{{ $item->pengawas }}</td>
-                                <td class="text-secondary">
-                                    {{ $item->target_penyelesaian ? $item->target_penyelesaian->format('d/m/Y') : '-' }}
-                                </td>
-                                <td>
-                                    {{-- 14. [DIUBAH] Badge disesuaikan dengan style global.css (.badge-success, .badge-warning) --}}
-                                    @php
-                                        $flag = $item->flag_progress;
-                                        $badgeClass = 'badge-secondary'; // Default 'Belum Mulai'
-                                        if ($flag === 'Selesai') {
-                                            $badgeClass = 'badge-success';
-                                        } elseif ($flag === 'Proses') {
-                                            $badgeClass = 'badge-warning';
-                                        }
-                                    @endphp
-                                    <span class="badge {{ $badgeClass }}">{{ $flag ?? '-' }}</span>
-                                </td>
-                                <td class="text-secondary">
-                                    {{ $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('d/m/Y') : '-' }}
-                                </td>
-                                {{-- 15. [DIUBAH] Menggunakan .action-buttons dan .btn-icon --}}
-                                <td class="td-action">
-                                    <div class="action-buttons">
-                                        <button type="button" class="btn-icon btn-icon-edit" title="Edit"
-                                            data-bs-toggle="modal" data-bs-target="#editDataModal"
-                                            onclick="editData({{ $item->id_nwa }})">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                                            </svg>
-                                        </button>
-                                        <button type="button" class="btn-icon btn-icon-delete" title="Hapus"
-                                            data-bs-toggle="modal" data-bs-target="#deleteDataModal"
-                                            onclick="deleteData({{ $item->id_nwa }})">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <polyline points="3 6 5 6 21 6"></polyline>
-                                                <path
-                                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </td>
+                                {{-- 12. [DIUBAH] Menggunakan .th-checkbox dan .table-checkbox --}}
+                                <th class="th-checkbox">
+                                    <input type="checkbox" class="table-checkbox" id="selectAll">
+                                </th>
+                                <th>Nama Kegiatan</th>
+                                <th>BS/Responden</th>
+                                <th>Pencacah</th>
+                                <th>Pengawas</th>
+                                <th>Target Selesai</th>
+                                <th>Progress</th>
+                                <th>Tgl Kumpul</th>
+                                <th class="th-action">Aksi</th>
                             </tr>
-                        @empty
-                            {{-- 16. [DIUBAH] Menggunakan style .empty-state --}}
-                            <tr>
-                                <td colspan="9" class="empty-state">
-                                    <div class="empty-icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <circle cx="11" cy="11" r="8"></circle>
-                                            <path d="m21 21-4.35-4.35"></path>
-                                        </svg>
-                                    </div>
-                                    <p class="empty-text">Tidak ada data yang ditemukan.</p>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            @forelse ($listData ?? [] as $item)
+                                <tr>
+                                    {{-- 13. [DIUBAH] Menggunakan .td-checkbox dan .table-checkbox --}}
+                                    <td class="td-checkbox">
+                                        <input type="checkbox" class="table-checkbox row-checkbox" value="{{ $item->id_nwa }}">
+                                    </td>
+                                    <td>{{ $item->nama_kegiatan }}</td>
+                                    <td class="text-secondary">{{ $item->BS_Responden }}</td>
+                                    <td class="text-secondary">{{ $item->pencacah }}</td>
+                                    <td class="text-secondary">{{ $item->pengawas }}</td>
+                                    <td class="text-secondary">
+                                        {{ $item->target_penyelesaian ? $item->target_penyelesaian->format('d/m/Y') : '-' }}
+                                    </td>
+                                    <td>
+                                        {{-- 14. [DIUBAH] Badge disesuaikan dengan style global.css (.badge-success,
+                                        .badge-warning) --}}
+                                        @php
+                                            $flag = $item->flag_progress;
+                                            $badgeClass = 'badge-secondary'; // Default 'Belum Mulai'
+                                            if ($flag === 'Selesai') {
+                                                $badgeClass = 'badge-success';
+                                            } elseif ($flag === 'Proses') {
+                                                $badgeClass = 'badge-warning';
+                                            }
+                                        @endphp
+                                        <span class="badge {{ $badgeClass }}">{{ $flag ?? '-' }}</span>
+                                    </td>
+                                    <td class="text-secondary">
+                                        {{ $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('d/m/Y') : '-' }}
+                                    </td>
+                                    {{-- 15. [DIUBAH] Menggunakan .action-buttons dan .btn-icon --}}
+                                    <td class="td-action">
+                                        <div class="action-buttons">
+                                            <button type="button" class="btn-icon btn-icon-edit" title="Edit"
+                                                data-bs-toggle="modal" data-bs-target="#editDataModal"
+                                                onclick="editData({{ $item->id_nwa }})">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                                                </svg>
+                                            </button>
+                                            <button type="button" class="btn-icon btn-icon-delete" title="Hapus"
+                                                data-bs-toggle="modal" data-bs-target="#deleteDataModal"
+                                                onclick="deleteData({{ $item->id_nwa }})">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path
+                                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                                    </path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                {{-- 16. [DIUBAH] Menggunakan style .empty-state --}}
+                                <tr>
+                                    <td colspan="9" class="empty-state">
+                                        <div class="empty-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+                                                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <circle cx="11" cy="11" r="8"></circle>
+                                                <path d="m21 21-4.35-4.35"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="empty-text">Tidak ada data yang ditemukan.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
 
-            {{-- 17. [DIUBAH] Menggunakan .table-footer, .footer-info, .footer-pagination --}}
-            <div class="table-footer">
-                <div class="footer-info">
-                    Displaying {{ $listData->firstItem() ?? 0 }} - {{ $listData->lastItem() ?? 0 }} of
-                    {{ $listData->total() ?? 0 }}
+                {{-- 17. [DIUBAH] Menggunakan .table-footer, .footer-info, .footer-pagination --}}
+                <div class="table-footer">
+                    <div class="footer-info">
+                        Displaying {{ $listData->firstItem() ?? 0 }} - {{ $listData->lastItem() ?? 0 }} of
+                        {{ $listData->total() ?? 0 }}
+                    </div>
+                    <div class="footer-pagination">
+                        {{ $listData->links() ?? '' }}
+                    </div>
                 </div>
-                <div class="footer-pagination">
-                    {{ $listData->links() ?? '' }}
-                </div>
-            </div>
         </div>
     </div>
 
@@ -336,9 +329,8 @@
                             <p class="modal-subtitle">Pilih opsi ekspor Anda</p>
                         </div>
                         <button type="button" class="modal-close" data-bs-dismiss="modal">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -372,9 +364,8 @@
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn-primary">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="7 10 12 15 17 10"></polyline>
                                 <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -399,9 +390,8 @@
                             <p class="modal-subtitle">Isi form di bawah untuk menambah data baru</p>
                         </div>
                         <button type="button" class="modal-close" data-bs-dismiss="modal">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -466,8 +456,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="target_penyelesaian" class="form-label">Target Penyelesaian</label>
-                                    <input type="date"
-                                        class="form-input @error('target_penyelesaian') is-invalid @enderror"
+                                    <input type="date" class="form-input @error('target_penyelesaian') is-invalid @enderror"
                                         id="target_penyelesaian" name="target_penyelesaian"
                                         value="{{ old('target_penyelesaian') }}">
                                     <div class="invalid-feedback" data-field="target_penyelesaian">
@@ -485,7 +474,8 @@
                                         @php $oldFlag = old('flag_progress', 'Belum Mulai'); @endphp
                                         @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt)
                                             <option value="{{ $opt }}" @selected($oldFlag === $opt)>
-                                                {{ $opt }}</option>
+                                                {{ $opt }}
+                                            </option>
                                         @endforeach
                                     </select>
                                     <div class="invalid-feedback" data-field="flag_progress">
@@ -496,8 +486,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
-                                    <input type="date"
-                                        class="form-input @error('tanggal_pengumpulan') is-invalid @enderror"
+                                    <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror"
                                         id="tanggal_pengumpulan" name="tanggal_pengumpulan"
                                         value="{{ old('tanggal_pengumpulan') }}">
                                     <div class="invalid-feedback" data-field="tanggal_pengumpulan">
@@ -512,9 +501,8 @@
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn-primary">
                             <span class="spinner-border spinner-border-sm d-none"></span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
                             Simpan
@@ -542,9 +530,8 @@
                             <p class="modal-subtitle">Perbarui informasi data yang diperlukan</p>
                         </div>
                         <button type="button" class="modal-close" data-bs-dismiss="modal">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -559,8 +546,8 @@
                             <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span
                                     class="required">*</span></label>
                             <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror"
-                                id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
-                                required autocomplete="off">
+                                id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required
+                                autocomplete="off">
                             <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
                             <div class="invalid-feedback" data-field="nama_kegiatan">
                                 @error('nama_kegiatan') {{ $message }} @enderror
@@ -572,8 +559,7 @@
                                 <div class="form-group">
                                     <label for="edit_BS_Responden" class="form-label">Blok Sensus/Responden</label>
                                     <input type="text" class="form-input @error('BS_Responden') is-invalid @enderror"
-                                        id="edit_BS_Responden" name="BS_Responden"
-                                        value="{{ old('BS_Responden') }}">
+                                        id="edit_BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}">
                                     <div class="invalid-feedback" data-field="BS_Responden">
                                         @error('BS_Responden'){{ $message }}@enderror
                                     </div>
@@ -609,8 +595,7 @@
                                 <div class="form-group">
                                     <label for="edit_target_penyelesaian" class="form-label">Target
                                         Penyelesaian</label>
-                                    <input type="date"
-                                        class="form-input @error('target_penyelesaian') is-invalid @enderror"
+                                    <input type="date" class="form-input @error('target_penyelesaian') is-invalid @enderror"
                                         id="edit_target_penyelesaian" name="target_penyelesaian"
                                         value="{{ old('target_penyelesaian') }}">
                                     <div class="invalid-feedback" data-field="target_penyelesaian">
@@ -627,7 +612,8 @@
                                         @php $oldFlagE = old('flag_progress'); @endphp
                                         @foreach (['Belum Mulai', 'Proses', 'Selesai'] as $opt)
                                             <option value="{{ $opt }}" @selected($oldFlagE === $opt)>
-                                                {{ $opt }}</option>
+                                                {{ $opt }}
+                                            </option>
                                         @endforeach
                                     </select>
                                     <div class="invalid-feedback" data-field="flag_progress">
@@ -639,8 +625,7 @@
                                 <div class="form-group">
                                     <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal
                                         Pengumpulan</label>
-                                    <input type="date"
-                                        class="form-input @error('tanggal_pengumpulan') is-invalid @enderror"
+                                    <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror"
                                         id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan"
                                         value="{{ old('tanggal_pengumpulan') }}">
                                     <div class="invalid-feedback" data-field="tanggal_pengumpulan">
@@ -654,9 +639,8 @@
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn-primary">
                             <span class="spinner-border spinner-border-sm d-none"></span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
                             Simpan Perubahan
@@ -667,8 +651,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered"> {{-- Tambah centered --}}
             <form id="deleteForm" method="POST">
                 @csrf
@@ -678,9 +661,8 @@
                     <div class="modal-header modal-header-danger">
                         <h5 class="modal-title">Konfirmasi Hapus</h5>
                         <button type="button" class="modal-close modal-close-white" data-bs-dismiss="modal">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -688,9 +670,8 @@
                     </div>
                     <div class="modal-body">
                         <div class="delete-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="12" y1="8" x2="12" y2="12"></line>
                                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -701,12 +682,10 @@
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn-danger" id="confirmDeleteButton">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"></polyline>
-                                <path
-                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
                                 </path>
                             </svg>
                             Ya, Hapus
@@ -729,7 +708,7 @@
             const suggestionsContainer = document.getElementById(suggestionsId);
             let debounceTimer;
             let activeSuggestionIndex = -1;
-            input.addEventListener('input', function() {
+            input.addEventListener('input', function () {
                 const query = this.value;
                 clearTimeout(debounceTimer);
                 if (query.length < 1) {
@@ -762,7 +741,7 @@
                     }).catch(error => console.error('Autocomplete error:', error));
                 }, 300);
             });
-            input.addEventListener('keydown', function(e) {
+            input.addEventListener('keydown', function (e) {
                 const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item');
                 if (suggestions.length === 0) return;
                 if (e.key === 'ArrowDown') {
@@ -924,7 +903,7 @@
         }
 
         /** DOM Ready */
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
 
             // --- Init Autocomplete ---
             @if (Route::has('master.kegiatan.search'))
@@ -934,20 +913,20 @@
             @else
                 console.warn('Rute kegiatan search tidak ada.');
             @endif
-            @if (Route::has('nwa.tahunan.searchPetugas'))
-                // Gunakan rute searchPetugas yang benar
-                const petugasSearchUrl = '{{ route('nwa.tahunan.searchPetugas') }}';
-                initAutocomplete('pencacah', 'pencacah-suggestions', petugasSearchUrl);
-                initAutocomplete('pengawas', 'pengawas-suggestions', petugasSearchUrl);
-                initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', petugasSearchUrl);
-                initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', petugasSearchUrl);
-            @else
+                @if (Route::has('nwa.tahunan.searchPetugas'))
+                    // Gunakan rute searchPetugas yang benar
+                    const petugasSearchUrl = '{{ route('nwa.tahunan.searchPetugas') }}';
+                    initAutocomplete('pencacah', 'pencacah-suggestions', petugasSearchUrl);
+                    initAutocomplete('pengawas', 'pengawas-suggestions', petugasSearchUrl);
+                    initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', petugasSearchUrl);
+                    initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', petugasSearchUrl);
+                @else
                 console.warn('Rute nwa.tahunan.searchPetugas tidak ada.');
             @endif
 
-            // --- Init AJAX Form Handlers ---
-            // (Logika ini sudah benar)
-            const tme = document.getElementById('tambahDataModal');
+                // --- Init AJAX Form Handlers ---
+                // (Logika ini sudah benar)
+                const tme = document.getElementById('tambahDataModal');
             const tf = document.getElementById('tambahForm');
             if (tme && tf) {
                 const tm = bootstrap.Modal.getOrCreateInstance(tme);
@@ -1034,37 +1013,37 @@
                 if (tmef) bootstrap.Modal.getOrCreateInstance(tmef).show();
             @endif
 
-            @if (session('error_modal') == 'editDataModal' && $errors->any() && session('edit_id'))
-                const eid = {{ session('edit_id') }};
-                if (eid) {
-                    const editModalEl = document.getElementById('editDataModal');
-                    const editForm = document.getElementById('editForm');
+                @if (session('error_modal') == 'editDataModal' && $errors->any() && session('edit_id'))
+                    const eid = {{ session('edit_id') }};
+                    if (eid) {
+                        const editModalEl = document.getElementById('editDataModal');
+                        const editForm = document.getElementById('editForm');
 
-                    if (editForm) {
-                        // 1. Set action form ke URL update yang benar
-                        editForm.action = `${nwaTahunanBaseUrl}/${eid}`;
+                        if (editForm) {
+                            // 1. Set action form ke URL update yang benar
+                            editForm.action = `${nwaTahunanBaseUrl}/${eid}`;
 
-                        // 2. Terapkan error classes & messages dari Blade
-                        @foreach ($errors->keys() as $f)
-                            const fel = editForm.querySelector('[name="{{ $f }}"]');
-                            if (fel) fel.classList.add('is-invalid');
+                            // 2. Terapkan error classes & messages dari Blade
+                            @foreach ($errors->keys() as $f)
+                                const fel = editForm.querySelector('[name="{{ $f }}"]');
+                                if (fel) fel.classList.add('is-invalid');
 
-                            const erel = editForm.querySelector(
-                                `.invalid-feedback[data-field="{{ $f }}"]`);
-                            if (erel) erel.textContent = '{{ $errors->first($f) }}';
-                        @endforeach
+                                const erel = editForm.querySelector(
+                                    `.invalid-feedback[data-field="{{ $f }}"]`);
+                                if (erel) erel.textContent = '{{ $errors->first($f) }}';
+                            @endforeach
+                                }
+
+                        // 3. Tampilkan modal. 
+                        if (editModalEl) {
+                            bootstrap.Modal.getOrCreateInstance(editModalEl).show();
+                        }
                     }
-
-                    // 3. Tampilkan modal. 
-                    if (editModalEl) {
-                        bootstrap.Modal.getOrCreateInstance(editModalEl).show();
-                    }
-                }
-            @endif
+                @endif
 
             // SCRIPT UNTUK EXPORT DATA
             // ========================================
-            document.getElementById('exportForm').addEventListener('submit', function(e) {
+            document.getElementById('exportForm').addEventListener('submit', function (e) {
                 const dataRange = document.getElementById('dataRange').value;
                 const exportFormat = document.getElementById('exportFormat').value;
                 // Validasi input
@@ -1088,7 +1067,7 @@
                 return true;
             });
             // Update jumlah data pada dropdown saat modal dibuka
-            document.getElementById('exportDataModal').addEventListener('show.bs.modal', function() {
+            document.getElementById('exportDataModal').addEventListener('show.bs.modal', function () {
                 const currentPageOption = document.querySelector('#dataRange option[value="current_page"]');
                 const totalData = {{ $listData->total() }};
                 const currentPageData = {{ $listData->count() }};
@@ -1110,6 +1089,6 @@
                 }
             @endif
 
-        });
+            });
     </script>
 @endpush
