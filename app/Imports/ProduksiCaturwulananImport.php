@@ -6,8 +6,9 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Illuminate\Support\Collection;
+use Carbon\Carbon;
 
-class ProduksiTahunanImport implements ToCollection, WithHeadingRow, SkipsOnError
+class ProduksiCaturwulananImport implements ToCollection, WithHeadingRow, SkipsOnError
 {
     use SkipsErrors;
 

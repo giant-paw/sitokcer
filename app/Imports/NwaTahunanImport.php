@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Imports;
-use App\Models\Distribusi\DistribusiBulanan;
+use App\Models\nwa\NwaTahunan;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
 
-class DistribusiBulananImport implements ToCollection, WithHeadingRow, SkipsOnError
+class NwaTahunanImport implements ToCollection, WithHeadingRow, SkipsOnError
 {
     use SkipsErrors;
 
@@ -63,7 +63,7 @@ class DistribusiBulananImport implements ToCollection, WithHeadingRow, SkipsOnEr
                 }
 
                 // Insert data
-                DistribusiBulanan::create([
+                NwaTahunan::create([
                     'nama_kegiatan'       => $this->val($rowArray, 'nama_kegiatan'),
                     'BS_Responden'        => $this->val($rowArray, 'bs_responden'),
                     'pencacah'            => $this->val($rowArray, 'pencacah'),

@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MasterPetugasExport;
+
 
 class MasterPetugasController extends Controller
 {
@@ -141,39 +144,21 @@ class MasterPetugasController extends Controller
         return back()->with('success', 'Data petugas yang dipilih berhasil dihapus.');
     }
 
-    public function export()
-    {
-        $filename = 'master_petugas_' . date('Ymd_His') . '.csv';
-        $headers = [
-            'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        return new StreamedResponse(function () {
-            $petugasCollection = MasterPetugas::orderBy('nama_petugas')->cursor();
-            $handle = fopen('php://output', 'w');
-            
-            $header = ['Nama Petugas', 'Kategori', 'NIK', 'Alamat', 'No HP', 'Posisi', 'Email', 'Pendidikan', 'Tgl Lahir', 'Kecamatan', 'Pekerjaan'];
-            fputcsv($handle, $header);
-
-            foreach ($petugasCollection as $p) {
-                fputcsv($handle, [
-                    $p->nama_petugas,
-                    $p->kategori,
-                    $p->nik,
-                    $p->alamat,
-                    $p->no_hp,
-                    $p->posisi,
-                    $p->email,
-                    $p->pendidikan,
-                    $p->tgl_lahir ? ($p->tgl_lahir instanceof \Carbon\Carbon ? $p->tgl_lahir->format('d/m/Y') : $p->tgl_lahir) : '',
-                    $p->kecamatan,
-                    $p->pekerjaan,
-                ]);
-            }
-            fclose($handle);
-        }, 200, $headers);
+    public function export(Request $request)
+{
+    // Terima data dari GET, default export semua
+    $dataRange   = $request->input('dataRange', 'all'); // all / current_page
+    $search      = $request->input('search');
+    $currentPage = $request->input('page', 1);
+    $perPage     = $request->input('per_page', 15);
+    $exportFormat = $request->input('exportFormat', 'excel'); // excel/csv
+    $export = new MasterPetugasExport($dataRange, $search, $currentPage, $perPage);
+    $filename = 'master_petugas_' . now()->format('Ymd_His') . ($exportFormat == 'csv' ? '.csv' : '.xlsx');
+    if ($exportFormat == 'csv') {
+        return Excel::download($export, $filename, \Maatwebsite\Excel\Excel::CSV);
     }
+    return Excel::download($export, $filename);
+}
 
     public function search(Request $request)
     {

@@ -319,7 +319,7 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
         Route::get('/{jenisKegiatan}/export', [ProduksiCaturwulananController::class, 'export'])->name('export')
             ->where('jenisKegiatan', 'ubinan padi palawija|updating utp palawija');
 
-            Route::post('/import', [ProduksiCaturwulananController::class, 'import'])->name('import');
+        Route::post('/import', [ProduksiCaturwulananController::class, 'import'])->name('import');
         Route::get('/download-template', [ProduksiCaturwulananController::class, 'downloadTemplate'])->name('downloadTemplate');
 
 
@@ -340,6 +340,10 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
         Route::get('/{jenisKegiatan}/export', [ProduksiTriwulananController::class, 'export'])->name('export')
             ->where('jenisKegiatan', 'sktr|tpi|sphbst|sphtbf|sphth|airbersih');
 
+        Route::post('/import', [ProduksiTriwulananController::class, 'import'])->name('import');
+        Route::get('/download-template', [ProduksiTriwulananController::class, 'downloadTemplate'])->name('downloadTemplate');
+
+
         // Route untuk proses CRUD
         Route::post('/', [ProduksiTriwulananController::class, 'store'])->name('store');
         Route::get('/{produksi_triwulanan}/edit', [ProduksiTriwulananController::class, 'edit'])->name('edit');
@@ -357,6 +361,9 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
         // Export route
         Route::get('/{jenisKegiatan}/export', [ProduksiBulananController::class, 'export'])->name('export')
             ->where('jenisKegiatan', 'ksapadi|ksajagung|lptb|sphsbs|sppalawija|perkebunan|ibs');
+
+        Route::post('/import', [ProduksiBulananController::class, 'import'])->name('import');
+        Route::get('/download-template', [ProduksiBulananController::class, 'downloadTemplate'])->name('downloadTemplate');
 
         // Route untuk proses CRUD
         Route::post('/', [ProduksiBulananController::class, 'store'])->name('store');
@@ -385,6 +392,9 @@ Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
         // Rute untuk ekspor data
         Route::get('/export', [NwaTahunanController::class, 'export'])->name('export');
 
+        Route::post('/import', [NwaTahunanController::class, 'import'])->name('import');
+        Route::get('/download-template', [NwaTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
+
 
         // Rute search (jika ada, tambahkan di sini, misal: search-petugas)
         // Route::get('/search-petugas', [NwaTahunanController::class, 'searchPetugas'])->name('searchPetugas');
@@ -411,6 +421,8 @@ Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
         Route::get('/{jenisKegiatan}/export', [NwaTriwulananController::class, 'export'])->name('export')
             ->where('jenisKegiatan', 'sklnp|snaper|sktnp');
 
+        Route::post('/import', [NwaTriwulananController::class, 'import'])->name('import');
+        Route::get('/download-template', [NwaTriwulananController::class, 'downloadTemplate'])->name('downloadTemplate');
 
         // Rute-rute yang menggunakan {id}
         // Menggunakan {id} polos agar cocok dengan controller yang dirombak
@@ -448,16 +460,11 @@ Route::prefix('rekapitulasi')->name('rekapitulasi.')->group(function () {
 
 /* --- MASTER PETUGAS --- */
 Route::prefix('master-petugas')->name('master.petugas.')->group(function () {
-    
-   
+    Route::get('/export', [MasterPetugasController::class, 'export'])->name('export');
+    Route::get('/search-petugas', [MasterPetugasController::class, 'search'])->name('search');
+    Route::post('/bulk-delete', [MasterPetugasController::class, 'bulkDelete'])->name('bulkDelete');
     Route::resource('/', MasterPetugasController::class)
          ->parameters(['' => 'petugas']); 
-
-
-    Route::post('/bulk-delete', [MasterPetugasController::class, 'bulkDelete'])->name('bulkDelete');
-    Route::get('/export-csv', [MasterPetugasController::class, 'export'])->name('export');
-    Route::get('/search-petugas', [MasterPetugasController::class, 'search'])->name('search');
-
 });
 
 /* --- MASTER KEGIATAN --- */

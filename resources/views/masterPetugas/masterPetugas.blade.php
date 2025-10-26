@@ -28,14 +28,10 @@
                     </svg>
                     Tambah Baru
                 </button>
-                <a href="{{ route('master.petugas.export') }}" class="btn-action btn-success">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    Ekspor CSV
-                </a>
+               <button type="button" class="btn-action btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Ekspor Hasil
+                    </button>
                 <button type="button" class="btn-action btn-danger" id="bulkDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteDataModal" disabled>
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="3 6 5 6 21 6"></polyline>
@@ -176,6 +172,48 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <form action="{{ route('master.petugas.export') }}" method="GET">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exportModalLabel">
+            Export Data Petugas
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Rentang Data</label>
+            <select class="form-select" name="dataRange" required>
+              <option value="all">Semua Data</option>
+              <option value="current_page">Halaman Ini Saja</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Format File</label>
+            <select class="form-select" name="exportFormat" required>
+              <option value="excel">Excel (.xlsx)</option>
+              <option value="csv">CSV (.csv)</option>
+            </select>
+          </div>
+          <!-- Param tersembunyi buat filter aktif dan page -->
+          <input type="hidden" name="search" value="{{ request('search')?? '' }}">
+          <input type="hidden" name="page" value="{{ request('page', 1) }}">
+          <input type="hidden" name="per_page" value="{{ request('per_page', 15) }}">
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-download"></i> Export Data
+          </button>
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 {{-- Modal Tambah --}}
