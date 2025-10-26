@@ -14,6 +14,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProduksiCaturwulananExport;
 use PhpOffice\PhpWord\TemplateProcessor;
 use App\Imports\ProduksiCaturwulananImport;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProduksiCaturwulananController extends Controller
 {
@@ -247,7 +249,7 @@ class ProduksiCaturwulananController extends Controller
         $perPage = $request->input('per_page', 20);
 
         // Kirim ke Export class
-        $exportClass = new ProduksiCaturwulananExport(
+        $exportClass = new ProduksiCaturwulananExport       (
             $dataRange,
             $dataFormat,
             $jenisKegiatan,

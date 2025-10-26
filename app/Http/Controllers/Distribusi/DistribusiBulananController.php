@@ -25,7 +25,7 @@ class DistribusiBulananController extends Controller
         if (!in_array(strtolower($jenisKegiatan), $validJenis)) {
             abort(404);
         }
-        $prefixKegiatan = strtoupper($jenisKegiatan); // Untuk filter LIKE
+        $prefixKegiatan = strtoupper($jenisKegiatan); 
 
         $selectedTahun = $request->input('tahun', date('Y'));
 

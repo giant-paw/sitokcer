@@ -5,9 +5,7 @@ namespace App\Exports;
 use App\Models\Produksi\ProduksiCaturwulanan;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use PhpOffice\PhpWord\TemplateProcessor;
-use Maatwebsite\Excel\Facades\Excel;
 
 class ProduksiCaturwulananExport implements FromCollection, WithHeadings
 {

@@ -263,21 +263,21 @@
 
     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <form action="{{ route('sosial.semesteran.export', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET">
-                {{-- Hapus @csrf untuk GET form --}}
-                <input type="hidden" name="kegiatan" value="{{ request('kegiatan') }}">
-                <input type="hidden" name="search" value="{{ request('search') }}">
-                <input type="hidden" name="tahun" value="{{ request('tahun', date('Y')) }}">
-                <input type="hidden" name="page" value="{{ request('page', 1) }}">
-                <input type="hidden" name="per_page" value="{{ request('per_page', 20) }}">
+            <form action="{{ route('sosial.semesteran.export',  ['jenisKegiatan' => $jenisKegiatan])}}" method="GET" id="exportForm">
                 <div class="modal-content modern-modal">
                     <div class="modal-header">
-                        <div class="modal-header-content"> <h5 class="modal-title">Ekspor Data {{ ucfirst($jenisKegiatan) }}</h5> <p class="modal-subtitle">Pilih opsi ekspor Anda</p> </div>
+                        <div class="modal-header-content"> <h5 class="modal-title">Ekspor Data Sosial triwulanan</h5> <p class="modal-subtitle">Pilih opsi ekspor Anda</p> </div>
                         <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-group"> <label for="exportDataRangeSem" class="form-label">Jangkauan Data</label> <select class="form-select" id="exportDataRangeSem" name="dataRange" required> <option value="all">Semua Data ({{ $listData->total() }})</option> <option value="current_page">Halaman Ini ({{ $listData->count() }})</option> </select> </div>
-                        <div class="form-group"> <label for="exportExportFormatSem" class="form-label">Format File</label> <select class="form-select" id="exportExportFormatSem" name="exportFormat" required> <option value="excel">Excel (.xlsx)</option> <option value="csv">CSV (.csv)</option> </select> </div>
+                        <input type="hidden" name="tahun" id="export_tahun" value="{{ $selectedTahun ?? date('Y') }}">
+                        <input type="hidden" name="kegiatan" id="export_kegiatan" value="{{ $selectedKegiatan ?? '' }}">
+                        <input type="hidden" name="search" id="export_search" value="{{ $search ?? '' }}">
+                        <input type="hidden" name="page" id="export_page" value="{{ $listData->currentPage() }}">
+                        <input type="hidden" name="per_page" id="export_per_page" value="{{ request('per_page', $listData->perPage()) }}">
+                        <div class="form-group"> <label for="exportDataRangeDist" class="form-label">Jangkauan Data</label> <select class="form-select" id="exportDataRangeDist" name="dataRange" required> <option value="all">Semua Data ({{ $listData->total() }} record)</option> <option value="current_page">Halaman Ini ({{ $listData->count() }} record)</option> </select> </div>
+                        <div class="form-group"> <label for="exportDataFormatDist" class="form-label">Format Nilai Tanggal/Lainnya</label> <select class="form-select" id="exportDataFormatDist" name="dataFormat"> <option value="formatted_values" selected>Format Tampilan</option> <option value="raw_values">Nilai Asli Database</option> </select> <small class="form-text text-muted">Pilih "Raw Values" untuk olah data lanjut.</small> </div>
+                        <div class="form-group"> <label for="exportExportFormatDist" class="form-label">Format File Export</label> <select class="form-select" id="exportExportFormatDist" name="exportFormat" required> <option value="excel">Excel (.xlsx)</option> <option value="csv">CSV (.csv)</option> </select> </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>

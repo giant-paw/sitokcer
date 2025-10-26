@@ -238,7 +238,7 @@ class ProduksiTriwulananController extends Controller
         $currentPage = $request->input('page', 1);
         $perPage = $request->input('per_page', 20);
         // Buat instance export class
-        $exportClass = new ProduksiCaturwulananExport(
+        $exportClass = new ProduksiTriwulananExport(
             $dataRange,
             $dataFormat,
             $jenisKegiatan,

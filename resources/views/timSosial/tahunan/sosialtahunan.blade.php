@@ -496,7 +496,6 @@
                /** DOM Ready */
         document.addEventListener('DOMContentLoaded', function() {
 
-            
 
              // --- [FIX] Auto-hide alerts ---
              ['successAlert', 'errorAlert', 'warningAlert', 'importErrorAlert'].forEach(alertId => {
@@ -627,8 +626,8 @@
              const exportForm = document.getElementById('exportForm');
              if (exportForm) {
                  exportForm.addEventListener('submit', function(e) {
-                      const dataRange = document.getElementById('exportDataRangeSos')?.value;
-                      const exportFormat = document.getElementById('exportExportFormatSos')?.value;
+                      const dataRange = document.getElementById('exportDataRangeDist')?.value;
+                      const exportFormat = document.getElementById('exportExportFormatDist')?.value;
                       if (!dataRange || !exportFormat) { e.preventDefault(); alert('Lengkapi pilihan export!'); return false; }
                      this.querySelectorAll('input[type="hidden"]').forEach(el => el.remove());
                      function addHiddenInput(form, name, value) { const i=document.createElement('input'); i.type='hidden'; i.name=name; i.value=value||''; form.appendChild(i); }
@@ -643,8 +642,8 @@
              const exportModalEl = document.getElementById('exportModal');
              if (exportModalEl) {
                  exportModalEl.addEventListener('show.bs.modal', function() {
-                    const currentPageOption = document.querySelector('#exportDataRangeSos option[value="current_page"]');
-                    const allDataOption = document.querySelector('#exportDataRangeSos option[value="all"]');
+                    const currentPageOption = document.querySelector('#exportDataRangeDist option[value="current_page"]');
+                    const allDataOption = document.querySelector('#exportDataRangeDist option[value="all"]');
                     const totalData = {{ $listData->total() }};
                     const currentPageData = {{ $listData->count() }};
                     if (currentPageOption) currentPageOption.textContent = `Halaman Ini (${currentPageData} data)`;
