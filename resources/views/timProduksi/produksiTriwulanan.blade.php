@@ -118,6 +118,20 @@
                             @foreach ($options as $option) <option value="{{ $option }}" {{ request('per_page', 20) == $option ? 'selected' : '' }}>{{ $option == 'all' ? 'All' : $option }}</option> @endforeach
                         </select>
                     </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Kegiatan:</label>
+                        <select class="filter-select" id="kegiatanSelect" name="kegiatan">
+                            <option value="">Semua Kegiatan</option>
+                            @foreach ($kegiatanCounts ?? [] as $kegiatan)
+                                <option value="{{ $kegiatan->nama_kegiatan }}"
+                                    {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'selected' : '' }}>
+                                    {{ $kegiatan->nama_kegiatan }} ({{ $kegiatan->total }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="filter-group">
                         <label class="filter-label">Tahun:</label>
                         <select class="filter-select" id="tahunSelect">
@@ -164,27 +178,6 @@
                 <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert"> <strong>Error!</strong> Periksa
                     form. <button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
             @endif
-
-            {{-- Tabs Kegiatan --}}
-            <div class="px-4 pt-4">
-                <ul class="nav nav-tabs"> {{-- Gunakan nav-tabs --}}
-                    <li class="nav-item">
-                        <a class="nav-link {{ empty(request('kegiatan')) ? 'active' : '' }}"
-                            href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
-                            All <span
-                                class="badge badge-secondary">{{ collect($kegiatanCounts ?? [])->sum('total') }}</span>
-                        </a>
-                    </li>
-                    @foreach ($kegiatanCounts ?? [] as $kegiatan)
-                        <li class="nav-item">
-                            <a class="nav-link {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
-                                href="{{ route('tim-produksi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'kegiatan' => $kegiatan->nama_kegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
-                                {{ $kegiatan->nama_kegiatan }} <span class="badge badge-secondary">{{ $kegiatan->total }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
 
             {{-- Table --}}
             <div class="table-wrapper">
@@ -874,17 +867,20 @@
             // Filters Per Page & Tahun
             const pps = document.getElementById('perPageSelect');
             const ts = document.getElementById('tahunSelect');
+            const ks = document.getElementById('kegiatanSelect');
 
             function hfc() {
                 const cu = new URL(window.location.href);
                 const p = cu.searchParams;
                 if (pps) p.set('per_page', pps.value);
                 if (ts) p.set('tahun', ts.value);
+                if (ks) p.set('kegiatan', ks.value);
                 p.set('page', 1);
                 window.location.href = cu.pathname + '?' + p.toString();
             }
             if (pps) pps.addEventListener('change', hfc);
             if (ts) ts.addEventListener('change', hfc);
+            if (ks) ks.addEventListener('change', hfc);
 
             // Fallback Error Modals
             @if (session('error_modal') == 'tambahDataModal' && $errors->any())

@@ -62,6 +62,8 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 
         // export
         Route::get('/export', [SosialTahunanController::class, 'export'])->name('export');
+        Route::post('/import', [SosialTahunanController::class, 'import'])->name('import');
+        Route::get('/download-template', [SosialTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
 
         Route::get('/{id}/edit', [SosialTahunanController::class, 'edit'])->name('edit');
         Route::put('/{id}', [SosialTahunanController::class, 'update'])->name('update');
@@ -79,6 +81,9 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 
         Route::get('/{jenisKegiatan}/export', [SosialTriwulanController::class, 'export'])->name('export')
             ->where('jenisKegiatan', 'seruti');
+
+        Route::post('/import', [SosialTriwulanController::class, 'import'])->name('import');
+        Route::get('/download-template', [SosialTriwulanController::class, 'downloadTemplate'])->name('downloadTemplate');
 
         // Rute-rute yang menggunakan {id}
         Route::get('/{id}/edit', [SosialTriwulanController::class, 'edit'])->name('edit');
@@ -100,6 +105,9 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
 
         Route::get('/{jenisKegiatan}/export', [SosialSemesteranController::class, 'export'])->name('export')
             ->where('jenisKegiatan', 'sakernas|susenas');
+
+        Route::post('/import', [SosialSemesteranController::class, 'import'])->name('import');
+        Route::get('/download-template', [SosialSemesteranController::class, 'downloadTemplate'])->name('downloadTemplate');    
 
         // Rute-rute yang menggunakan {id}
         Route::get('/{id}/edit', [SosialSemesteranController::class, 'edit'])->name('edit');
@@ -124,7 +132,8 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         // Tambahkan searchKegiatan jika ada di controller
         // Route::get('/search-kegiatan', [SosialTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
 
-
+            Route::post('/import', [SosialTahunanController::class, 'import'])->name('import');
+        Route::get('/download-template', [SosialTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
         // Rute-rute yang menggunakan {id}
         // Ini akan cocok dengan controller baru ($id)
         Route::get('/{id}/edit', [SosialTahunanController::class, 'edit'])->name('edit');
@@ -147,6 +156,8 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         Route::get('/{id}/edit', [SosialTriwulanController::class, 'edit'])->name('edit');
         Route::put('/{id}', [SosialTriwulanController::class, 'update'])->name('update');
         Route::delete('/{id}', [SosialTriwulanController::class, 'destroy'])->name('destroy');
+        Route::post('/import', [SosialTriwulanController::class, 'import'])->name('import');
+        Route::get('/download-template', [SosialTriwulanController::class, 'downloadTemplate'])->name('downloadTemplate');
 
         // Rute index HARUS diletakkan PALING AKHIR
         // Menerima parameter {jenisKegiatan}, default 'seruti' akan ditangani controller
@@ -170,6 +181,9 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         Route::put('/{id}', [SosialSemesteranController::class, 'update'])->name('update');
         Route::delete('/{id}', [SosialSemesteranController::class, 'destroy'])->name('destroy');
 
+        Route::post('/import', [SosialSemesteranController::class, 'import'])->name('import');
+        Route::get('/download-template', [SosialSemesteranController::class, 'downloadTemplate'])->name('downloadTemplate');
+
         // Rute index HARUS diletakkan PALING AKHIR
         Route::get('/{jenisKegiatan}', [SosialSemesteranController::class, 'index'])
             ->where('jenisKegiatan', 'sakernas|susenas')
@@ -192,6 +206,9 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::get('/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
         Route::get('/search-kegiatan', [App\Http\Controllers\Distribusi\DistribusiTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
         Route::get('/export', [DistribusiTahunanController::class, 'export'])->name('export');
+        Route::post('/import', [DistribusiTahunanController::class, 'import'])->name('import');
+        Route::get('/download-template', [DistribusiTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
+
     }); 
 
     // ============ TRIWULANAN============
@@ -223,6 +240,10 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::get('/{jenisKegiatan}', [DistribusiTriwulananController::class, 'index'])
             ->name('index')
             ->where('jenisKegiatan', 'spunp|shkk'); //zamm
+
+        Route::post('/import', [DistribusiTriwulananController::class, 'import'])->name('import');
+        Route::get('/download-template', [DistribusiTriwulananController::class, 'downloadTemplate'])->name('downloadTemplate');
+
     });
 
     // ============ BULANAN ============
@@ -260,6 +281,10 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::get('/{jenisKegiatan}', [DistribusiBulananController::class, 'index'])
             ->name('index')
             ->where('jenisKegiatan', 'vhts|hkd|shpb|shp|shpj|shpbg');
+        
+        Route::post('/import', [DistribusiBulananController::class, 'import'])->name('import');
+        Route::get('/download-template', [DistribusiBulananController::class, 'downloadTemplate'])->name('downloadTemplate');
+
     });
 });
 
@@ -275,6 +300,9 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
         Route::post('/bulk-delete', [ProduksiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
 
         Route::get('/export', [ProduksiTahunanController::class, 'export'])->name('export');
+        Route::post('/import', [ProduksiTahunanController::class, 'import'])->name('import');
+        Route::get('/download-template', [ProduksiTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
+
 
         Route::get('/{id}/edit', [ProduksiTahunanController::class, 'edit'])->name('edit');
         Route::put('/{id}', [ProduksiTahunanController::class, 'update'])->name('update');
@@ -290,6 +318,9 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
         Route::get('/search-petugas', [ProduksiCaturwulananController::class, 'searchPetugas'])->name('searchPetugas');
         Route::get('/{jenisKegiatan}/export', [ProduksiCaturwulananController::class, 'export'])->name('export')
             ->where('jenisKegiatan', 'ubinan padi palawija|updating utp palawija');
+
+            Route::post('/import', [ProduksiCaturwulananController::class, 'import'])->name('import');
+        Route::get('/download-template', [ProduksiCaturwulananController::class, 'downloadTemplate'])->name('downloadTemplate');
 
 
         // Route untuk proses CRUD

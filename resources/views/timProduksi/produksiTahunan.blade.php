@@ -59,6 +59,55 @@
     {{-- MENGGUNAKAN PADDING GLOBAL --}}
     <div class="container-fluid px-4 py-4">
 
+
+        {{-- Alert Success --}}
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        {{-- Alert Error --}}
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        {{-- Alert Import Errors - TARUH DI SINI --}}
+        @if (session('import_errors'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Beberapa baris gagal diimport:</strong>
+                <ul class="mb-0">
+                    @foreach (session('import_errors') as $error)
+                        <li>{{ $error['error'] }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if (session('import_errors'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert" id="importErrorAlert">
+                <strong>Beberapa baris gagal diimport:</strong>
+                <ul class="mb-0">
+                    @foreach (session('import_errors') as $error)
+                        <li>{{ $error['error'] }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @push('scripts')
+            <script>
+                // Auto hide setelah 10 detik
+                setTimeout(function() {
+                    $('#importErrorAlert').fadeOut('slow');
+                }, 10000);
+            </script>
+        @endpush
+
         {{-- 1. Menggunakan Page Header --}}
         <div class="page-header mb-4">
             <div class="header-content">
@@ -81,7 +130,8 @@
                         </svg>
                         Tambah Baru
                     </button>
-                    <button type="button" class="btn-action btn-secondary" style="background: #f3f4f6; color: #6b7280;"> {{-- Tetap pakai style inline sementara --}}
+                    <button type="button" class="btn-action btn-success" data-bs-toggle="modal"
+                        data-bs-target="#importModal"> {{-- Tetap pakai style inline sementara --}}
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round">
@@ -122,6 +172,20 @@
                             @endforeach
                         </select>
                     </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Kegiatan:</label>
+                        <select class="filter-select" id="kegiatanSelect" name="kegiatan">
+                            <option value="">Semua Kegiatan</option>
+                            @foreach ($kegiatanCounts ?? [] as $kegiatan)
+                                <option value="{{ $kegiatan->nama_kegiatan }}"
+                                    {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'selected' : '' }}>
+                                    {{ $kegiatan->nama_kegiatan }} ({{ $kegiatan->total }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
                     <div class="filter-group">
                         <label class="filter-label">Tahun:</label>
                         <select class="filter-select" id="tahunSelect">
@@ -172,27 +236,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
-
-            {{-- 8. Tab Kegiatan menggunakan .nav-tabs --}}
-            <div class="px-4 pt-4">
-                <ul class="nav nav-tabs">
-                    <li class="nav-item">
-                        <a class="nav-link {{ request('kegiatan') == '' ? 'active' : '' }}"
-                            href="{{ route('tim-produksi.tahunan.index', ['tahun' => $selectedTahun ?? date('Y')]) }}">
-                            All data
-                        </a>
-                    </li>
-                    @foreach ($kegiatanCounts ?? [] as $kegiatan)
-                        <li class="nav-item">
-                            <a class="nav-link {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
-                                href="{{ route('tim-produksi.tahunan.index', ['kegiatan' => $kegiatan->nama_kegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
-                                {{ $kegiatan->nama_kegiatan }}
-                                <span class="badge badge-secondary">{{ $kegiatan->total }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
 
             {{-- 11. Menggunakan .table-wrapper dan .data-table --}}
             <div class="table-wrapper">
@@ -273,6 +316,57 @@
         </div>
     </div>
 
+<!-- Modal Import Data -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('tim-produksi.tahunan.import') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importModalLabel">Import Data dari Excel</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Alert info -->
+                        <div class="alert alert-info" role="alert">
+                            <small>
+                                <strong>Format yang didukung:</strong> Excel (.xlsx, .xls) atau CSV<br>
+                                <strong>Ukuran maksimal:</strong> 10 MB<br>
+                                <strong>Catatan:</strong> ID akan di-generate otomatis
+                            </small>
+                        </div>
+                        <!-- Download template -->
+                        <div class="mb-3">
+                            <a href="{{ route('tim-produksi.tahunan.downloadTemplate') }}" class="btn btn-sm btn-secondary">
+                                <i class="bi bi-download"></i> Download Template Excel
+                            </a>
+                        </div>
+                        <!-- File input -->
+                        <div class="mb-3">
+                            <label for="importFile" class="form-label">Pilih File</label>
+                            <input type="file" class="form-control" id="importFile" name="file" required
+                                accept=".xlsx,.xls,.csv">
+                            <div class="form-text">
+                                Pastikan format kolom sesuai dengan template
+                            </div>
+                        </div>
+                        <!-- Preview area (optional) -->
+                        <div id="filePreview" class="d-none">
+                            <small class="text-muted">File dipilih: <span id="fileName"></span></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
     {{-- ================================================= --}}
     {{-- ==              MODAL SECTIONS                 == --}}
     {{-- ================================================= --}}
@@ -835,17 +929,20 @@
             // (Logika ini sudah benar)
             const pps = document.getElementById('perPageSelect');
             const ts = document.getElementById('tahunSelect');
+            const ks = document.getElementById('kegiatanSelect');
 
             function hfc() {
                 const cu = new URL(window.location.href);
                 const p = cu.searchParams;
                 if (pps) p.set('per_page', pps.value);
                 if (ts) p.set('tahun', ts.value);
+                if (ks) p.set('kegiatan', ks.value);
                 p.set('page', 1);
                 window.location.href = cu.pathname + '?' + p.toString();
             }
             if (pps) pps.addEventListener('change', hfc);
             if (ts) ts.addEventListener('change', hfc);
+            if (ks) ks.addEventListener('change', hfc);
 
 
             // --- PERBAIKAN 4: Fallback Error Modals ---

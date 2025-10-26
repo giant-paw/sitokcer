@@ -14,6 +14,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\DistribusiTriwulananExport;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Illuminate\Validation\Rule;
+use App\Imports\DistribusiTriwulananImport;
+
 
 class DistribusiTriwulananController extends Controller
 {
@@ -295,5 +297,77 @@ class DistribusiTriwulananController extends Controller
         }
 
         return back()->with('error', 'Format ekspor tidak didukung.');
+    }
+     public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls|max:2048'
+        ]);
+        try {
+            $import = new DistribusiTriwulananImport();
+            Excel::import($import, $request->file('file'));
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $formattedErrors = array_map(function ($err) {
+                return ['error' => $err['error']];
+            }, $errors);
+            if ($successCount > 0 && count($errors) > 0) {
+                return redirect()->back()
+                    ->with('import_errors', $formattedErrors)
+                    ->with('success', "{$successCount} data berhasil diimport");
+            } elseif ($successCount === 0 && count($errors) > 0) {
+                return redirect()->back()
+                    ->with('import_errors', $formattedErrors)
+                    ->with('error', 'Semua data gagal diimport');
+            }
+            return redirect()->back()
+                ->with('success', "Import berhasil! Total {$successCount} data ditambahkan");
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Import gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadTemplate()
+    {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Header
+        $headers = ['Nama Kegiatan', 'BS Responden', 'Pencacah', 'Pengawas', 'Target Penyelesaian', 'Flag Progress', 'Tanggal Pengumpulan'];
+        $sheet->fromArray([$headers], null, 'A1');
+        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:G1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFD9EAD3');
+
+        // Sample data
+        $sheet->setCellValue('A2', 'SPUNP/SHKK');
+        $sheet->setCellValue('B2', 'BS001');
+        $sheet->setCellValue('C2', 'Ani Rahmawati');
+        $sheet->setCellValue('D2', 'Budi Hariyadi');
+        $sheet->setCellValue('E2', '2025-07-11');
+        $sheet->setCellValue('F2', 'BELUM');
+        $sheet->setCellValue('G2', '2025-06-14');
+
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Petunjuk
+        $sheet->setCellValue('A4', 'PETUNJUK:');
+        $sheet->getStyle('A4')->getFont()->setBold(true);
+        $sheet->setCellValue('A5', '1. Semua kolom wajib diisi (tidak boleh kosong)');
+        $sheet->setCellValue('A6', '2. Nama Kegiatan, Pencacah, Pengawas harus mengandung huruf');
+        $sheet->setCellValue('A7', '3. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY');
+        $sheet->setCellValue('A8', '4. Flag Progress hanya boleh: BELUM atau SELESAI');
+        $sheet->setCellValue('A9', '5. Hapus baris sample sebelum upload');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $fileName = 'Template_Import_Distribusi_Triwulanan.xlsx';
+        $temp_file = tempnam(sys_get_temp_dir(), $fileName);
+        $writer->save($temp_file);
+
+        return response()->download($temp_file, $fileName)->deleteFileAfterSend(true);
     }
 }

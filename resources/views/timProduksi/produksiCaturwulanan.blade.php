@@ -81,7 +81,8 @@
                         </svg>
                         Tambah Baru
                     </button>
-                    <button type="button" class="btn-action btn-secondary" style="background: #f3f4f6; color: #6b7280;">
+                    <button type="button" class="btn-action btn-success" data-bs-toggle="modal"
+                        data-bs-target="#exportModal">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -122,6 +123,20 @@
                             @endforeach
                         </select>
                     </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Kegiatan:</label>
+                        <select class="filter-select" id="kegiatanSelect" name="kegiatan">
+                            <option value="">Semua Kegiatan</option>
+                            @foreach ($kegiatanCounts ?? [] as $kegiatan)
+                                <option value="{{ $kegiatan->nama_kegiatan }}"
+                                    {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'selected' : '' }}>
+                                    {{ $kegiatan->nama_kegiatan }} ({{ $kegiatan->total }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="filter-group">
                         <label class="filter-label">Tahun:</label>
                         <select class="filter-select" id="tahunSelect">
@@ -178,27 +193,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
-
-            {{-- 8. Tabs Kegiatan --}}
-            <div class="px-4 pt-4">
-                <ul class="nav nav-tabs"> {{-- Gunakan nav-tabs --}}
-                    <li class="nav-item">
-                        <a class="nav-link {{ request('kegiatan') == '' ? 'active' : '' }}"
-                            href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
-                            All data
-                        </a>
-                    </li>
-                    @foreach ($kegiatanCounts ?? [] as $kegiatan)
-                        <li class="nav-item">
-                            <a class="nav-link {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
-                                href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'kegiatan' => $kegiatan->nama_kegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
-                                {{ $kegiatan->nama_kegiatan }}
-                                <span class="badge badge-secondary">{{ $kegiatan->total }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
 
             {{-- 11. Table --}}
             <div class="table-wrapper">
@@ -944,20 +938,22 @@
             });
 
             // --- Filters Per Page & Tahun ---
-            // (Logika ini sudah benar)
             const pps = document.getElementById('perPageSelect');
             const ts = document.getElementById('tahunSelect');
+            const ks = document.getElementById('kegiatanSelect');
 
             function hfc() {
                 const cu = new URL(window.location.href);
                 const p = cu.searchParams;
                 if (pps) p.set('per_page', pps.value);
                 if (ts) p.set('tahun', ts.value);
+                if (ks) p.set('kegiatan', ks.value);
                 p.set('page', 1);
                 window.location.href = cu.pathname + '?' + p.toString();
             }
             if (pps) pps.addEventListener('change', hfc);
             if (ts) ts.addEventListener('change', hfc);
+            if (ks) ks.addEventListener('change', hfc);
 
 
             // --- PERBAIKAN 4: Fallback Error Modals ---

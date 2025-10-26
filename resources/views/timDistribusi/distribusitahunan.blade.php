@@ -33,7 +33,43 @@
 @endpush
 
 @section('content')
-    <div class="container-fluid px-4 py-4">
+    <div class="container-fluid px-4 py-4">{{-- Alert Success --}}
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        {{-- Alert Error --}}
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        {{-- Alert Import Errors - TARUH DI SINI --}}
+        @if (session('import_errors'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert" id="importErrorAlert">
+                <strong>Beberapa baris gagal diimport:</strong>
+                <ul class="mb-0">
+                    @foreach (session('import_errors') as $error)
+                        <li>{{ $error['error'] }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @push('scripts')
+            <script>
+                // Auto hide setelah 10 detik
+                setTimeout(function() {
+                    $('#importErrorAlert').fadeOut('slow');
+                }, 10000);
+            </script>
+        @endpush
+
+        
 
         {{-- 1. Menggunakan Page Header --}}
         <div class="page-header mb-4">
@@ -53,7 +89,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
                         Tambah Baru
                     </button>
-                    <button type="button" class="btn-action btn-secondary" style="background: #f3f4f6; color: #6b7280;">
+                    <button type="button" class="btn-action btn-secondary" data-bs-toggle="modal" data-bs-target="#importModal">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                         Import
                     </button>
@@ -67,7 +103,7 @@
                     </button>
                 </div>
                 <div class="toolbar-right">
-                     {{-- 5. Menggunakan .filter-group dan .filter-select --}}
+
                     <div class="filter-group">
                         <label class="filter-label">Display:</label>
                         <select class="filter-select" id="perPageSelect">
@@ -75,6 +111,20 @@
                             @foreach ($options as $option) <option value="{{ $option }}" {{ request('per_page', 20) == $option ? 'selected' : '' }}>{{ $option == 'all' ? 'All' : $option }}</option> @endforeach
                         </select>
                     </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Kegiatan:</label>
+                        <select class="filter-select" id="kegiatanSelect" name="kegiatan">
+                            <option value="">Semua Kegiatan</option>
+                            @foreach ($kegiatanCounts ?? [] as $kegiatan)
+                                <option value="{{ $kegiatan->nama_kegiatan }}"
+                                    {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'selected' : '' }}>
+                                    {{ $kegiatan->nama_kegiatan }} ({{ $kegiatan->total }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="filter-group">
                         <label class="filter-label">Tahun:</label>
                         <select class="filter-select" id="tahunSelect">
@@ -104,26 +154,6 @@
             @if ($errors->any() && !session('error_modal'))
                 <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert"> <strong>Error!</strong> Periksa form.<button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
             @endif
-
-            {{-- 8. Tabs Kegiatan --}}
-            <div class="px-4 pt-4">
-                 <ul class="nav nav-tabs"> {{-- Gunakan nav-tabs --}}
-                    <li class="nav-item">
-                        <a class="nav-link {{ empty($selectedKegiatan) ? 'active' : '' }}"
-                           href="{{ route('tim-distribusi.tahunan.index', ['tahun' => $selectedTahun ?? date('Y')]) }}">
-                           Semua Kegiatan
-                        </a>
-                    </li>
-                    @foreach($kegiatanCounts ?? [] as $kegiatan)
-                        <li class="nav-item">
-                            <a class="nav-link {{ ($selectedKegiatan ?? '') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
-                               href="{{ route('tim-distribusi.tahunan.index', ['kegiatan' => $kegiatan->nama_kegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
-                                {{ $kegiatan->nama_kegiatan }} <span class="badge badge-secondary">{{ $kegiatan->total }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
 
             {{-- 11. Table --}}
             <div class="table-wrapper">
@@ -184,6 +214,60 @@
             @endif
         </div>
     </div>
+
+     <!-- Modal Import Data -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('tim-distribusi.tahunan.import') }}" method="POST"
+                    enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importModalLabel">Import Data dari Excel</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Alert info -->
+                        <div class="alert alert-info" role="alert">
+                            <small>
+                                <strong>Format yang didukung:</strong> Excel (.xlsx, .xls) atau CSV<br>
+                                <strong>Ukuran maksimal:</strong> 10 MB<br>
+                                <strong>Catatan:</strong> ID akan di-generate otomatis
+                            </small>
+                        </div>
+                        <!-- Download template -->
+                        <div class="mb-3">
+                            <a href="{{ route('tim-distribusi.tahunan.downloadTemplate') }}"
+                                class="btn btn-sm btn-secondary">
+                                <i class="bi bi-download"></i> Download Template Excel
+                            </a>
+                        </div>
+                        <!-- File input -->
+                        <div class="mb-3">
+                            <label for="importFile" class="form-label">Pilih File</label>
+                            <input type="file" class="form-control" id="importFile" name="file" required
+                                accept=".xlsx,.xls,.csv">
+                            <div class="form-text">
+                                Pastikan format kolom sesuai dengan template
+                            </div>
+                        </div>
+                        <!-- Preview area (optional) -->
+                        <div id="filePreview" class="d-none">
+                            <small class="text-muted">File dipilih: <span id="fileName"></span></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 
     {{-- ================================================= --}}
     {{-- ==              MODAL SECTIONS                 == --}}
@@ -385,7 +469,7 @@
             const kegiatanSearchUrl = '{{ route("tim-distribusi.tahunan.searchKegiatan") }}?'; // Tambah ?
             initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', kegiatanSearchUrl);
             initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', kegiatanSearchUrl);
-        @elseif(Route::has('master.kegiatan.search')) // Fallback jika tidak ada route spesifik
+        @elseif(Route::has('master.kegiatan.search'))  // Fallback jika tidak ada route spesifik
              const kegiatanSearchUrl = '{{ route("master.kegiatan.search") }}?'; // Tambah ?
              initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', kegiatanSearchUrl);
              initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', kegiatanSearchUrl);
@@ -420,17 +504,21 @@
 
         // --- Filters Per Page & Tahun ---
         const pps = document.getElementById('perPageSelect');
-        const ts = document.getElementById('tahunSelect'); // Ambil elemen tahun jika ada
-        function hfc() {
-            const cu = new URL(window.location.href);
-            const p = cu.searchParams;
-            if (pps) p.set('per_page', pps.value);
-            if (ts) p.set('tahun', ts.value); else p.delete('tahun');
-            p.set('page', 1);
-            window.location.href = '{{ route("tim-distribusi.tahunan.index") }}' + '?' + p.toString();
-        }
-        if (pps) pps.addEventListener('change', hfc);
-        if (ts) ts.addEventListener('change', hfc);
+            const ts = document.getElementById('tahunSelect');
+            const ks = document.getElementById('kegiatanSelect');
+
+            function hfc() {
+                const cu = new URL(window.location.href);
+                const p = cu.searchParams;
+                if (pps) p.set('per_page', pps.value);
+                if (ts) p.set('tahun', ts.value);
+                if (ks) p.set('kegiatan', ks.value);
+                p.set('page', 1);
+                window.location.href = cu.pathname + '?' + p.toString();
+            }
+            if (pps) pps.addEventListener('change', hfc);
+            if (ts) ts.addEventListener('change', hfc);
+            if (ks) ks.addEventListener('change', hfc);
 
 
         // --- Fallback Error Modals ---
