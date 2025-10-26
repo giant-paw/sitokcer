@@ -201,43 +201,49 @@ class SosialTahunanController extends Controller
          return response()->json($data);
      }
 
-    public function export(Request $request)
-    {
-        $request->validate([
-            'dataRange' => 'required|in:all,current_page',
-            'exportFormat' => 'required|in:excel,csv'],
-            ['exportFormat.in' => 'Format export tidak didukung.' // Pesan error
-        ]);
-
-        $dataRange = $request->input('dataRange', 'all');
-        $exportFormat = $request->input('exportFormat');
-        $kegiatan = $request->input('kegiatan');
-        $search = $request->input('search');
-        $tahun = $request->input('tahun', date('Y'));
-        $currentPage = $request->input('page', 1);
-        $perPage = $request->input('per_page', 20);
-
-        // [FIX] Gunakan SosialTahunanExport dan dataFormat diisi null
-        $exportClass = new SosialTahunanExport(
-            $dataRange,
-            null, // dataFormat (argumen ke-2) tidak dipakai
-            $kegiatan,
-            $search,
-            $tahun,
-            $currentPage,
-            $perPage
-        );
-
-        $fileName = 'Sosial_Tahunan_' . $tahun . '_' . date('YmdHis');
-        if (!empty($kegiatan)) { $fileName .= '_' . str_replace([' ', '/'], '_', $kegiatan); }
-        
+   public function export(Request $request)
+{
+    $request->validate([
+        'dataRange' => 'required|in:all,current_page',
+        'exportFormat' => 'required|in:excel,csv'
+    ], [
+        'dataRange.required' => 'Pilih jangkauan data!',
+        'exportFormat.required' => 'Pilih format export!',
+        'exportFormat.in' => 'Format export tidak didukung.'
+    ]);
+    $dataRange = $request->input('dataRange');
+    $exportFormat = $request->input('exportFormat');
+    $kegiatan = $request->input('kegiatan');
+    $search = $request->input('search');
+    $tahun = $request->input('tahun', date('Y'));
+    $currentPage = $request->input('page', 1);
+    $perPage = $request->input('per_page', 20);
+    $exportClass = new SosialTahunanExport(
+        $dataRange,
+        $exportFormat, // Kirim format ke export class
+        $kegiatan,
+        $search,
+        $tahun,
+        $currentPage,
+        $perPage
+    );
+    // Generate nama file
+    $fileName = 'Sosial_Tahunan_' . $tahun;
+    if (!empty($kegiatan)) {
+        $fileName .= '_' . str_replace([' ', '/'], '_', $kegiatan);
+    }
+    $fileName .= '_' . date('YmdHis');
+    try {
         if ($exportFormat == 'excel') {
             return Excel::download($exportClass, $fileName . '.xlsx');
         } elseif ($exportFormat == 'csv') {
-            return Excel::download($exportClass, $fileName . '.csv');
+            return Excel::download($exportClass, $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
         }
-        return back()->with('error', 'Format ekspor tidak didukung.');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Gagal melakukan export: ' . $e->getMessage());
     }
+    return back()->with('error', 'Format ekspor tidak didukung.');
+}
 
      public function import(Request $request)
      {

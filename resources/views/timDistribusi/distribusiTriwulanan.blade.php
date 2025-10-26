@@ -30,6 +30,16 @@
         /* Helper class untuk grid 2 kolom di modal */
         .modal-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg, 1.5rem); }
         @media (max-width: 768px) { .modal-grid-2col { grid-template-columns: 1fr; gap: var(--spacing-md, 1rem); } }
+
+        .modern-modal .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
     </style>
 @endpush
 
@@ -38,39 +48,37 @@
 
         {{-- Alert Success --}}
         @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
         {{-- Alert Error --}}
         @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert">
                 {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
-        {{-- Alert Import Errors - TARUH DI SINI --}}
+         {{-- Alert Warning (dari import sebagian) --}}
+        @if (session('warning'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warningAlert">
+                {{ session('warning') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        {{-- Alert Import Errors--}}
         @if (session('import_errors'))
             <div class="alert alert-warning alert-dismissible fade show" role="alert" id="importErrorAlert">
                 <strong>Beberapa baris gagal diimport:</strong>
                 <ul class="mb-0">
                     @foreach (session('import_errors') as $error)
-                        <li>{{ $error['error'] }}</li>
+                        <li>Baris {{ $error['row'] ?? '?' }}: {{ $error['error'] }} (Nilai: {{ $error['values'] ?? 'N/A' }})</li>
                     @endforeach
                 </ul>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
-
-        @push('scripts')
-            <script>
-                // Auto hide setelah 10 detik
-                setTimeout(function() {
-                    $('#importErrorAlert').fadeOut('slow');
-                }, 10000);
-            </script>
-        @endpush
 
         {{-- 1. Menggunakan Page Header --}}
         <div class="page-header mb-4">
@@ -125,6 +133,19 @@
                             @endforeach
                         </select>
                     </div>
+
+                     <div class="filter-group">
+                        <label class="filter-label">Kegiatan:</label>
+                        <select class="filter-select" id="kegiatanSelect" name="kegiatan">
+                            <option value="">Semua Kegiatan</option>
+                            @foreach ($kegiatanCounts ?? [] as $kegiatan)
+                                <option value="{{ $kegiatan->nama_kegiatan }}"
+                                    {{ $selectedKegiatan == $kegiatan->nama_kegiatan ? 'selected' : '' }}>
+                                    {{ $kegiatan->nama_kegiatan }} ({{ $kegiatan->total }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                     
                     <div class="filter-group">
                         <label class="filter-label">Tahun:</label>
@@ -141,16 +162,6 @@
                     </form>
                 </div>
             </div>
-
-             {{-- 7. Alert --}}
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show mx-4" role="alert"> <div class="alert-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> </div> <span>{{ session('success') }}</span> <button type="button" class="alert-close" data-bs-dismiss="alert"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button> </div>
-            @elseif (session('error'))
-                 <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert"> {{ session('error') }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
-            @endif
-            @if ($errors->any() && !session('error_modal'))
-                <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert"> <strong>Error!</strong> Periksa form.<button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
-            @endif
 
             {{-- 11. Table --}}
             <div class="table-wrapper">
@@ -480,14 +491,23 @@
         const pps = document.getElementById('perPageSelect');
             const ts = document.getElementById('tahunSelect');
             const ks = document.getElementById('kegiatanSelect');
-
             function hfc() {
                 const cu = new URL(window.location.href);
                 const p = cu.searchParams;
                 if (pps) p.set('per_page', pps.value);
                 if (ts) p.set('tahun', ts.value);
-                if (ks) p.set('kegiatan', ks.value);
-                p.set('page', 1);
+                if (ks) {
+                    if (ks.value) { p.set('kegiatan', ks.value); }
+                    else { p.delete('kegiatan'); } // Hapus jika 'Semua'
+                }
+                
+                // Ambil search term dari URL agar tidak hilang
+                const currentSearch = new URLSearchParams(window.location.search).get('search');
+                if (currentSearch) {
+                    p.set('search', currentSearch);
+                }
+
+                p.set('page', 1); // Selalu reset ke halaman 1
                 window.location.href = cu.pathname + '?' + p.toString();
             }
             if (pps) pps.addEventListener('change', hfc);

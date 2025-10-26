@@ -204,8 +204,6 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::put('/{id}', [DistribusiTahunanController::class, 'update'])->name('update');
         Route::delete('/{id}', [DistribusiTahunanController::class, 'destroy'])->name('destroy');
         Route::post('/bulk-delete', [DistribusiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
-        Route::get('/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
-        Route::get('/search-kegiatan', [App\Http\Controllers\Distribusi\DistribusiTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
         Route::get('/export', [DistribusiTahunanController::class, 'export'])->name('export');
         Route::post('/import', [DistribusiTahunanController::class, 'import'])->name('import');
         Route::get('/download-template', [DistribusiTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
@@ -217,7 +215,7 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::get('/search-petugas', [DistribusiTriwulananController::class, 'searchPetugas'])
             ->name('searchPetugas');
 
-        Route::get('/search-kegiatan', [SosialTriwulanController::class, 'searchKegiatan'])->name('searchKegiatan');
+        Route::get('/search-kegiatan', [DistribusiTriwulananController::class, 'searchKegiatan'])->name('searchKegiatan');
 
         Route::post('/bulk-delete', [DistribusiTriwulananController::class, 'bulkDelete'])
             ->name('bulkDelete');
@@ -253,6 +251,8 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         // Route statis tanpa parameter (PALING ATAS)
         Route::get('/search-petugas', [DistribusiBulananController::class, 'searchPetugas'])
             ->name('searchPetugas');
+
+        Route::get('/search-kegiatan', [DistribusiBulananController::class, 'searchKegiatan'])->name('searchKegiatan');
 
         Route::post('/bulk-delete', [DistribusiBulananController::class, 'bulkDelete'])
             ->name('bulkDelete');

@@ -51,6 +51,24 @@
                 gap: var(--spacing-md, 1rem);
             }
         }
+
+        .data-table {
+            table-layout: fixed; /* Ini kuncinya: Paksa tabel agar 100% */
+            width: 100%;
+        }
+
+        .th-action {width: 15%;}
+
+        /* [OPSIONAL] Atur ulang lebar kolom agar lebih rapi */
+        /* Kolom checkbox & aksi sudah diatur di global.css (48px & 140px) */
+        
+        .data-table th:nth-child(2) { width: 15%; } /* Nama Kegiatan */
+        .data-table th:nth-child(3) { width: 15%; } /* BS/Responden */
+        .data-table th:nth-child(4) { width: 13%; } /* Pencacah */
+        .data-table th:nth-child(5) { width: 13%; } /* Pengawas */
+        .data-table th:nth-child(6) { width: 10%; } /* Target Selesai */
+        .data-table th:nth-child(7) { width: 15%; } /* Progress */
+        .data-table th:nth-child(8) { width: 10%; } /* Tgl Kumpul */
     </style>
 @endpush
 

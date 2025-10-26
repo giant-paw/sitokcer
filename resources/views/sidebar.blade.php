@@ -60,7 +60,7 @@
                 <li class="menu-item has-dropdown {{ request()->is('sosial/triwulanan*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Triwulan</span>
-                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i> {{-- Ditambahkan agar konsisten --}}
+                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i> 
                     </a>
                     <ul class="submenu">
                         <li class="{{ request()->is('sosial/triwulanan/seruti*') ? 'active-link' : '' }}">
@@ -72,10 +72,9 @@
                 <li class="menu-item has-dropdown {{ request()->routeIs('sosial.semesteran.*') ? 'active' : '' }}">
                     <a href="#" class="dropdown-toggle">
                         <span>Kegiatan Semesteran</span>
-                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i> {{-- Ditambahkan agar konsisten --}}
+                         <i class="bi bi-chevron-right dropdown-arrow-icon"></i>
                     </a>
                     <ul class="submenu">
-                        {{-- Link ke route index baru, passing 'sakernas' atau 'susenas' sebagai jenisKegiatan --}}
                         <li class="{{ request()->is('sosial/semesteran/sakernas*') ? 'active-link' : '' }}">
                             <a
                                 href="{{ route('sosial.semesteran.index', ['jenisKegiatan' => 'sakernas']) }}">Sakernas</a>
@@ -335,7 +334,7 @@
             </a>
         </li>
 
-      
+    
     </ul>
 
     {{-- FOOTER DARI FILE KEDUA --}}
@@ -483,43 +482,7 @@
     .sidebar-popup-content li a:hover { color: #fff; background: rgba(255, 255, 255, 0.08); transform: none !important; }
     .sidebar-popup-content li.active-link > a { color: #3498db; font-weight: 600; background: rgba(52, 152, 219, 0.12); }
     .sidebar-popup-content li.active-link > a:hover { background: rgba(52, 152, 219, 0.2); }
-    /* Panah di dalam popup */
-    .sidebar-popup-content a > .dropdown-arrow-icon { display: block !important; opacity: 1 !important; transform: none !important; position: static !important; width: auto !important; pointer-events: auto !important; margin-left: auto !important; color: rgba(255, 255, 255, 0.6) !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-    .sidebar-popup-content li > a:not(.dropdown-toggle) > .dropdown-arrow-icon { display: none !important; }
-
-    /* [MODIFIKASI KUNCI v6] Nested submenu di dalam popup */
-    .sidebar-popup-content .submenu { /* Target UL level 2, 3, dst. di POPUP */
-        margin: 0 0 0 12px; /* Hanya margin kiri */
-        border-left: 2px solid rgba(255, 255, 255, 0.08);
-        max-height: 0; /* Mulai tertutup */
-        opacity: 0;
-        padding: 0; /* Padding 0 saat tertutup */
-        overflow: hidden; 
-        visibility: hidden; 
-        transition: max-height 0.3s ease-out, opacity 0.2s ease-out, padding 0.3s ease-out, visibility 0s linear 0.3s; /* Delay visibility saat MENUTUP */
-    }
-    .sidebar-popup-content .submenu a { /* Link di dalam nested submenu */
-        font-size: 0.85rem !important;
-        padding: 8px 12px !important;
-        color: rgba(255, 255, 255, 0.7) !important;
-    }
     
-    /* [MODIFIKASI KUNCI v6] Tampilkan nested submenu saat parent .active di dalam popup */
-    /* Langsung target UL di bawah LI yang .active */
-    .sidebar-popup-content .menu-item.has-dropdown.active > ul.submenu {
-        max-height: 500px; /* Cukup besar */
-        opacity: 1;
-        padding: 6px 0; /* Beri padding saat terbuka */
-        margin-top: 6px; /* Beri margin atas saat terbuka */
-        visibility: visible; /* Tampilkan saat terbuka */
-        transition: max-height 0.4s ease-in, opacity 0.3s ease-in, padding 0.4s ease-in, margin-top 0.4s ease-in, visibility 0s linear 0s; /* Hapus delay visibility saat BUKA */
-    }
-    
-    /* Rotasi panah untuk nested dropdown di popup */
-    .sidebar-popup-content .menu-item.has-dropdown.active > .dropdown-toggle .dropdown-arrow-icon {
-        transform: rotate(90deg) !important;
-        color: rgba(255, 255, 255, 0.9) !important; 
-    }
 
     /* Scrollbar */
     .sidebar-popup-content::-webkit-scrollbar { width: 4px; }
@@ -562,9 +525,6 @@
             if (popup) {
                 popup.style.display = 'none';
                 activePopupMenuItem = null; 
-                // [MODIFIKASI] Hapus kelas active dari item di dalam popup saat ditutup
-                const activeItemsInPopup = popupContent.querySelectorAll('.menu-item.has-dropdown.active');
-                activeItemsInPopup.forEach(item => item.classList.remove('active'));
             }
         }
 
@@ -607,19 +567,43 @@
                     if (popup.style.display === 'block'){ closePopup(); }
                     popupTitle.textContent = menuTitle;
                     popupContent.innerHTML = ''; 
-                    Array.from(submenu.children).forEach(childLi => {
-                        const clonedLi = childLi.cloneNode(true);
-                        clonedLi.classList.remove('active'); 
-                        clonedLi.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
-                        popupContent.appendChild(clonedLi);
-                    });
+
+                    
+                    // Fungsi rekursif untuk "meratakan" semua link
+                    function flattenAndAppendLinks(sourceUl, targetElement) {
+                        if (!sourceUl) return;
+                        Array.from(sourceUl.children).forEach(li => {
+                            // Cek apakah <li> ini adalah dropdown
+                            if (li.classList.contains('menu-item') && li.classList.contains('has-dropdown')) {
+                                const nestedSubmenu = li.querySelector(':scope > .submenu');
+                                if (nestedSubmenu) {
+                                    flattenAndAppendLinks(nestedSubmenu, targetElement);
+                                }
+                            } 
+                            else if (li.tagName === 'LI' && li.querySelector('a')) {
+                                const clonedLi = li.cloneNode(true);                        
+                                clonedLi.classList.remove('active');
+                                clonedLi.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
+                                const arrow = clonedLi.querySelector('.dropdown-arrow-icon');
+                                if (arrow) arrow.remove();
+                                clonedLi.classList.remove('has-dropdown');
+                                const link = clonedLi.querySelector('a');
+                                if (link) link.classList.remove('dropdown-toggle');
+
+                                targetElement.appendChild(clonedLi);
+                            }
+                        });
+                    }
+                    
+                    flattenAndAppendLinks(submenu, popupContent);
+
+
                     const iconRect = this.getBoundingClientRect();
                     popup.style.top = `${iconRect.top}px`; 
                     popup.style.left = `65px`; 
                     popup.style.display = 'block';
                     activePopupMenuItem = parentLi;
-                    
-                    // Penyesuaian Posisi Popup
+
                     requestAnimationFrame(() => {
                         const popupRect = popup.getBoundingClientRect();
                         const viewportHeight = window.innerHeight;
@@ -643,49 +627,18 @@
             });
         });
 
-        // [MODIFIKASI] Event Listener untuk Dropdown di DALAM POPUP
         if (popupContent) {
             popupContent.addEventListener('click', function(e){
-                // Target HANYA .dropdown-toggle
-                const toggle = e.target.closest('.dropdown-toggle');
-                
-                // Pastikan toggle ditemukan di dalam popup
-                if (toggle && popupContent.contains(toggle)) {
-                    // Cari parent li.menu-item terdekat
-                    const parentMenuItem = toggle.closest('.menu-item.has-dropdown');
-                    
-                    // Pastikan parentMenuItem juga ada di dalam popup
-                    if (parentMenuItem && popupContent.contains(parentMenuItem)) {
-                        e.preventDefault();
-                        e.stopPropagation(); // Hentikan propagasi
 
-                        // Dapatkan UL submenu tempat LI ini berada
-                        const parentUl = parentMenuItem.parentElement; 
-                        if (parentUl) {
-                            // Cari semua sibling LI yang active di level yang sama
-                            const siblings = parentUl.querySelectorAll(':scope > .menu-item.has-dropdown.active');
-                            siblings.forEach(sibling => {
-                                // Tutup sibling jika bukan elemen yang diklik
-                                if (sibling !== parentMenuItem) {
-                                    sibling.classList.remove('active');
-                                }
-                            });
-                        }
-                        
-                        // Toggle kelas 'active' pada parentMenuItem yang diklik
-                        parentMenuItem.classList.toggle('active');
-                    }
-                } else {
-                    // Jika yang diklik adalah link biasa (<a> tapi bukan .dropdown-toggle)
-                    const link = e.target.closest('a');
-                    if (link && !link.classList.contains('dropdown-toggle') && popupContent.contains(link)) {
-                        closePopup(); 
-                    }
+                const link = e.target.closest('a');
+                if (link && popupContent.contains(link)) {
+
+                    closePopup(); 
                 }
             });
         }
 
-        // Auto-open active dropdowns (saat tidak collapsed)
+
         const activeSubmenuItem = document.querySelector('.sidebar-menu .submenu .active-link');
         if (activeSubmenuItem && wrapper && !wrapper.classList.contains('sidebar-collapsed')) {
              let current = activeSubmenuItem.closest('.menu-item.has-dropdown');
@@ -697,7 +650,7 @@
 
         isInitialLoad = false;
 
-        // Observer untuk menutup popup jika sidebar dibuka
+
         if (wrapper) {
             const observer = new MutationObserver(mutations => {
                 mutations.forEach(mutation => {

@@ -48,6 +48,26 @@
         .data-table th:nth-child(6) { width: 10%; } /* Target Selesai */
         .data-table th:nth-child(7) { width: 15%; } /* Progress */
         .data-table th:nth-child(8) { width: 10%; } /* Tgl Kumpul */
+
+        .modern-modal .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .modern-modal .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
         
     </style>
 @endpush
@@ -55,53 +75,39 @@
 @section('content')
     <div class="container-fluid px-4 py-4">
 
-        {{-- Alert Success --}}
+       {{-- Alert Success --}}
         @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
         {{-- Alert Error --}}
         @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert">
                 {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
-        {{-- Alert Import Errors - TARUH DI SINI --}}
-        @if (session('import_errors'))
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <strong>Beberapa baris gagal diimport:</strong>
-                <ul class="mb-0">
-                    @foreach (session('import_errors') as $error)
-                        <li>{{ $error['error'] }}</li>
-                    @endforeach
-                </ul>
+         {{-- Alert Warning (dari import sebagian) --}}
+        @if (session('warning'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warningAlert">
+                {{ session('warning') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
-
+        {{-- Alert Import Errors--}}
         @if (session('import_errors'))
             <div class="alert alert-warning alert-dismissible fade show" role="alert" id="importErrorAlert">
                 <strong>Beberapa baris gagal diimport:</strong>
                 <ul class="mb-0">
                     @foreach (session('import_errors') as $error)
-                        <li>{{ $error['error'] }}</li>
+                        <li>Baris {{ $error['row'] ?? '?' }}: {{ $error['error'] }} (Nilai: {{ $error['values'] ?? 'N/A' }})</li>
                     @endforeach
                 </ul>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
-
-        @push('scripts')
-            <script>
-                // Auto hide setelah 10 detik
-                setTimeout(function() {
-                    $('#importErrorAlert').fadeOut('slow');
-                }, 10000);
-            </script>
-        @endpush
 
         {{-- 1. Menggunakan Page Header --}}
         <div class="page-header mb-4">
@@ -143,6 +149,20 @@
                             @foreach ($options as $option) <option value="{{ $option }}" {{ request('per_page', 20) == $option ? 'selected' : '' }}>{{ $option == 'all' ? 'All' : $option }}</option> @endforeach
                         </select>
                     </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Kegiatan:</label>
+                        <select class="filter-select" id="kegiatanSelect" name="kegiatan">
+                            <option value="">Semua Kegiatan</option>
+                            @foreach ($kegiatanCounts ?? [] as $kegiatan)
+                                <option value="{{ $kegiatan->nama_kegiatan }}"
+                                    {{ $selectedKegiatan == $kegiatan->nama_kegiatan ? 'selected' : '' }}>
+                                    {{ $kegiatan->nama_kegiatan }} ({{ $kegiatan->total }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
                     <div class="filter-group">
                         <label class="filter-label">Tahun:</label>
                         <select class="filter-select" id="tahunSelect">
@@ -157,30 +177,6 @@
                         <button class="search-btn" type="submit"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg> </button>
                     </form>
                 </div>
-            </div>
-
-            {{-- 7. Alert --}}
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show mx-4" role="alert"> <div class="alert-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> </div> <span>{{ session('success') }}</span> <button type="button" class="alert-close" data-bs-dismiss="alert"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button> </div>
-            @endif
-            @if ($errors->any() && !session('error_modal'))
-                <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert"> <strong>Error!</strong> Periksa form. <button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
-            @endif
-
-            {{-- 8. Tabs Kegiatan --}}
-            <div class="px-4 pt-4">
-                 <ul class="nav nav-tabs">
-                    <li class="nav-item">
-                        <a class="nav-link {{ empty(request('kegiatan')) ? 'active' : '' }}" href="{{ route('tim-distribusi.bulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $selectedTahun]) }}"> All <span class="badge badge-secondary">{{ collect($kegiatanCounts ?? [])->sum('total') }}</span> </a>
-                    </li>
-                    @foreach ($kegiatanCounts as $kegiatan)
-                        <li class="nav-item">
-                            <a class="nav-link {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'active' : '' }}" href="{{ route('tim-distribusi.bulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'kegiatan' => $kegiatan->nama_kegiatan, 'tahun' => $selectedTahun]) }}">
-                                {{ $kegiatan->nama_kegiatan }} <span class="badge badge-secondary">{{ $kegiatan->total }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
             </div>
 
             {{-- 11. Table --}}
@@ -417,354 +413,134 @@
 @endsection
 
 @push('scripts')
-    {{-- ====================================================================== --}}
-    {{-- ============= GANTI TOTAL SCRIPT DENGAN VERSI LENGKAP ============ --}}
-    {{-- ====================================================================== --}}
-    <script>
-        /**
-         * Inisialisasi Autocomplete Input Field
-         */
-        function initAutocomplete(inputId, suggestionsId, searchUrl) {
-            const input = document.getElementById(inputId);
-            if (!input) return;
-            const suggestionsContainer = document.getElementById(suggestionsId);
-            let debounceTimer;
-            let activeSuggestionIndex = -1;
+<script>
+    /** Autocomplete */
+    // ... (Fungsi initAutocomplete tidak perlu diubah) ...
+    function initAutocomplete(inputId, suggestionsId, searchUrl) { const input = document.getElementById(inputId); if (!input || !searchUrl) return; const suggestionsContainer = document.getElementById(suggestionsId); let debounceTimer; let activeSuggestionIndex = -1; input.addEventListener('input', function() { const query = this.value; clearTimeout(debounceTimer); if (query.length < 1) { if (suggestionsContainer) suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; return; } debounceTimer = setTimeout(() => { const finalSearchUrl = `${searchUrl}&query=${encodeURIComponent(query)}`; fetch(finalSearchUrl).then(response => { if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } return response.json(); }).then(data => { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; if (Array.isArray(data)) { data.forEach((item, index) => { const div = document.createElement('div'); div.textContent = item; div.classList.add('autocomplete-suggestion-item'); div.onclick = () => { input.value = item; suggestionsContainer.innerHTML = ''; }; div.onmouseover = () => { document.querySelectorAll(`#${suggestionsId} .autocomplete-suggestion-item`).forEach(el => el.classList.remove('active')); div.classList.add('active'); activeSuggestionIndex = index; }; suggestionsContainer.appendChild(div); }); } else { console.error('Autocomplete data is not an array:', data); } }).catch(error => console.error('Autocomplete error:', error)); }, 300); }); input.addEventListener('keydown', function(e) { const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item'); if (suggestions.length === 0) return; if (e.key === 'ArrowDown') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'ArrowUp') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'Enter') { if (activeSuggestionIndex > -1) { e.preventDefault(); input.value = suggestions[activeSuggestionIndex].textContent; suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } } else if (e.key === 'Escape') { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); function updateActiveSuggestion(suggestions, index) { suggestions.forEach(el => el.classList.remove('active')); if (suggestions[index]) suggestions[index].classList.add('active'); } document.addEventListener('click', (e) => { if (e.target.id !== inputId && suggestionsContainer) { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); }
 
-            input.addEventListener('input', function() {
-                const query = this.value;
-                clearTimeout(debounceTimer);
-                if (query.length < 1) {
-                    if (suggestionsContainer) suggestionsContainer.innerHTML = '';
-                    activeSuggestionIndex = -1;
-                    return;
-                }
-                debounceTimer = setTimeout(() => {
-                    const finalSearchUrl = `${searchUrl}?query=${query}`;
-                    fetch(finalSearchUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            suggestionsContainer.innerHTML = '';
-                            activeSuggestionIndex = -1;
-                            data.forEach((item, index) => {
-                                const div = document.createElement('div');
-                                div.textContent = item;
-                                div.classList.add('autocomplete-suggestion-item');
-                                div.onclick = () => {
-                                    input.value = item;
-                                    suggestionsContainer.innerHTML = '';
-                                };
-                                div.onmouseover = () => {
-                                    document.querySelectorAll(
-                                        `#${suggestionsId} .autocomplete-suggestion-item`
-                                    ).forEach(el => el.classList.remove('active'));
-                                    div.classList.add('active');
-                                    activeSuggestionIndex = index;
-                                };
-                                suggestionsContainer.appendChild(div);
-                            });
-                        })
-                        .catch(error => console.error('Autocomplete error:', error));
-                }, 300);
-            });
+    // --- URL Basis BARU ---
+    const distribusiBulananBaseUrl = '/tim-distribusi/bulanan'; // Sesuaikan
+    const currentJenisKegiatan = '{{ $jenisKegiatan }}'; // Ambil jenis kegiatan
 
-            input.addEventListener('keydown', function(e) {
-                const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item');
-                if (suggestions.length === 0) return;
+    /** Edit Data (Sudah Benar) */
+    function editData(id) {
+        // ... (fungsi editData sudah benar dari jawaban sebelumnya) ...
+        const editModalEl = document.getElementById('editDataModal'); if (!editModalEl) return;
+        const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
+        const editForm = document.getElementById('editForm');
+        editForm.action = `${distribusiBulananBaseUrl}/${id}`;
+        clearFormErrors(editForm);
+        const fallbackInput = editForm.querySelector('#edit_id_fallback');
+        if(fallbackInput) fallbackInput.value = id;
+        fetch(`${distribusiBulananBaseUrl}/${id}/edit`)
+            .then(response => { if (!response.ok) { return response.text().then(text => { throw new Error(text || 'Data tidak ditemukan'); }); } return response.json(); })
+            .then(data => {
+                document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
+                document.getElementById('edit_BS_Responden').value = data.BS_Responden || '';
+                document.getElementById('edit_pencacah').value = data.pencacah || '';
+                document.getElementById('edit_pengawas').value = data.pengawas || '';
+                document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian || ''; // Sudah Y-m-d
+                document.getElementById('edit_flag_progress').value = data.flag_progress || 'Belum Selesai';
+                document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan || ''; // Sudah Y-m-d
+                editModal.show();
+            })
+            .catch(error => { console.error("Error loading edit data:", error); alert('Tidak dapat memuat data. Error: ' + error.message); });
+    }
 
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length;
-                    updateActiveSuggestion(suggestions, activeSuggestionIndex);
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length;
-                    updateActiveSuggestion(suggestions, activeSuggestionIndex);
-                } else if (e.key === 'Enter') {
-                    if (activeSuggestionIndex > -1) {
-                        e.preventDefault();
-                        input.value = suggestions[activeSuggestionIndex].textContent;
-                        suggestionsContainer.innerHTML = '';
-                        activeSuggestionIndex = -1;
-                    }
-                } else if (e.key === 'Escape') {
-                    suggestionsContainer.innerHTML = '';
-                    activeSuggestionIndex = -1;
-                }
-            });
+    /** Delete Data (Sudah Benar) */
+    function deleteData(id) {
+        // ... (fungsi deleteData sudah benar dari jawaban sebelumnya) ...
+        const deleteModalEl = document.getElementById('deleteDataModal'); if (!deleteModalEl) return;
+        const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
+        const deleteForm = document.getElementById('deleteForm');
+        deleteForm.action = `${distribusiBulananBaseUrl}/${id}`;
+        let methodInput = deleteForm.querySelector('input[name="_method"]'); if (!methodInput) { methodInput = document.createElement('input'); methodInput.type = 'hidden'; methodInput.name = '_method'; deleteForm.appendChild(methodInput); } methodInput.value = 'DELETE';
+        deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
+        document.getElementById('deleteModalBody').innerText = `Apakah Anda yakin ingin menghapus data ${currentJenisKegiatan.toUpperCase()} ini?`;
+        const confirmBtn = document.getElementById('confirmDeleteButton');
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        newConfirmBtn.addEventListener('click', (e) => { e.preventDefault(); deleteForm.submit(); });
+        deleteModal.show();
+    }
 
-            function updateActiveSuggestion(suggestions, index) {
-                suggestions.forEach(el => el.classList.remove('active'));
-                if (suggestions[index]) {
-                    suggestions[index].classList.add('active');
-                }
-            }
+    /** AJAX Helpers (Sudah Benar) */
+    // ... (fungsi clearFormErrors, showFormErrors, handleFormSubmitAjax tidak perlu diubah) ...
+     function clearFormErrors(form) { form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid')); form.querySelectorAll('.invalid-feedback[data-field]').forEach(el => el.textContent = ''); }
+     function showFormErrors(form, errors) { for (const [field, messages] of Object.entries(errors)) { const input = form.querySelector(`[name="${field}"]`); const errorDiv = form.querySelector(`.invalid-feedback[data-field="${field}"]`); if (input) input.classList.add('is-invalid'); if (errorDiv) errorDiv.textContent = messages[0]; } }
+     async function handleFormSubmitAjax(event, form, modalInstance) { event.preventDefault(); const sb = form.querySelector('button[type="submit"]'); const sp = sb.querySelector('.spinner-border'); sb.disabled = true; if (sp) sp.classList.remove('d-none'); clearFormErrors(form); try { const fd = new FormData(form); const response = await fetch(form.action, { method: form.method, body: fd, headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': fd.get('_token') } }); const data = await response.json(); if (!response.ok) { if (response.status === 422 && data.errors) { showFormErrors(form, data.errors); } else { alert(data.message || 'Error.'); } } else { modalInstance.hide(); location.reload(); } } catch (error) { console.error('Fetch error:', error); alert('Tidak terhubung.'); } finally { sb.disabled = false; if (sp) sp.classList.add('d-none'); } }
 
-            document.addEventListener('click', (e) => {
-                if (e.target.id !== inputId && suggestionsContainer) {
-                    suggestionsContainer.innerHTML = '';
-                    activeSuggestionIndex = -1;
-                }
-            });
-        }
+    /** DOM Ready */
+    document.addEventListener('DOMContentLoaded', function() {
 
-        /**
-         * Tampilkan modal edit dan isi datanya dari server
-         */
-        function editData(id) {
-            const editModalEl = document.getElementById('editDataModal');
-            if (!editModalEl) return;
-            const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
-            const editForm = document.getElementById('editForm');
+        // --- Init Autocomplete (PERBAIKAN URL) ---
+        @if(Route::has('tim-distribusi.bulanan.searchKegiatan'))
+             // Kirim jenis kegiatan saat ini ke URL search
+            const kegiatanSearchUrl = `{{ route("tim-distribusi.bulanan.searchKegiatan", ['jenisKegiatan' => $jenisKegiatan]) }}?`;
+            initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', kegiatanSearchUrl);
+            initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', kegiatanSearchUrl);
+        @else console.warn('Rute tim-distribusi.bulanan.searchKegiatan tidak ditemukan.'); @endif
 
-            // --- SESUAIKAN URL ---
-            editForm.action = `/tim-distribusi/bulanan/${id}`;
-            clearFormErrors(editForm);
-
-            // --- SESUAIKAN URL ---
-            fetch(`/tim-distribusi/bulanan/${id}/edit`)
-                .then(response => {
-                    if (!response.ok) {
-                        return response.text().then(text => {
-                            throw new Error(text || 'Data tidak ditemukan');
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
-                    document.getElementById('edit_BS_Responden').value = data.BS_Responden || '';
-                    document.getElementById('edit_pencacah').value = data.pencacah || '';
-                    document.getElementById('edit_pengawas').value = data.pengawas || '';
-                    document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian || '';
-                    document.getElementById('edit_flag_progress').value = data.flag_progress || 'Belum Selesai';
-                    document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan || '';
-                    editModal.show();
-                })
-                .catch(error => {
-                    console.error("Error loading edit data:", error);
-                    alert('Tidak dapat memuat data untuk diedit. Error: ' + error.message);
-                });
-        }
-
-        /**
-         * Konfigurasi modal hapus untuk satu data
-         */
-        function deleteData(id) {
-            const deleteModalEl = document.getElementById('deleteDataModal');
-            if (!deleteModalEl) return;
-            const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
-            const deleteForm = document.getElementById('deleteForm');
-
-            // --- SESUAIKAN URL ---
-            deleteForm.action = `/tim-distribusi/bulanan/${id}`;
-
-            let methodInput = deleteForm.querySelector('input[name="_method"]');
-            if (!methodInput) {
-                methodInput = document.createElement('input');
-                methodInput.type = 'hidden';
-                methodInput.name = '_method';
-                deleteForm.appendChild(methodInput);
-            }
-            methodInput.value = 'DELETE';
-
-            deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
-            document.getElementById('deleteModalBody').innerText =
-                'Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.';
-
-            const newConfirmButton = document.getElementById('confirmDeleteButton').cloneNode(true);
-            document.getElementById('confirmDeleteButton').parentNode.replaceChild(newConfirmButton, document
-                .getElementById('confirmDeleteButton'));
-            newConfirmButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                deleteForm.submit();
-            });
-
-            deleteModal.show();
-        }
-
-        /**
-         * Menghapus semua pesan error validasi dari form
-         */
-        function clearFormErrors(form) {
-            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            form.querySelectorAll('.invalid-feedback[data-field]').forEach(el => el.textContent = '');
-        }
-
-        /**
-         * Menampilkan error validasi di form
-         */
-        function showFormErrors(form, errors) {
-            for (const [field, messages] of Object.entries(errors)) {
-                const input = form.querySelector(`[name="${field}"]`);
-                const errorDiv = form.querySelector(`.invalid-feedback[data-field="${field}"]`);
-                if (input) input.classList.add('is-invalid');
-                if (errorDiv) errorDiv.textContent = messages[0];
-            }
-        }
-
-        /**
-         * Meng-handle submit form via AJAX
-         */
-        async function handleFormSubmitAjax(event, form, modalInstance) {
-            event.preventDefault();
-            const submitButton = form.querySelector('button[type="submit"]');
-            const spinner = submitButton.querySelector('.spinner-border');
-
-            submitButton.disabled = true;
-            if (spinner) spinner.classList.remove('d-none');
-            clearFormErrors(form);
-
-            try {
-                const formData = new FormData(form);
-                const response = await fetch(form.action, {
-                    method: form.method,
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': formData.get('_token')
-                    }
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    if (response.status === 422 && data.errors) {
-                        showFormErrors(form, data.errors);
-                    } else {
-                        alert(data.message || 'Terjadi kesalahan server.');
-                    }
-                } else {
-                    modalInstance.hide();
-                    location.reload();
-                }
-
-            } catch (error) {
-                console.error('Fetch error:', error);
-                alert('Tidak dapat terhubung ke server.');
-            } finally {
-                submitButton.disabled = false;
-                if (spinner) spinner.classList.add('d-none');
-            }
-        }
-
-        // --- SCRIPT UTAMA SETELAH DOKUMEN SIAP (DOM Ready) ---
-        document.addEventListener('DOMContentLoaded', function() {
-
-            // --- Inisialisasi Autocomplete ---
-            @if (Route::has('master.kegiatan.search'))
-                initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', '{{ route('master.kegiatan.search') }}');
-                initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions',
-                    '{{ route('master.kegiatan.search') }}');
-            @else
-                console.warn('Rute "master.kegiatan.search" tidak ditemukan.');
-            @endif
-            @if(Route::has('tim-distribusi.tahunan.searchPetugas'))
-            const petugasSearchUrl = '{{ route("tim-distribusi.tahunan.searchPetugas") }}?'; // Tambah ?
-            // Hapus parameter 'field' jika tidak dipakai controller
+        @if(Route::has('tim-distribusi.bulanan.searchPetugas'))
+            const petugasSearchUrl = '{{ route("tim-distribusi.bulanan.searchPetugas") }}?'; // Hapus field=...
             initAutocomplete('pencacah', 'pencacah-suggestions', petugasSearchUrl);
             initAutocomplete('pengawas', 'pengawas-suggestions', petugasSearchUrl);
             initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', petugasSearchUrl);
             initAutocomplete('edit_pengawas', 'edit-pengawas-suggestions', petugasSearchUrl);
-        @else console.warn('Rute tim-distribusi.tahunan.searchPetugas tidak ada.'); @endif
+        @else console.warn('Rute tim-distribusi.bulanan.searchPetugas tidak ditemukan.'); @endif
 
-            // --- Inisialisasi Handler AJAX Form ---
-            const tambahModalEl = document.getElementById('tambahDataModal');
-            const tambahForm = document.getElementById('tambahForm');
-            if (tambahModalEl && tambahForm) {
-                const tambahModal = bootstrap.Modal.getOrCreateInstance(tambahModalEl);
-                tambahForm.addEventListener('submit', (event) => handleFormSubmitAjax(event, tambahForm,
-                    tambahModal));
-                tambahModalEl.addEventListener('hidden.bs.modal', () => {
-                    clearFormErrors(tambahForm);
-                    tambahForm.reset();
-                });
-            }
-            const editModalEl = document.getElementById('editDataModal');
-            const editForm = document.getElementById('editForm');
-            if (editModalEl && editForm) {
-                const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
-                editForm.addEventListener('submit', (event) => handleFormSubmitAjax(event, editForm, editModal));
-                editModalEl.addEventListener('hidden.bs.modal', () => clearFormErrors(editForm));
-            }
 
-            // --- Logika Select All & Bulk Delete ---
-            const selectAll = document.getElementById('selectAll');
-            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-            const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-            const deleteForm = document.getElementById('deleteForm');
+        // --- Init AJAX Form Handlers (Sudah Benar) ---
+        // ... (kode sama seperti sebelumnya) ...
+        const tme = document.getElementById('tambahDataModal'); const tf = document.getElementById('tambahForm'); if (tme && tf) { const tm = bootstrap.Modal.getOrCreateInstance(tme); tf.addEventListener('submit', (e) => handleFormSubmitAjax(e, tf, tm)); tme.addEventListener('hidden.bs.modal', () => { clearFormErrors(tf); tf.reset(); }); }
+        const eme = document.getElementById('editDataModal'); const ef = document.getElementById('editForm'); if (eme && ef) { const em = bootstrap.Modal.getOrCreateInstance(eme); ef.addEventListener('submit', (e) => handleFormSubmitAjax(e, ef, em)); eme.addEventListener('hidden.bs.modal', () => clearFormErrors(ef)); }
 
-            function updateBulkDeleteBtnState() {
-                /* ... (kode sama) ... */
-            }
-            selectAll?.addEventListener('change', () => {
-                /* ... (kode sama) ... */
-            });
-            rowCheckboxes.forEach(cb => cb.addEventListener('change', updateBulkDeleteBtnState));
-            updateBulkDeleteBtnState();
-            bulkDeleteBtn?.addEventListener('click', () => {
-                const count = document.querySelectorAll('.row-checkbox:checked').length;
-                if (count === 0) return;
-                const deleteModalEl = document.getElementById('deleteDataModal');
-                if (!deleteModalEl || !deleteForm) return;
-                const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
-                // --- SESUAIKAN URL ---
-                deleteForm.action = '{{ route('tim-distribusi.bulanan.bulkDelete') }}';
-                let methodInput = deleteForm.querySelector('input[name="_method"]');
-                if (methodInput) methodInput.value = 'POST';
-                deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
-                document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
-                    /* ... (kode sama) ... */
-                });
-                document.getElementById('deleteModalBody').innerText =
-                    `Apakah Anda yakin ingin menghapus ${count} data yang dipilih?`;
-                const newConfirmButton = document.getElementById('confirmDeleteButton').cloneNode(true);
-                document.getElementById('confirmDeleteButton').parentNode.replaceChild(newConfirmButton,
-                    document.getElementById('confirmDeleteButton'));
-                newConfirmButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    deleteForm.submit();
-                });
-                deleteModal.show();
-            });
+        // --- Select All & Bulk Delete (Sudah Benar) ---
+        // ... (kode sama seperti sebelumnya) ...
+        const sa = document.getElementById('selectAll'); const rcb = document.querySelectorAll('.row-checkbox'); const bdb = document.getElementById('bulkDeleteBtn'); const df = document.getElementById('deleteForm'); function ubdbs() { const cc = document.querySelectorAll('.row-checkbox:checked').length; if (bdb) bdb.disabled = cc === 0; } sa?.addEventListener('change', () => { rcb.forEach(cb => cb.checked = sa.checked); ubdbs(); }); rcb.forEach(cb => cb.addEventListener('change', ubdbs)); ubdbs(); bdb?.addEventListener('click', () => { const count = document.querySelectorAll('.row-checkbox:checked').length; if (count === 0) return; const dme = document.getElementById('deleteDataModal'); if (!dme || !df) return; const dm = bootstrap.Modal.getOrCreateInstance(dme);
+        df.action = '{{ route("tim-distribusi.bulanan.bulkDelete") }}'; let mi = df.querySelector('input[name="_method"]'); if (mi) mi.value = 'POST'; df.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove()); document.querySelectorAll('.row-checkbox:checked').forEach(cb => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'ids[]'; i.value = cb.value; df.appendChild(i); }); document.getElementById('deleteModalBody').innerText = `Hapus ${count} data terpilih?`; const ncb = document.getElementById('confirmDeleteButton').cloneNode(true); document.getElementById('confirmDeleteButton').parentNode.replaceChild(ncb, document.getElementById('confirmDeleteButton')); ncb.addEventListener('click', (e) => { e.preventDefault(); df.submit(); }); dm.show(); });
 
-            // --- Logika Dropdown Per Page ---
-            const perPageSelect = document.getElementById('perPageSelect');
-            if (perPageSelect) {
-                perPageSelect.addEventListener('change', function() {
-                    /* ... (kode sama) ... */
-                });
-            }
-
-            // --- Logika Dropdown TAHUN ---
-            const tahunSelect = document.getElementById('tahunSelect');
-            if (tahunSelect) {
-                tahunSelect.addEventListener('change', function() {
-                    /* ... (kode sama) ... */
-                });
-            }
-
-            // --- Logika Fallback (Non-AJAX) Error Modal ---
-            @if (session('error_modal') == 'tambahDataModal' && $errors->any())
-                const tambahModalEl_fallback = document.getElementById('tambahDataModal');
-                if (tambahModalEl_fallback) bootstrap.Modal.getOrCreateInstance(tambahModalEl_fallback).show();
-            @endif
-            @if (session('error_modal') == 'editDataModal' && $errors->any() && session('edit_id'))
-                const editId = {{ session('edit_id') }};
-                if (editId) {
-                    editData(editId);
-                    setTimeout(() => {
-                        /* ... (kode sama) ... */
-                    }, 500);
+        // --- Filters Per Page & Tahun (Sudah Benar) ---
+        const pps = document.getElementById('perPageSelect');
+            const ts = document.getElementById('tahunSelect');
+            const ks = document.getElementById('kegiatanSelect');
+            function hfc() {
+                const cu = new URL(window.location.href);
+                const p = cu.searchParams;
+                if (pps) p.set('per_page', pps.value);
+                if (ts) p.set('tahun', ts.value);
+                if (ks) {
+                    if (ks.value) { p.set('kegiatan', ks.value); }
+                    else { p.delete('kegiatan'); } // Hapus jika 'Semua'
                 }
-            @endif
+                
+                // Ambil search term dari URL agar tidak hilang
+                const currentSearch = new URLSearchParams(window.location.search).get('search');
+                if (currentSearch) {
+                    p.set('search', currentSearch);
+                }
 
-            // --- Auto-hide Alert Sukses/Error (Non-Modal) ---
-            const autoHideAlerts = document.querySelectorAll('.alert-dismissible[role="alert"]');
-            autoHideAlerts.forEach(alert => {
-                /* ... (kode sama) ... */
-            });
+                p.set('page', 1); // Selalu reset ke halaman 1
+                window.location.href = cu.pathname + '?' + p.toString();
+            }
+            if (pps) pps.addEventListener('change', hfc);
+            if (ts) ts.addEventListener('change', hfc);
+            if (ks) ks.addEventListener('change', hfc);
 
-        });
-    </script>
+
+        // --- Fallback Error Modals (Sudah Benar) ---
+        // ... (kode sama seperti sebelumnya) ...
+        @if (session('error_modal') == 'tambahDataModal' && $errors->any()) const tmef = document.getElementById('tambahDataModal'); if (tmef) bootstrap.Modal.getOrCreateInstance(tmef).show(); @endif
+        @if (session('error_modal') == 'editDataModal' && $errors->any()) const eid_fb_input = document.getElementById('edit_id_fallback'); const eid_fb = eid_fb_input ? eid_fb_input.value : '{{ session('edit_id') }}'; if (eid_fb) { const emef = document.getElementById('editDataModal'); if(emef) { const edf = document.getElementById('editForm'); edf.action = `${distribusiBulananBaseUrl}/${eid_fb}`; bootstrap.Modal.getOrCreateInstance(emef).show(); @foreach ($errors->keys() as $f) const fel = edf.querySelector('[name="{{ $f }}"]'); if (fel) fel.classList.add('is-invalid'); const erel = edf.querySelector(`.invalid-feedback[data-field="{{ $f }}"]`); if (erel) erel.textContent = '{{ $errors->first($f) }}'; else { const erelById = edf.querySelector(`#edit_{{ $f }}_error`); if(erelById) erelById.textContent = '{{ $errors->first($f) }}'; } @endforeach } } @endif
+
+        // --- Auto-hide Alerts (Sudah Benar) ---
+        // ... (kode sama seperti sebelumnya) ...
+        const alertList = document.querySelectorAll('.alert-dismissible[role="alert"]'); alertList.forEach(function (alert) { if (!alert.closest('.modal')) { const autoHide = {{ session('auto_hide', 'false') ? 'true' : 'false' }}; if(autoHide) { setTimeout(() => { bootstrap.Alert.getOrCreateInstance(alert).close(); }, 5000); } } })
+
+         // --- Script untuk Update Opsi Export Modal (Sudah Benar) ---
+         // ... (kode sama seperti sebelumnya) ...
+          const exportModalEl = document.getElementById('exportModal'); if(exportModalEl) { exportModalEl.addEventListener('show.bs.modal', function () { const currentPageOption = document.querySelector('#exportModal #dataRange option[value="current_page"]'); const allDataOption = document.querySelector('#exportModal #dataRange option[value="all"]'); const totalData = {{ $listData->total() }}; const currentPageData = {{ $listData->count() }}; if(currentPageOption) currentPageOption.textContent = `Hanya Halaman Ini (${currentPageData} data)`; if(allDataOption) allDataOption.textContent = `Semua Data (${totalData} data)`; document.querySelector('#exportForm input[name="tahun"]').value = '{{ $selectedTahun ?? date('Y') }}'; document.querySelector('#exportForm input[name="kegiatan"]').value = '{{ $selectedKegiatan ?? '' }}'; document.querySelector('#exportForm input[name="search"]').value = '{{ $search ?? '' }}'; document.querySelector('#exportForm input[name="page"]').value = '{{ $listData->currentPage() }}'; document.querySelector('#exportForm input[name="per_page"]').value = '{{ request('per_page', $listData->perPage()) }}'; }); }
+
+    });
+</script>
 @endpush
