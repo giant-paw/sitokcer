@@ -29,45 +29,55 @@
         /* Helper class untuk grid 2 kolom di modal */
         .modal-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg, 1.5rem); }
         @media (max-width: 768px) { .modal-grid-2col { grid-template-columns: 1fr; gap: var(--spacing-md, 1rem); } }
+
+        .modern-modal .form-select {
+        /* ======================================================= */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
     </style>
 @endpush
 
 @section('content')
     <div class="container-fluid px-4 py-4">{{-- Alert Success --}}
+        {{-- Alert Success --}}
         @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
         {{-- Alert Error --}}
         @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert">
                 {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
-        {{-- Alert Import Errors - TARUH DI SINI --}}
+         {{-- Alert Warning (dari import sebagian) --}}
+        @if (session('warning'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warningAlert">
+                {{ session('warning') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        {{-- Alert Import Errors--}}
         @if (session('import_errors'))
             <div class="alert alert-warning alert-dismissible fade show" role="alert" id="importErrorAlert">
                 <strong>Beberapa baris gagal diimport:</strong>
                 <ul class="mb-0">
                     @foreach (session('import_errors') as $error)
-                        <li>{{ $error['error'] }}</li>
+                        <li>Baris {{ $error['row'] ?? '?' }}: {{ $error['error'] }} (Nilai: {{ $error['values'] ?? 'N/A' }})</li>
                     @endforeach
                 </ul>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
-
-        @push('scripts')
-            <script>
-                // Auto hide setelah 10 detik
-                setTimeout(function() {
-                    $('#importErrorAlert').fadeOut('slow');
-                }, 10000);
-            </script>
-        @endpush
 
         
 
@@ -141,20 +151,6 @@
                 </div>
             </div>
 
-            {{-- 7. Alert Success/Error --}}
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show mx-4" role="alert">
-                    <div class="alert-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> </div>
-                    <span>{{ session('success') }}</span>
-                    <button type="button" class="alert-close" data-bs-dismiss="alert"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
-                </div>
-            @elseif (session('error'))
-                 <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert"> {{ session('error') }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
-            @endif
-            @if ($errors->any() && !session('error_modal'))
-                <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert"> <strong>Error!</strong> Periksa form.<button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
-            @endif
-
             {{-- 11. Table --}}
             <div class="table-wrapper">
                 <table class="data-table">
@@ -215,8 +211,7 @@
         </div>
     </div>
 
-     <!-- Modal Import Data -->
-    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+     <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form action="{{ route('tim-distribusi.tahunan.import') }}" method="POST"
@@ -228,7 +223,6 @@
                     </div>
 
                     <div class="modal-body">
-                        <!-- Alert info -->
                         <div class="alert alert-info" role="alert">
                             <small>
                                 <strong>Format yang didukung:</strong> Excel (.xlsx, .xls) atau CSV<br>
@@ -236,14 +230,12 @@
                                 <strong>Catatan:</strong> ID akan di-generate otomatis
                             </small>
                         </div>
-                        <!-- Download template -->
                         <div class="mb-3">
                             <a href="{{ route('tim-distribusi.tahunan.downloadTemplate') }}"
                                 class="btn btn-sm btn-secondary">
                                 <i class="bi bi-download"></i> Download Template Excel
                             </a>
                         </div>
-                        <!-- File input -->
                         <div class="mb-3">
                             <label for="importFile" class="form-label">Pilih File</label>
                             <input type="file" class="form-control" id="importFile" name="file" required
@@ -252,7 +244,6 @@
                                 Pastikan format kolom sesuai dengan template
                             </div>
                         </div>
-                        <!-- Preview area (optional) -->
                         <div id="filePreview" class="d-none">
                             <small class="text-muted">File dipilih: <span id="fileName"></span></small>
                         </div>
@@ -270,7 +261,7 @@
 
 
     {{-- ================================================= --}}
-    {{-- ==              MODAL SECTIONS                 == --}}
+    {{-- ==        MODAL SECTIONS                      == --}}
     {{-- ================================================= --}}
 
     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
@@ -357,7 +348,7 @@
                                 <div class="form-group"> <label for="edit_flag_progress" class="form-label">Flag Progress <span class="required">*</span></label> <select class="form-select @error('flag_progress') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required> <option value="Belum Selesai">Belum Selesai</option> <option value="Selesai">Selesai</option> </select> <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress') {{ $message }} @enderror</div> </div>
                                 <div class="form-group"> <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label> <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror" id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}"> <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan') {{ $message }} @enderror</div> </div>
                              </div>
-                        </div>
+                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -506,14 +497,23 @@
         const pps = document.getElementById('perPageSelect');
             const ts = document.getElementById('tahunSelect');
             const ks = document.getElementById('kegiatanSelect');
-
             function hfc() {
                 const cu = new URL(window.location.href);
                 const p = cu.searchParams;
                 if (pps) p.set('per_page', pps.value);
                 if (ts) p.set('tahun', ts.value);
-                if (ks) p.set('kegiatan', ks.value);
-                p.set('page', 1);
+                if (ks) {
+                    if (ks.value) { p.set('kegiatan', ks.value); }
+                    else { p.delete('kegiatan'); } // Hapus jika 'Semua'
+                }
+                
+                // Ambil search term dari URL agar tidak hilang
+                const currentSearch = new URLSearchParams(window.location.search).get('search');
+                if (currentSearch) {
+                    p.set('search', currentSearch);
+                }
+
+                p.set('page', 1); // Selalu reset ke halaman 1
                 window.location.href = cu.pathname + '?' + p.toString();
             }
             if (pps) pps.addEventListener('change', hfc);
@@ -560,9 +560,9 @@
             if (!alert.closest('.modal')) {
                 const autoHide = {{ session('auto_hide', 'false') ? 'true' : 'false' }};
                 if(autoHide) {
-                    setTimeout(() => {
-                        bootstrap.Alert.getOrCreateInstance(alert).close();
-                    }, 5000); // 5 detik
+                     setTimeout(() => {
+                         bootstrap.Alert.getOrCreateInstance(alert).close();
+                     }, 5000); // 5 detik
                  }
             }
         })
@@ -570,22 +570,22 @@
          // --- Script untuk Update Opsi Export Modal ---
          const exportModalEl = document.getElementById('exportModal');
          if(exportModalEl) {
-             exportModalEl.addEventListener('show.bs.modal', function () {
-                const currentPageOption = document.querySelector('#exportModal #dataRange option[value="current_page"]');
-                const allDataOption = document.querySelector('#exportModal #dataRange option[value="all"]');
-                const totalData = {{ $listData->total() }};
-                const currentPageData = {{ $listData->count() }};
+              exportModalEl.addEventListener('show.bs.modal', function () {
+                 const currentPageOption = document.querySelector('#exportModal #exportDataRangeDist option[value="current_page"]');
+                 const allDataOption = document.querySelector('#exportModal #exportDataRangeDist option[value="all"]');
+                 const totalData = {{ $listData->total() }};
+                 const currentPageData = {{ $listData->count() }};
 
-                if(currentPageOption) currentPageOption.textContent = `Hanya Halaman Ini (${currentPageData} data)`;
-                if(allDataOption) allDataOption.textContent = `Semua Data (${totalData} data)`;
+                 if(currentPageOption) currentPageOption.textContent = `Hanya Halaman Ini (${currentPageData} data)`;
+                 if(allDataOption) allDataOption.textContent = `Semua Data (${totalData} data)`;
 
-                // Update hidden inputs di form export
-                document.querySelector('#exportForm input[name="tahun"]').value = '{{ $selectedTahun ?? date('Y') }}';
-                document.querySelector('#exportForm input[name="kegiatan"]').value = '{{ $selectedKegiatan ?? '' }}';
-                document.querySelector('#exportForm input[name="search"]').value = '{{ $search ?? '' }}';
-                document.querySelector('#exportForm input[name="page"]').value = '{{ $listData->currentPage() }}';
-                document.querySelector('#exportForm input[name="per_page"]').value = '{{ request('per_page', $listData->perPage()) }}';
-            });
+                 // Update hidden inputs di form export
+                 document.querySelector('#exportForm input[name="tahun"]').value = '{{ $selectedTahun ?? date('Y') }}';
+                 document.querySelector('#exportForm input[name="kegiatan"]').value = '{{ $selectedKegiatan ?? '' }}';
+                 document.querySelector('#exportForm input[name="search"]').value = '{{ $search ?? '' }}';
+                 document.querySelector('#exportForm input[name="page"]').value = '{{ $listData->currentPage() }}';
+                 document.querySelector('#exportForm input[name="per_page"]').value = '{{ request('per_page', $listData->perPage()) }}';
+             });
          }
 
 

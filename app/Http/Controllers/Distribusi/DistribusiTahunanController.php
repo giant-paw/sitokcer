@@ -12,8 +12,8 @@ use App\Models\Master\MasterKegiatan;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
-use App\Exports\DistribusiTahunanExport;
-use App\Imports\DistribusiTahunanImport;
+use App\Exports\DistribusiTahunanExport; // Pastikan ini ada
+use App\Imports\DistribusiTahunanImport; // Pastikan ini ada
 
 class DistribusiTahunanController extends Controller
 {
@@ -34,7 +34,7 @@ class DistribusiTahunanController extends Controller
 
 
         $query = DistribusiTahunan::query()
-                 ->whereYear('created_at', $selectedTahun); // Filter tahun
+                    ->whereYear('created_at', $selectedTahun); // Filter tahun
 
         // Filter Kegiatan (Tab)
         $selectedKegiatan = $request->input('kegiatan', '');
@@ -47,9 +47,9 @@ class DistribusiTahunanController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('BS_Responden', 'like', "%{$search}%")
-                  ->orWhere('pencacah', 'like', "%{$search}%")
-                  ->orWhere('pengawas', 'like', "%{$search}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$search}%");
+                    ->orWhere('pencacah', 'like', "%{$search}%")
+                    ->orWhere('pengawas', 'like', "%{$search}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$search}%");
             });
         }
 
@@ -63,7 +63,9 @@ class DistribusiTahunanController extends Controller
         $listData = $query->latest('id_distribusi')->paginate($perPage)->withQueryString();
 
         $kegiatanCounts = DistribusiTahunan::query()
-            ->whereYear('created_at', $selectedTahun) // Filter tahun
+            ->whereYear('created_at', $selectedTahun)
+            ->whereNotNull('nama_kegiatan') 
+            ->where('nama_kegiatan', '!=', '')
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
@@ -118,10 +120,18 @@ class DistribusiTahunanController extends Controller
 
         DistribusiTahunan::create($validatedData);
 
+        // ===== PERBAIKAN 1: SET FLASH MESSAGE SEBELUM RETURN =====
+        // Set flash message agar terbaca oleh JS 'location.reload()'
+        session()->flash('success', 'Data berhasil ditambahkan!');
+        session()->flash('auto_hide', true);
+        // ========================================================
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil ditambahkan!']);
         }
-        return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
+        
+        // Fallback (jika non-JS), flash sudah di-set di atas
+        return back();
     }
 
     /**
@@ -177,12 +187,19 @@ class DistribusiTahunanController extends Controller
         }
 
         $distribusi->update($validatedData);
+        
+        // ===== PERBAIKAN 2: SET FLASH MESSAGE SEBELUM RETURN =====
+        // Set flash message agar terbaca oleh JS 'location.reload()'
+        session()->flash('success', 'Data berhasil diperbarui!');
+        session()->flash('auto_hide', true);
+        // =======================================================
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil diperbarui!']);
         }
-        // Redirect dihapus, cukup back()
-        return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
+        
+        // Fallback (jika non-JS), flash sudah di-set di atas
+        return back();
     }
 
     /**
@@ -235,9 +252,9 @@ class DistribusiTahunanController extends Controller
          $request->validate(['query' => 'nullable|string|max:100']);
          $query = $request->input('query', '');
          $data = MasterKegiatan::query()
-             ->where('nama_kegiatan', 'LIKE', "%{$query}%")
-             ->limit(10)
-             ->pluck('nama_kegiatan');
+               ->where('nama_kegiatan', 'LIKE', "%{$query}%")
+               ->limit(10)
+               ->pluck('nama_kegiatan');
          return response()->json($data);
     }
 
@@ -270,6 +287,7 @@ class DistribusiTahunanController extends Controller
         $perPage = ($perPageInput == 'all' || $dataRange == 'all') ? -1 : (int)$perPageInput; // -1 untuk all
 
         // Pastikan DistribusiTahunanExport menerima semua parameter ini di constructornya
+        // Urutan parameter di constructor Export class HARUS SAMA
         $exportClass = new DistribusiTahunanExport(
             $dataRange,
             $dataFormat,
@@ -277,7 +295,7 @@ class DistribusiTahunanController extends Controller
             $search,
             $currentPage,
             $perPage,
-            $selectedTahun 
+            $selectedTahun // Tambahkan $selectedTahun
         );
 
         $fileName = 'DistribusiTahunan_' . $selectedTahun . '_' . ($kegiatan ?? 'All') . '_' . now()->format('YmdHis');
