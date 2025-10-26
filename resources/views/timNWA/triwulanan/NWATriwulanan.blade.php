@@ -163,6 +163,20 @@
                             @endforeach
                         </select>
                     </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Kegiatan:</label>
+                        <select class="filter-select" id="kegiatanSelect" name="kegiatan">
+                            <option value="">Semua Kegiatan</option>
+                            @foreach ($kegiatanCounts ?? [] as $kegiatan)
+                                <option value="{{ $kegiatan->nama_kegiatan }}"
+                                    {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'selected' : '' }}>
+                                    {{ $kegiatan->nama_kegiatan }} ({{ $kegiatan->total }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="filter-group">
                         <label class="filter-label">Tahun:</label>
                         <select class="filter-select" id="tahunSelect">
@@ -196,7 +210,7 @@
 
             {{-- 7. Menggunakan style .alert-success dari global.css --}}
             @if (session('success'))
-                <div class="alert-success">
+                <div class="alert alert-success alert-dismissible fade show mx-4" role="alert">
                     <div class="alert-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -221,28 +235,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
-
-            {{-- 8. Tab Kegiatan diletakkan di dalam .data-card, menggunakan .nav-tabs --}}
-            <div class="px-4 pt-4">
-                <ul class="nav nav-tabs">
-                    <li class="nav-item">
-                        <a class="nav-link {{ request('kegiatan') == '' ? 'active' : '' }}"
-                            href="{{ route('nwa.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
-                            Semua
-                        </a>
-                    </li>
-                    @foreach ($kegiatanCounts ?? [] as $kegiatan)
-                        <li class="nav-item">
-                            <a class="nav-link {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'active' : '' }}"
-                                href="{{ route('nwa.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan, 'kegiatan' => $kegiatan->nama_kegiatan, 'tahun' => $selectedTahun ?? date('Y')]) }}">
-                                {{ $kegiatan->nama_kegiatan }}
-                                {{-- 9. Badge disesuaikan dengan style global --}}
-                                <span class="badge badge-secondary">{{ $kegiatan->total }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
 
             {{-- 10. Search form sudah dipindah ke toolbar --}}
 
@@ -1102,17 +1094,20 @@
             // Filters Per Page & Tahun
             const pps = document.getElementById('perPageSelect');
             const ts = document.getElementById('tahunSelect');
+            const ks = document.getElementById('kegiatanSelect');
 
             function hfc() {
                 const cu = new URL(window.location.href);
                 const p = cu.searchParams;
                 if (pps) p.set('per_page', pps.value);
                 if (ts) p.set('tahun', ts.value);
+                if (ks) p.set('kegiatan', ks.value);
                 p.set('page', 1);
                 window.location.href = cu.pathname + '?' + p.toString();
             }
             if (pps) pps.addEventListener('change', hfc);
             if (ts) ts.addEventListener('change', hfc);
+            if (ks) ks.addEventListener('change', hfc);
 
             // Fallback Error Modals
             @if (session('error_modal') == 'tambahDataModal' && $errors->any())

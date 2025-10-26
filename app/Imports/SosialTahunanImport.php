@@ -123,9 +123,15 @@ class SosialTahunanImport implements ToCollection, WithHeadingRow, SkipsOnError
             ];
         }
 
-        // 5. VALIDASI FLAG PROGRESS (HANYA BELUM ATAU SELESAI)
-        $validFlags = ['BELUM', 'SELESAI'];
+        // 5. VALIDASI FLAG PROGRESS (HARUS MENGANDUNG 'BELUM' ATAU 'SELESAI')
+        $validFlags = ['BELUM', 'SELESAI', 'BELUM SELESAI'];
         $flagValue = strtoupper($this->val($row, 'flag_progress'));
+        if (strpos($flagValue, 'BELUM') === false && $flagValue !== 'SELESAI') {
+            return [
+            'valid' => false,
+            'message' => "Baris {$rowNumber}: Flag Progress harus mengandung kata BELUM atau SELESAI"
+            ];
+        }
 
         if (!in_array($flagValue, $validFlags)) {
             return [

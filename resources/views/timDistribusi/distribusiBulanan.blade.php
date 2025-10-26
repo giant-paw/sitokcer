@@ -30,6 +30,24 @@
         /* Helper class untuk grid 2 kolom di modal */
         .modal-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg, 1.5rem); }
         @media (max-width: 768px) { .modal-grid-2col { grid-template-columns: 1fr; gap: var(--spacing-md, 1rem); } }
+
+        .data-table {
+            table-layout: fixed; /* Ini kuncinya: Paksa tabel agar 100% */
+            width: 100%;
+        }
+
+
+        /* [OPSIONAL] Atur ulang lebar kolom agar lebih rapi */
+        /* Kolom checkbox & aksi sudah diatur di global.css (48px & 140px) */
+        
+        .data-table th:nth-child(2) { width: 15%; } /* Nama Kegiatan */
+        .data-table th:nth-child(3) { width: 15%; } /* BS/Responden */
+        .data-table th:nth-child(4) { width: 15%; } /* Pencacah */
+        .data-table th:nth-child(5) { width: 15%; } /* Pengawas */
+        .data-table th:nth-child(6) { width: 30%; } /* Target Selesai */
+        .data-table th:nth-child(7) { width: 10%; } /* Progress */
+        .data-table th:nth-child(8) { width: 10%; } /* Tgl Kumpul */
+        
     </style>
 @endpush
 
@@ -142,7 +160,7 @@
 
             {{-- 7. Alert --}}
             @if (session('success'))
-                <div class="alert-success"> <div class="alert-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> </div> <span>{{ session('success') }}</span> <button type="button" class="alert-close" data-bs-dismiss="alert"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button> </div>
+                <div class="alert alert-success alert-dismissible fade show mx-4" role="alert"> <div class="alert-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> </div> <span>{{ session('success') }}</span> <button type="button" class="alert-close" data-bs-dismiss="alert"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button> </div>
             @endif
             @if ($errors->any() && !session('error_modal'))
                 <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert"> <strong>Error!</strong> Periksa form. <button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>

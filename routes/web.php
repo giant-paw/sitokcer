@@ -58,6 +58,7 @@ Route::prefix('sosial')->name('sosial.')->group(function () {
         Route::get('/', [SosialTahunanController::class, 'index'])->name('index');
         Route::post('/', [SosialTahunanController::class, 'store'])->name('store');
         Route::get('/search-petugas', [SosialTahunanController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::get('/search-kegiatan', [SosialTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
         Route::post('/bulk-delete', [SosialTahunanController::class, 'bulkDelete'])->name('bulkDelete');
 
         // export

@@ -22,8 +22,12 @@ class DistribusiTahunanController extends Controller
         $selectedTahun = $request->input('tahun', date('Y'));
         $availableTahun = DistribusiTahunan::query()
             ->select(DB::raw('YEAR(created_at) as tahun')) 
-            ->distinct()->whereNotNull('created_at')->orderBy('tahun', 'desc')
-            ->pluck('tahun')->toArray();
+            ->distinct()
+            ->whereNotNull('created_at')
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun')
+            ->toArray();
+            
         if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
             array_unshift($availableTahun, date('Y'));
         }

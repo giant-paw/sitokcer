@@ -19,6 +19,7 @@ class NwaTahunanController extends Controller
 {
     public function index(Request $request)
     {
+        // 1. Logika Filter Tahun
         $selectedTahun = $request->input('tahun', date('Y'));
 
         $availableTahun = NwaTahunan::query()
@@ -29,39 +30,41 @@ class NwaTahunanController extends Controller
             ->pluck('tahun')
             ->toArray();
 
-        if (!empty($availableTahun) && !in_array(date('Y'), $availableTahun)) {
+        if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
             array_unshift($availableTahun, date('Y'));
-        } elseif (empty($availableTahun)) {
-            $availableTahun = [date('Y')];
         }
 
+        // 2. Kueri Utama
         $query = NwaTahunan::query()
             ->whereYear('created_at', $selectedTahun);
 
-        $selectedKegiatan = $request->input('kegiatan', '');
-        if ($selectedKegiatan !== '') {
-            $query->where('nama_kegiatan', $selectedKegiatan);
+        // [DIUBAH] Menggunakan request->filled
+        if ($request->filled('kegiatan')) {
+            $query->where('nama_kegiatan', $request->kegiatan);
         }
 
-        $search = $request->input('search', '');
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('BS_Responden', 'like', "%{$search}%")
-                    ->orWhere('pencacah', 'like', "%{$search}%")
-                    ->orWhere('pengawas', 'like', "%{$search}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$search}%")
-                    ->orWhere('flag_progress', 'like', "%{$search}%");
+        // [DIUBAH] Menggunakan request->filled dan menghapus flag_progress
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
+                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
             });
         }
 
+        // 3. Logika Pagination
         $perPage = $request->input('per_page', 20);
         if ($perPage == 'all') {
             $total = (clone $query)->count();
             $perPage = $total > 0 ? $total : 20;
         }
 
+        // 4. Ambil Data (Menggunakan primary key 'id_nwa')
         $listData = $query->latest('id_nwa')->paginate($perPage)->withQueryString();
 
+        // 5. Logika Hitung Tab
         $kegiatanCounts = NwaTahunan::query()
             ->whereYear('created_at', $selectedTahun)
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
@@ -71,11 +74,10 @@ class NwaTahunanController extends Controller
 
         $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
 
+        // 6. Kirim ke View (Menggunakan view 'timNWA.tahunan.NWAtahunan')
         return view('timNWA.tahunan.NWAtahunan', compact(
             'listData',
             'kegiatanCounts',
-            'selectedKegiatan',
-            'search',
             'masterKegiatanList',
             'availableTahun',
             'selectedTahun'
@@ -84,13 +86,14 @@ class NwaTahunanController extends Controller
 
     public function store(Request $request)
     {
+        // [DIUBAH] Aturan validasi disesuaikan
         $baseRules = [
-            'nama_kegiatan' => 'required|string|max:100|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden' => 'nullable|string|max:150',
-            'pencacah' => 'required|string|max:100|exists:master_petugas,nama_petugas',
-            'pengawas' => 'required|string|max:100|exists:master_petugas,nama_petugas',
-            'target_penyelesaian' => 'nullable|date',
-            'flag_progress' => ['required', Rule::in(['Belum Mulai', 'Proses', 'Selesai'])],
+            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
+            'BS_Responden' => 'required|string|max:255',
+            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'target_penyelesaian' => 'required|date',
+            'flag_progress' => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
             'tanggal_pengumpulan' => 'nullable|date',
         ];
 
@@ -105,7 +108,8 @@ class NwaTahunanController extends Controller
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
-                    'message' => 'Data tidak valid.',
+                    // [DIUBAH] Pesan disamakan
+                    'message' => 'Data yang diberikan tidak valid.',
                     'errors' => $validator->errors()
                 ], 422);
             }
@@ -124,9 +128,11 @@ class NwaTahunanController extends Controller
         NwaTahunan::create($validatedData);
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => 'Data NWA Tahunan berhasil ditambahkan!']);
+            // [DIUBAH] Pesan disamakan
+            return response()->json(['success' => 'Data berhasil ditambahkan!']);
         }
-        return back()->with(['success' => 'Data NWA Tahunan ditambahkan.', 'auto_hide' => true]);
+        // [DIUBAH] Pesan disamakan
+        return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
 
     /**
@@ -160,21 +166,27 @@ class NwaTahunanController extends Controller
     {
         $tahunan = NwaTahunan::findOrFail($id);
 
+        // [DIUBAH] Aturan validasi disesuaikan
         $baseRules = [
-            'nama_kegiatan' => 'required|string|max:100|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden' => 'nullable|string|max:150',
-            'pencacah' => 'required|string|max:100|exists:master_petugas,nama_petugas',
-            'pengawas' => 'required|string|max:100|exists:master_petugas,nama_petugas',
-            'target_penyelesaian' => 'nullable|date',
-            'flag_progress' => ['required', Rule::in(['Belum Mulai', 'Proses', 'Selesai'])],
+            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
+            'BS_Responden' => 'required|string|max:255',
+            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'target_penyelesaian' => 'required|date',
+            'flag_progress' => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-        $customMessages = [ /* ... sama seperti store ... */];
+        $customMessages = [
+            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar.',
+            'pencacah.exists' => 'Nama pencacah tidak terdaftar.',
+            'pengawas.exists' => 'Nama pengawas tidak terdaftar.',
+        ];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
+                    // [DIUBAH] Pesan disamakan
                     'message' => 'Data tidak valid.',
                     'errors' => $validator->errors()
                 ], 422);
@@ -196,9 +208,11 @@ class NwaTahunanController extends Controller
         $tahunan->update($validatedData);
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => 'Perubahan berhasil disimpan!']);
+            // [DIUBAH] Pesan disamakan
+            return response()->json(['success' => 'Data berhasil diperbarui!']);
         }
-        return back()->with(['success' => 'Perubahan disimpan.', 'auto_hide' => true]);
+        // [DIUBAH] Pesan disamakan
+        return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
     /**
@@ -209,23 +223,24 @@ class NwaTahunanController extends Controller
         $tahunan = NwaTahunan::findOrFail($id);
         $tahunan->delete();
 
-        return back()->with(['success' => 'Data dihapus.', 'auto_hide' => true]);
+        // [DIUBAH] Pesan disamakan
+        return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
     }
 
     public function bulkDelete(Request $request)
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:nwa_tahunan,id_nwa'
+            'ids.*' => 'exists:nwa_tahunan,id_nwa' // Menggunakan PK dan tabel yang benar
         ]);
 
-        NwaTahunan::whereIn('id_nwa', $request->ids)->delete();
+        NwaTahunan::whereIn('id_nwa', $request->ids)->delete(); // Menggunakan PK yang benar
+        // [DIUBAH] Pesan disamakan
         return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
     }
 
     public function searchPetugas(Request $request)
     {
-        // Perbaikan typo: [ + menjadi [
         $request->validate([
             'query' => 'nullable|string|max:100',
         ]);
@@ -236,38 +251,39 @@ class NwaTahunanController extends Controller
             ->pluck('nama_petugas');
         return response()->json($data);
     }
+    
     public function export(Request $request)
     {
-        // Validasi input
-        $request->validate([
-            'dataRange' => 'required|in:all,current_page',
-            'dataFormat' => 'required|in:formatted_values,raw_values',
-            'exportFormat' => 'required|in:excel,csv,word',
-        ]);
+        // [DIUBAH] Logika export disesuaikan
         $dataRange = $request->input('dataRange', 'all');
-        $dataFormat = $request->input('dataFormat');
         $exportFormat = $request->input('exportFormat');
+
+        $tahun = $request->input('tahun', date('Y'));
         $kegiatan = $request->input('kegiatan');
         $search = $request->input('search');
-        $tahun = $request->input('tahun', date('Y'));
+
         $currentPage = $request->input('page', 1);
         $perPage = $request->input('per_page', 20);
-        // Buat instance export class
+
+        if (!in_array($exportFormat, ['excel', 'csv', 'word'])) {
+            return back()->with('error', 'Format export tidak valid!');
+        }
+
+        // Buat instance export class (menggunakan NwaTahunanExport)
+        // [DIUBAH] Argumen kedua (dataFormat) diisi null
         $exportClass = new NwaTahunanExport(
             $dataRange,
-            $dataFormat,
+            null, 
+            $tahun,
             $kegiatan,
             $search,
-            $tahun,
             $currentPage,
             $perPage
         );
-        // Generate nama file
-        $fileName = 'NWA_Tahunan';
-        if (!empty($kegiatan)) {
-            $fileName .= '_' . str_replace(' ', '_', $kegiatan);
-        }
-        $fileName .= '_' . date('Ymd_His');
+
+        // [DIUBAH] Logika nama file disederhanakan
+        $fileName = 'NWA_Tahunan_' . $tahun . '_' . date('YmdHis');
+
         // Export berdasarkan format
         if ($exportFormat == 'excel') {
             return Excel::download($exportClass, $fileName . '.xlsx');
@@ -291,7 +307,7 @@ class NwaTahunanController extends Controller
         try {
             $file = $request->file('file');
 
-            // Buat instance import
+            // Buat instance import (menggunakan NwaTahunanImport)
             $import = new NwaTahunanImport();
 
             // Import file
@@ -331,16 +347,7 @@ class NwaTahunanController extends Controller
                 'flag_progress',
                 'tanggal_pengumpulan'
             ];
-
-            $headerLabels = [
-                'Nama Kegiatan',
-                'BS Responden',
-                'Pencacah',
-                'Pengawas',
-                'Target Penyelesaian',
-                'Flag Progress',
-                'Tanggal Pengumpulan'
-            ];
+            
             // Tulis header
             $sheet->fromArray([$headers], null, 'A1');
 
@@ -354,7 +361,6 @@ class NwaTahunanController extends Controller
             $sheet->getStyle('A1:G1')->getBorders()->getAllBorders()
                 ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             // ===== CONTOH DATA (Baris 2-3) =====
-            // Ambil contoh dari database (opsional)
             $contohKegiatan = MasterKegiatan::limit(2)->pluck('nama_kegiatan')->toArray();
             $contohPetugas = MasterPetugas::limit(3)->pluck('nama_petugas')->toArray();
             $exampleData = [
@@ -400,6 +406,8 @@ class NwaTahunanController extends Controller
             $sheet->getStyle('A5')->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('FFB4C7E7'); // Biru muda
+            
+            // [DIUBAH] Petunjuk disesuaikan (semua kolom wajib, flag_progress)
             $instructions = [
                 '1. Semua kolom WAJIB diisi kecuali Tanggal Pengumpulan (boleh kosong)',
                 '2. Header baris 1 HARUS tetap ada dengan format lowercase dan underscore',
@@ -432,6 +440,7 @@ class NwaTahunanController extends Controller
             $sheet->freezePane('A2');
             // ===== SAVE TO TEMPORARY FILE =====
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            // [DIUBAH] Nama file dan prefix temp disesuaikan
             $fileName = 'Template_Import_nwa_Tahunan_' . date('Ymd') . '.xlsx';
             $tempFile = tempnam(sys_get_temp_dir(), 'template_nwa_');
 

@@ -12,7 +12,7 @@ class NwaTahunan extends Model
 
     protected $table = 'nwa_tahunan';
     protected $primaryKey = 'id_nwa';
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'nama_kegiatan',       
