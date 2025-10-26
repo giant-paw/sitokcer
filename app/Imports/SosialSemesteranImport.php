@@ -84,13 +84,22 @@ class SosialSemesteranImport implements ToCollection, WithHeadingRow, SkipsOnErr
             }
         }
         // Flag progress
-        $validFlags = ['BELUM', 'SELESAI'];
-        if (!in_array(strtoupper($row['flag_progress']), $validFlags)) {
+        $validFlags = ['BELUM', 'SELESAI', 'BELUM SELESAI'];
+        $flagValue = strtoupper($this->val($row, 'flag_progress'));
+        if (strpos($flagValue, 'BELUM') === false && $flagValue !== 'SELESAI') {
             return [
-                'valid' => false,
-                'message' => "Flag Progress hanya boleh: BELUM atau SELESAI"
+            'valid' => false,
+            'message' => "Baris {$rowNumber}: Flag Progress harus mengandung kata BELUM atau SELESAI"
             ];
         }
+
+        if (!in_array($flagValue, $validFlags)) {
+            return [
+                'valid' => false,
+                'message' => "Baris {$rowNumber}: Flag Progress hanya boleh: BELUM SELESAI atau SELESAI"
+            ];
+        }
+        
         // Format tanggal
         try {
             $this->parseDate($row['target_penyelesaian']);

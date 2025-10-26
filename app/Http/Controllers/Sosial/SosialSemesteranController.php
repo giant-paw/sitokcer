@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Sosial;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sosial\SosialSemesteran; 
+use App\Models\Sosial\SosialSemesteran; // Pastikan model ini ada
 use Illuminate\Http\Request;
 use App\Models\Master\MasterPetugas;
 use App\Models\Master\MasterKegiatan;
@@ -12,113 +12,87 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\SosialSemesteranExport;
-use App\Imports\SosialSemesteranImport;
+use App\Exports\SosialSemesteranExport; // Pastikan file ini ada/dibuat
+use App\Imports\SosialSemesteranImport; // Pastikan file ini ada/dibuat
 
 class SosialSemesteranController extends Controller
 {
-    public function index(Request $request, $jenisKegiatan) // Tambah parameter jenisKegiatan
+    public function index(Request $request, $jenisKegiatan)
     {
-        // 1. Validasi jenis kegiatan
         $validJenis = ['sakernas', 'susenas'];
         $jenisKegiatanLower = strtolower($jenisKegiatan);
         if (!in_array($jenisKegiatanLower, $validJenis)) {
             abort(404);
         }
-        // Tentukan prefix berdasarkan jenisKegiatan untuk query LIKE
         $prefixKegiatan = ($jenisKegiatanLower == 'sakernas') ? 'Sakernas' : 'Susenas';
 
-        // 2. Logika Filter Tahun
         $selectedTahun = $request->input('tahun', date('Y'));
-
         $availableTahun = SosialSemesteran::query()
-            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%') // Filter by jenis (TETAP PAKAI LIKE)
+            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
             ->select(DB::raw('YEAR(created_at) as tahun'))
-            ->distinct()
-            ->whereNotNull('created_at')
+            ->distinct()->whereNotNull('created_at')
             ->orderBy('tahun', 'desc')
-            ->pluck('tahun')
-            ->toArray();
+            ->pluck('tahun')->toArray();
 
         if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
             array_unshift($availableTahun, date('Y'));
         }
 
-        // 3. Kueri Utama
         $query = SosialSemesteran::query()
-            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%') // Filter by jenis (TETAP PAKAI LIKE)
+            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
             ->whereYear('created_at', $selectedTahun);
 
-        // Filter Kegiatan Spesifik (dari Tab, misal: Sakernas Semester 1)
         $selectedKegiatan = $request->input('kegiatan', '');
         if ($selectedKegiatan !== '') {
             $query->where('nama_kegiatan', $selectedKegiatan);
         }
 
-        // Filter Pencarian
         $search = $request->input('search', '');
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('BS_Responden', 'like', "%{$search}%")
-                  ->orWhere('pencacah', 'like', "%{$search}%")
-                  ->orWhere('pengawas', 'like', "%{$search}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$search}%")
-                  ->orWhere('flag_progress', 'like', "%{$search}%");
+                    ->orWhere('pencacah', 'like', "%{$search}%")
+                    ->orWhere('pengawas', 'like', "%{$search}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$search}%");
+                // Hapus pencarian by flag_progress
             });
         }
 
-        // 4. Logika Pagination
         $perPage = $request->input('per_page', 20);
         if ($perPage == 'all') {
             $total = (clone $query)->count();
             $perPage = $total > 0 ? $total : 20;
         }
 
-        // 5. Ambil Data (Gunakan primary key 'id_sosial_semesteran')
         $listData = $query->latest('id_sosial_semesteran')->paginate($perPage)->withQueryString();
 
-        // 6. Logika Hitung Tab (group by nama kegiatan spesifik)
         $kegiatanCounts = SosialSemesteran::query()
-            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%') // Filter jenis (TETAP PAKAI LIKE)
+            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
             ->whereYear('created_at', $selectedTahun)
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        // Ambil master kegiatan hanya untuk jenis yang relevan
         $masterKegiatanList = MasterKegiatan::where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
-                                            ->orderBy('nama_kegiatan')->get();
+            ->orderBy('nama_kegiatan')->get();
 
-        // 7. Kirim ke View BARU
-        return view('timSosial.semesteran.sosialSemesteran', compact( // Path view baru
-            'listData',
-            'kegiatanCounts',
-            'jenisKegiatan',      // Kirim 'sakernas' atau 'susenas'
-            'masterKegiatanList',
-            'availableTahun',
-            'selectedTahun',
-            'selectedKegiatan',
-            'search'
+        return view('timSosial.semesteran.sosialSemesteran', compact(
+            'listData', 'kegiatanCounts', 'jenisKegiatan', 'masterKegiatanList',
+            'availableTahun', 'selectedTahun', 'selectedKegiatan', 'search'
         ));
     }
 
-    // --- store, edit, update, destroy, bulkDelete, searchPetugas, searchKegiatan ---
-    // (Kode dari jawaban sebelumnya sudah benar dan mengikuti pola $id manual)
-    // ... (salin dari jawaban sebelumnya jika perlu) ...
-        /**
-     * Simpan data baru (AJAX ready).
-     */
     public function store(Request $request)
     {
-        // Validasi disamakan & diperbaiki (regex + exists)
+        // [FIX] Disesuaikan
         $baseRules = [
-            'nama_kegiatan'       => ['required', 'string', 'max:255', 'exists:master_kegiatan,nama_kegiatan', 'regex:/^(Sakernas|Susenas)/i'], // Izinkan Sakernas atau Susenas
-            'BS_Responden'        => 'nullable|string|max:255',
+            'nama_kegiatan'       => ['required', 'string', 'max:255', 'exists:master_kegiatan,nama_kegiatan', 'regex:/^(Sakernas|Susenas)/i'],
+            'BS_Responden'        => 'required|string|max:255', // Jadi required
             'pencacah'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'pengawas'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
-            'target_penyelesaian' => 'nullable|date', // Dibuat nullable agar konsisten
-            'flag_progress'       => ['required', Rule::in(['Belum Mulai', 'Proses', 'Selesai'])],
+            'target_penyelesaian' => 'required|date', // Jadi required
+            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], // Disesuaikan
             'tanggal_pengumpulan' => 'nullable|date',
         ];
 
@@ -133,21 +107,24 @@ class SosialSemesteranController extends Controller
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'message' => 'Data yang diberikan tidak valid.',
-                    'errors' => $validator->errors()
-                ], 422);
+                return response()->json(['message' => 'Data yang diberikan tidak valid.', 'errors' => $validator->errors()], 422);
             }
-            return back()->withErrors($validator)->withInput()->with('error_modal', 'tambahDataModal');
+            // [FIX] Tambah error bag 'tambahForm'
+            return back()->withErrors($validator, 'tambahForm')->withInput()->with('error_modal', 'tambahDataModal');
         }
 
         $validatedData = $validator->validated();
 
-        if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
-        }
+        // [FIX] HAPUS Logika 'tahun_kegiatan'
+        // if ($request->filled('target_penyelesaian')) {
+        //     try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+        // }
 
         SosialSemesteran::create($validatedData);
+
+        // [FIX] Set session flash SEBELUM return JSON
+        $request->session()->flash('success', 'Data Semesteran berhasil ditambahkan!');
+        $request->session()->flash('auto_hide', true);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data Semesteran berhasil ditambahkan!']);
@@ -155,293 +132,241 @@ class SosialSemesteranController extends Controller
         return back()->with(['success' => 'Data Semesteran berhasil ditambahkan!', 'auto_hide' => true]);
     }
 
-    /**
-     * Ambil data untuk modal edit (AJAX ready).
-     * Menggunakan $id manual dan format tanggal.
-     */
     public function edit($id)
     {
-        // Pastikan primary key 'id_sosial_semesteran' benar
         $sosial_semesteran = SosialSemesteran::findOrFail($id);
-
         $data = $sosial_semesteran->toArray();
-
-        // Format tanggal untuk input type="date"
         $targetPenyelesaian = $sosial_semesteran->target_penyelesaian;
         $tanggalPengumpulan = $sosial_semesteran->tanggal_pengumpulan;
-
-        $data['target_penyelesaian'] = $targetPenyelesaian
-            ? Carbon::parse($targetPenyelesaian)->toDateString()
-            : null;
-
-        $data['tanggal_pengumpulan'] = $tanggalPengumpulan
-            ? Carbon::parse($tanggalPengumpulan)->toDateString()
-            : null;
-
+        $data['target_penyelesaian'] = $targetPenyelesaian ? Carbon::parse($targetPenyelesaian)->toDateString() : null;
+        $data['tanggal_pengumpulan'] = $tanggalPengumpulan ? Carbon::parse($tanggalPengumpulan)->toDateString() : null;
         return response()->json($data);
     }
 
-    /**
-     * Update data yang ada (AJAX ready).
-     * Menggunakan $id manual.
-     */
     public function update(Request $request, $id)
     {
-        // Pastikan primary key 'id_sosial_semesteran' benar
         $sosial_semesteran = SosialSemesteran::findOrFail($id);
 
-        $baseRules = [ // Sama seperti store
+        // [FIX] Disesuaikan
+        $baseRules = [
             'nama_kegiatan'       => ['required', 'string', 'max:255', 'exists:master_kegiatan,nama_kegiatan', 'regex:/^(Sakernas|Susenas)/i'],
-            'BS_Responden'        => 'nullable|string|max:255',
+            'BS_Responden'        => 'required|string|max:255',
             'pencacah'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'pengawas'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
-            'target_penyelesaian' => 'nullable|date',
-            'flag_progress'       => ['required', Rule::in(['Belum Mulai', 'Proses', 'Selesai'])],
+            'target_penyelesaian' => 'required|date',
+            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], // Disesuaikan
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-
-        $customMessages = [ /* ... sama seperti store ... */ ];
+        $customMessages = [ /* ... */ ];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'message' => 'Data tidak valid.',
-                    'errors' => $validator->errors()
-                ], 422);
+                return response()->json(['message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
             }
-            return back()->withErrors($validator)->withInput()
+             // [FIX] Tambah error bag 'editForm'
+            return back()->withErrors($validator, 'editForm')->withInput()
                 ->with('error_modal', 'editDataModal')
-                // Pastikan primary key 'id_sosial_semesteran' benar
                 ->with('edit_id', $sosial_semesteran->id_sosial_semesteran);
         }
 
         $validatedData = $validator->validated();
 
-        if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
-        }
+        // [FIX] HAPUS Logika 'tahun_kegiatan'
+        // if ($request->filled('target_penyelesaian')) {
+        //     try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+        // }
 
         $sosial_semesteran->update($validatedData);
+
+        // [FIX] Set session flash SEBELUM return JSON
+        $request->session()->flash('success', 'Data Semesteran berhasil diperbarui!');
+        $request->session()->flash('auto_hide', true);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data Semesteran berhasil diperbarui!']);
         }
-        // Redirect ke index dengan filter yang relevan
-        $jenisKegiatan = str_starts_with(strtolower($validatedData['nama_kegiatan']), 'sakernas') ? 'sakernas' : 'susenas';
-        $selectedTahun = $request->input('tahun', date('Y')); // Ambil tahun dari request atau default
-        return redirect()->route('sosial.semesteran.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $selectedTahun])
-                         ->with(['success' => 'Data Semesteran berhasil diperbarui!', 'auto_hide' => true]);
+        
+        // [FIX] Ganti redirect() menjadi back()
+        return back()->with(['success' => 'Data Semesteran berhasil diperbarui!', 'auto_hide' => true]);
     }
 
-    /**
-     * Hapus satu data (AJAX ready).
-     * Menggunakan $id manual.
-     */
     public function destroy($id)
     {
-        // Pastikan primary key 'id_sosial_semesteran' benar
         $sosial_semesteran = SosialSemesteran::findOrFail($id);
-        $namaKegiatan = $sosial_semesteran->nama_kegiatan; // Simpan untuk redirect
-        $tahunDariData = $sosial_semesteran->created_at ? $sosial_semesteran->created_at->year : date('Y'); // Ambil tahun dari data
-
         $sosial_semesteran->delete();
-
-        if (request()->ajax() || request()->wantsJson()) {
-             return response()->json(['success' => 'Data Semesteran berhasil dihapus!']);
-        }
-
-        // Redirect ke index dengan filter yang relevan
-        $jenisKegiatan = str_starts_with(strtolower($namaKegiatan), 'sakernas') ? 'sakernas' : 'susenas';
-        return redirect()->route('sosial.semesteran.index', ['jenisKegiatan' => $jenisKegiatan, 'tahun' => $tahunDariData])
-                         ->with(['success' => 'Data Semesteran berhasil dihapus!', 'auto_hide' => true]);
+        // [FIX] Ganti redirect() menjadi back()
+        return back()->with(['success' => 'Data Semesteran berhasil dihapus!', 'auto_hide' => true]);
     }
 
-    /**
-     * Hapus banyak data.
-     */
     public function bulkDelete(Request $request)
     {
-        $request->validate([
-            'ids' => 'required|array',
-            // Pastikan primary key 'id_sosial_semesteran' benar
-            'ids.*' => 'exists:sosial_semesteran,id_sosial_semesteran'
-        ]);
-
-        // Pastikan primary key 'id_sosial_semesteran' benar
+        $request->validate(['ids' => 'required|array', 'ids.*' => 'exists:sosial_semesteran,id_sosial_semesteran']);
         SosialSemesteran::whereIn('id_sosial_semesteran', $request->ids)->delete();
-
         return back()->with(['success' => 'Data Semesteran yang dipilih berhasil dihapus!', 'auto_hide' => true]);
     }
 
-    /**
-     * Cari petugas (autocomplete).
-     */
     public function searchPetugas(Request $request)
     {
-         $request->validate(['query' => 'nullable|string|max:100']);
+        $request->validate(['query' => 'nullable|string|max:100']);
         $query = $request->input('query', '');
-        $data = MasterPetugas::query()
-            ->where('nama_petugas', 'LIKE', "%{$query}%")
-            ->limit(10)
-            ->pluck('nama_petugas');
+        $data = MasterPetugas::where('nama_petugas', 'LIKE', "%{$query}%")->limit(10)->pluck('nama_petugas');
         return response()->json($data);
     }
 
-     /**
-      * Cari kegiatan Semesteran (Sakernas/Susenas - autocomplete).
-      */
-    public function searchKegiatan(Request $request)
-    {
-         $request->validate([
+     public function searchKegiatan(Request $request)
+     {
+        $request->validate([
             'query' => 'nullable|string|max:100',
-            'jenis' => 'nullable|string|in:sakernas,susenas' // Tambah parameter jenis
-         ]);
-         $query = $request->input('query', '');
-         $jenis = $request->input('jenis'); // Ambil jenis dari request
-
-         $kegiatanQuery = MasterKegiatan::query();
-
-         // Filter berdasarkan jenis jika ada
-         if ($jenis === 'sakernas') {
+            'jenis' => 'nullable|string|in:sakernas,susenas'
+        ]);
+        $query = $request->input('query', '');
+        $jenis = $request->input('jenis');
+        $kegiatanQuery = MasterKegiatan::query();
+        if ($jenis === 'sakernas') {
             $kegiatanQuery->where('nama_kegiatan', 'LIKE', 'Sakernas%');
-         } elseif ($jenis === 'susenas') {
+        } elseif ($jenis === 'susenas') {
             $kegiatanQuery->where('nama_kegiatan', 'LIKE', 'Susenas%');
-         } else {
-             // Jika jenis tidak spesifik (misal dari halaman lain), cari keduanya
+        } else {
             $kegiatanQuery->where(function ($q) {
                 $q->where('nama_kegiatan', 'LIKE', 'Sakernas%')
                   ->orWhere('nama_kegiatan', 'LIKE', 'Susenas%');
             });
-         }
+        }
+        $data = $kegiatanQuery
+            ->where('nama_kegiatan', 'LIKE', "%{$query}%")
+            ->limit(10)->pluck('nama_kegiatan');
+        return response()->json($data);
+     }
 
-         $data = $kegiatanQuery
-             ->where('nama_kegiatan', 'LIKE', "%{$query}%")
-             ->limit(10)
-             ->pluck('nama_kegiatan');
-
-         return response()->json($data);
-    }
     public function export(Request $request, $jenisKegiatan)
     {
-        // Validasi jenis kegiatan
-        $validJenis = ['sakernas', 'susenas'];
-        $jenisKegiatanLower = strtolower($jenisKegiatan);
-        if (!in_array($jenisKegiatanLower, $validJenis)) {
-            abort(404);
-        }
-        // Validasi input
         $request->validate([
             'dataRange' => 'required|in:all,current_page',
-            'dataFormat' => 'required|in:formatted_values,raw_values',
-            'exportFormat' => 'required|in:excel,csv,word',
-        ]);
+            'exportFormat' => 'required|in:excel,csv'],
+            ['exportFormat.in' => 'Format export tidak didukung.']
+        );
         $dataRange = $request->input('dataRange', 'all');
-        $dataFormat = $request->input('dataFormat');
         $exportFormat = $request->input('exportFormat');
         $kegiatan = $request->input('kegiatan');
         $search = $request->input('search');
         $tahun = $request->input('tahun', date('Y'));
         $currentPage = $request->input('page', 1);
         $perPage = $request->input('per_page', 20);
-        // Buat instance export class
+
+        // [FIX] Gunakan SosialSemesteranExport dan dataFormat diisi null
         $exportClass = new SosialSemesteranExport(
             $dataRange,
-            $dataFormat,
-            $jenisKegiatan,
+            null, // dataFormat (argumen ke-2) tidak dipakai
+            $jenisKegiatan, // jenisKegiatan (argumen ke-3)
             $kegiatan,
             $search,
             $tahun,
             $currentPage,
             $perPage
         );
-        // Generate nama file
+
         $jenisKegiatanTitle = ucfirst($jenisKegiatan);
-        $fileName = 'Sosial_Semesteran_' . $jenisKegiatanTitle;
-        if (!empty($kegiatan)) {
-            $fileName .= '_' . str_replace(' ', '_', $kegiatan);
-        }
-        $fileName .= '_' . date('Ymd_His');
-        // Export berdasarkan format
+        $fileName = 'Sosial_Semesteran_' . $jenisKegiatanTitle . '_' . $tahun . '_' . date('YmdHis');
+        if (!empty($kegiatan)) { $fileName .= '_' . str_replace([' ', '/'], '_', $kegiatan); }
+        
         if ($exportFormat == 'excel') {
             return Excel::download($exportClass, $fileName . '.xlsx');
         } elseif ($exportFormat == 'csv') {
             return Excel::download($exportClass, $fileName . '.csv');
-        } elseif ($exportFormat == 'word') {
-            return $exportClass->exportToWord();
         }
         return back()->with('error', 'Format ekspor tidak didukung.');
     }
-    public function import(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls|max:2048'
-        ]);
-        try {
-            $import = new SosialSemesteranImport();
-            Excel::import($import, $request->file('file'));
-            $errors = $import->getErrors();
-            $successCount = $import->getSuccessCount();
-            $formattedErrors = array_map(function ($err) {
-                return ['error' => $err['error']];
-            }, $errors);
-            if ($successCount > 0 && count($errors) > 0) {
-                return redirect()->back()
-                    ->with('import_errors', $formattedErrors)
-                    ->with('success', "{$successCount} data berhasil diimport");
-            } elseif ($successCount === 0 && count($errors) > 0) {
-                return redirect()->back()
-                    ->with('import_errors', $formattedErrors)
-                    ->with('error', 'Semua data gagal diimport');
-            }
-            return redirect()->back()
-                ->with('success', "Import berhasil! Total {$successCount} data ditambahkan");
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Import gagal: ' . $e->getMessage());
-        }
-    }
+
+     public function import(Request $request)
+     {
+         $request->validate(['file' => 'required|mimes:xlsx,xls|max:2048'], [ /* messages */ ]);
+         try {
+             $import = new SosialSemesteranImport(); // [FIX] Gunakan Importer yang benar
+             Excel::import($import, $request->file('file'));
+             $errors = $import->getErrors();
+             $successCount = $import->getSuccessCount();
+             $formattedErrors = [];
+             foreach ($errors as $error) {
+                 $formattedErrors[] = [
+                    'row' => $error['row'] ?? '?',
+                    'error' => $error['error'] ?? 'Unknown error',
+                    'values' => isset($error['values']) ? implode(', ', $error['values']) : 'N/A'
+                 ];
+             }
+             if (count($formattedErrors) > 0) {
+                  $message = $successCount > 0 ? "{$successCount} data berhasil diimport, tetapi ada beberapa baris yang gagal." : 'Semua data gagal diimport. Periksa error di bawah.';
+                  return redirect()->back()->with('import_errors', $formattedErrors)->with($successCount > 0 ? 'warning' : 'error', $message);
+             }
+             return redirect()->back()->with(['success' => "Import berhasil! Total {$successCount} data ditambahkan.", 'auto_hide' => true]);
+         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+              $failures = $e->failures(); $errors = [];
+              foreach ($failures as $failure) { $errors[] = [ 'row' => $failure->row(), 'error' => implode(', ', $failure->errors()), 'values' => implode(', ', $failure->values() ?? []) ]; }
+              return back()->with('import_errors', $errors)->with('error', 'Validasi gagal pada beberapa baris.');
+         } catch (\Exception $e) {
+            \Log::error('Import Error (SosialSemesteran): ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Import gagal: ' . $e->getMessage());
+         }
+     }
 
     public function downloadTemplate()
     {
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        try {
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            // [FIX] Header harus lowercase dan underscore
+            $headers = ['nama_kegiatan', 'bs_responden', 'pencacah', 'pengawas', 'target_penyelesaian', 'flag_progress', 'tanggal_pengumpulan'];
+            $sheet->fromArray([$headers], null, 'A1');
+            $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+            $sheet->getStyle('A1:G1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFD9EAD3');
+            $sheet->getStyle('A1:G1')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // Header
-        $headers = ['Nama Kegiatan', 'BS Responden', 'Pencacah', 'Pengawas', 'Target Penyelesaian', 'Flag Progress', 'Tanggal Pengumpulan'];
-        $sheet->fromArray([$headers], null, 'A1');
-        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:G1')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('FFD9EAD3');
+            // [FIX] Sample data disesuaikan
+            $contohKegiatan = MasterKegiatan::where('nama_kegiatan', 'LIKE', 'Sakernas%')->orWhere('nama_kegiatan', 'LIKE', 'Susenas%')->limit(2)->pluck('nama_kegiatan')->toArray();
+            $contohPetugas = MasterPetugas::limit(3)->pluck('nama_petugas')->toArray();
+            $exampleData = [
+                [$contohKegiatan[0] ?? 'Sakernas Februari', 'BS001', $contohPetugas[0] ?? 'Ahmad', $contohPetugas[1] ?? 'Budi', '2025-03-31', 'Belum Selesai', '2025-03-15'],
+                [$contohKegiatan[1] ?? 'Susenas Maret', 'BS002', $contohPetugas[2] ?? 'Siti', $contohPetugas[0] ?? 'Ahmad', '2025-06-30', 'Selesai', '2025-06-20']
+            ];
+             $row = 2;
+             foreach ($exampleData as $data) { $sheet->fromArray([$data], null, 'A' . $row); $row++; }
+            $sheet->getStyle('A2:G' . ($row - 1))->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFF4CC');
+            foreach (range('A', 'G') as $col) { $sheet->getColumnDimension($col)->setAutoSize(true); }
 
-        // Sample data
-        $sheet->setCellValue('A2', 'Sakernas/Susenas');
-        $sheet->setCellValue('B2', 'BS001');
-        $sheet->setCellValue('C2', 'Ani Rahmawati');
-        $sheet->setCellValue('D2', 'Budi Hariyadi');
-        $sheet->setCellValue('E2', '2025-07-11');
-        $sheet->setCellValue('F2', 'BELUM');
-        $sheet->setCellValue('G2', '2025-06-14');
+            // [FIX] Petunjuk disesuaikan
+            $sheet->setCellValue('A' . $row, 'PETUNJUK PENGISIAN:');
+            $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(12);
+            $sheet->getStyle('A' . $row)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFB4C7E7');
+            $instructionRow = $row + 1;
+            $instructions = [
+                 '1. Kolom Nama Kegiatan, BS Responden, Pencacah, Pengawas, Target Penyelesaian, Flag Progress WAJIB diisi.',
+                 '2. Header baris 1 HARUS tetap ada (nama_kegiatan, bs_responden, dst).',
+                 '3. Nama Kegiatan (Sakernas/Susenas), Pencacah, Pengawas harus terdaftar di Master Data.',
+                 '4. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY.',
+                 '5. Flag Progress hanya boleh diisi: "Belum Selesai" atau "Selesai" (case-sensitive).',
+                 '6. HAPUS baris contoh (baris 2-3) dan petunjuk ini sebelum import!',
+            ];
+             foreach ($instructions as $instruction) { $sheet->setCellValue('A' . $instructionRow, $instruction); $sheet->getStyle('A' . $instructionRow)->getFont()->setItalic(true); $sheet->mergeCells("A{$instructionRow}:G{$instructionRow}"); $instructionRow++; }
+             $sheet->mergeCells("A{$row}:G{$row}");
 
-        foreach (range('A', 'G') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
+            // [FIX] Komentar disesuaikan
+            $sheet->getComment('A1')->getText()->createTextRun('WAJIB: Isi (contoh: Sakernas Februari) sesuai Master Kegiatan');
+            $sheet->getComment('B1')->getText()->createTextRun('WAJIB: Kode BS Responden');
+            $sheet->getComment('C1')->getText()->createTextRun('WAJIB: Nama Pencacah sesuai Master Petugas');
+            $sheet->getComment('D1')->getText()->createTextRun('WAJIB: Nama Pengawas sesuai Master Petugas');
+            $sheet->getComment('E1')->getText()->createTextRun('WAJIB: Format: YYYY-MM-DD');
+            $sheet->getComment('F1')->getText()->createTextRun('WAJIB: Isi: "Belum Selesai" atau "Selesai"');
+            $sheet->getComment('G1')->getText()->createTextRun('OPSIONAL: Format: YYYY-MM-DD');
+
+            $sheet->freezePane('A2');
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $fileName = 'Template_Import_Sosial_Semesteran_' . date('Ymd') . '.xlsx';
+            $tempFile = tempnam(sys_get_temp_dir(), 'template_sosial_sem_');
+            $writer->save($tempFile);
+            return response()->download($tempFile, $fileName, ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])->deleteFileAfterSend(true);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal membuat template: ' . $e->getMessage());
         }
-
-        // Petunjuk
-        $sheet->setCellValue('A4', 'PETUNJUK:');
-        $sheet->getStyle('A4')->getFont()->setBold(true);
-        $sheet->setCellValue('A5', '1. Semua kolom wajib diisi (tidak boleh kosong)');
-        $sheet->setCellValue('A6', '2. Nama Kegiatan, Pencacah, Pengawas harus mengandung huruf');
-        $sheet->setCellValue('A7', '3. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY');
-        $sheet->setCellValue('A8', '4. Flag Progress hanya boleh: BELUM atau SELESAI');
-        $sheet->setCellValue('A9', '5. Hapus baris sample sebelum upload');
-
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $fileName = 'Template_Import_Sosial_Semesteran.xlsx';
-        $temp_file = tempnam(sys_get_temp_dir(), $fileName);
-        $writer->save($temp_file);
-
-        return response()->download($temp_file, $fileName)->deleteFileAfterSend(true);
     }
 }

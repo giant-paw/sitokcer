@@ -136,7 +136,7 @@ class SosialTahunanImport implements ToCollection, WithHeadingRow, SkipsOnError
         if (!in_array($flagValue, $validFlags)) {
             return [
                 'valid' => false,
-                'message' => "Baris {$rowNumber}: Flag Progress hanya boleh: BELUM atau SELESAI"
+                'message' => "Baris {$rowNumber}: Flag Progress hanya boleh: BELUM SELESAI atau SELESAI"
             ];
         }
 

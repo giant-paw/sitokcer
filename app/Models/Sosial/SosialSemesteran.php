@@ -20,7 +20,6 @@ class SosialSemesteran extends Model
         'target_penyelesaian',
         'flag_progress',
         'tanggal_pengumpulan',
-        'tahun_kegiatan', // Tambahkan jika ada kolom ini
     ];
 
     /**

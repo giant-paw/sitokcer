@@ -111,6 +111,7 @@
                             @foreach ($options as $option) <option value="{{ $option }}" {{ request('per_page', 20) == $option ? 'selected' : '' }}>{{ $option == 'all' ? 'All' : $option }}</option> @endforeach
                         </select>
                     </div>
+
                      <div class="filter-group">
                         <label class="filter-label">Kegiatan:</label>
                         <select class="filter-select" id="kegiatanSelect" name="kegiatan">
@@ -123,6 +124,7 @@
                             @endforeach
                         </select>
                     </div>
+                    
                     <div class="filter-group">
                         <label class="filter-label">Tahun:</label>
                         <select class="filter-select" id="tahunSelect">
