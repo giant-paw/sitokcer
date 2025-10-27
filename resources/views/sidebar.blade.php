@@ -330,32 +330,60 @@
             </a>
         </li>
 
+        @if(Auth::user()->role == 'admin')
+        <li class="{{ request()->routeIs('users.*') ? 'active-link' : '' }}">
+            <a href="{{ route('users.index') }}">
+                <i class="bi bi-people-fill menu-icon"></i>
+                <span>Master User</span>
+            </a>
+        </li>
+        @endif
+
     
     </ul>
 
     {{-- FOOTER DARI FILE KEDUA --}}
     <div class="sidebar-footer">
-        <div class="user-profile-dropdown">
-            <button class="user-profile-btn" id="userProfileToggle">
-                <div class="user-avatar"> <i class="bi bi-person-circle"></i> </div>
-                <div class="user-info">
-                    <span class="user-name">Jenihal Exduar</span>
-                    <span class="user-email">cahyadillham12@gmail.com</span>
-                </div>
-                <i class="bi bi-chevron-up profile-arrow"></i>
-            </button>
-            <div class="user-dropdown-menu" id="userDropdownMenu">
-                <a href="#" class="dropdown-item"><i class="bi bi-gear-fill"></i><span>Settings</span><span class="shortcut">⌘+Ctrl+S</span></a>
-                <a href="#" class="dropdown-item"><i class="bi bi-globe"></i><span>Language</span><i class="bi bi-chevron-right ml-auto"></i></a>
-                <a href="#" class="dropdown-item"><i class="bi bi-question-circle-fill"></i><span>Get help</span><i class="bi bi-chevron-right ml-auto"></i></a>
-                <div class="dropdown-divider"></div>
-                <a href="#" class="dropdown-item"><i class="bi bi-star-fill"></i><span>Upgrade plan</span></a>
-                <a href="#" class="dropdown-item"><i class="bi bi-info-circle-fill"></i><span>Learn more</span><i class="bi bi-chevron-right ml-auto"></i></a>
-                <div class="dropdown-divider"></div>
-                <a href="#" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i><span>Log out</span></a>
+    <div class="user-profile-dropdown">
+        
+        {{-- Tombol untuk membuka/menutup dropdown --}}
+        <button class="user-profile-btn" id="userProfileToggle">
+            <div class="user-avatar"> 
+                <i class="bi bi-person-circle"></i> 
             </div>
+            <div class="user-info">
+                {{-- Mengambil nama pengguna yang sedang login --}}
+                <span class="user-name">{{ Auth::user()->name }}</span>
+                {{-- Mengambil email pengguna yang sedang login --}}
+                <span class="user-email">{{ Auth::user()->email }}</span>
+            </div>
+            <i class="bi bi-chevron-up profile-arrow"></i>
+        </button>
+
+        {{-- Menu Dropdown --}}
+        <div class="user-dropdown-menu" id="userDropdownMenu">
+
+            
+            {{-- Tombol Logout (WAJIB MENGGUNAKAN FORM POST) --}}
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                
+                {{-- 
+                  Link ini akan terlihat seperti link biasa, 
+                  tapi 'onclick' akan men-submit form di atasnya.
+                --}}
+                <a href="{{ route('logout') }}" 
+                   class="dropdown-item text-danger"
+                   onclick="event.preventDefault(); this.closest('form').submit();">
+                   
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Log out</span>
+                </a>
+            </form>
+
         </div>
     </div>
+</div>
 </aside>
 
 {{-- POPUP DIV DARI FILE KEDUA --}}
