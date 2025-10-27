@@ -151,7 +151,8 @@ class ProduksiTahunanImport implements ToCollection, WithHeadingRow, SkipsOnErro
         }
 
         // 5. VALIDASI FLAG PROGRESS (HANYA "Belum Selesai" ATAU "Selesai")
-        $validFlags = ['Belum Selesai', 'Selesai', 'belum selesai', 'selesai'];
+        $validFlags = ['Belum Selesai', 'Selesai', 'belum selesai', 'selesai', 'BELUM SELESAI', 'SELESAI'];
+
         $flagValue = $this->val($row, 'flag_progress');
 
         // Normalisasi untuk perbandingan case-insensitive

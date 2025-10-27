@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="{{ asset('css/global.css') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <link rel="shortcut icon" href="{{ asset('logo.png') }}" type="image/x-icon">
+
     <style>
         body {
             overflow-y: hidden;

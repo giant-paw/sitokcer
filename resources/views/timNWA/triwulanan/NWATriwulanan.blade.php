@@ -45,7 +45,7 @@
 
 @section('content')
     {{-- MENGGUNAKAN PADDING GLOBAL --}}
-    <div class="container-fluid px-4 py-4">
+    <!-- <div class="container-fluid px-4 py-4">
 
         {{-- Alert Success --}}
         @if (session('success'))
@@ -93,7 +93,8 @@
                     $('#importErrorAlert').fadeOut('slow');
                 }, 10000);
             </script>
-        @endpush
+        @endpush -->
+    
         {{-- 1. Menggunakan Page Header dari global.css --}}
         <div class="page-header mb-4">
             <div class="header-content">
@@ -118,7 +119,7 @@
                         </svg>
                         Tambah Baru
                     </button>
-                   <button type="button" class="btn-action btn-success" data-bs-toggle="modal"
+                   <button type="button" class="btn-action btn-secondary" data-bs-toggle="modal"
                         data-bs-target="#importModal">
                         {{-- Tetap pakai style inline sementara --}}
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"

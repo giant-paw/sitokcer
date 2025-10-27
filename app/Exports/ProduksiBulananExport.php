@@ -59,14 +59,27 @@ class ProduksiBulananExport implements FromCollection, WithHeadings
         // Urutkan berdasarkan terbaru
         $query->latest('id_produksi_bulanan');
 
-        // Jika dataRange = 'current_page', ambil data halaman terkini saja
+        // Ambil data sesuai range
         if ($this->dataRange == 'current_page') {
             $offset = ($this->currentPage - 1) * $this->perPage;
-            return $query->offset($offset)->limit($this->perPage)->get();
+            $data = $query->offset($offset)->limit($this->perPage)->get();
+        } else {
+            $data = $query->get();
         }
 
-        // Jika dataRange = 'all', ambil semua data
-        return $query->get();
+        
+        return $data->map(function ($item) {
+            return [
+                $item->id_produksi_bulanan,
+                $item->nama_kegiatan,
+                $item->BS_Responden,
+                $item->pencacah,
+                $item->pengawas,
+                $item->target_penyelesaian ? $item->target_penyelesaian->format('Y-m-d') : null,
+                $item->flag_progress,
+                $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('Y-m-d') : null,
+            ];
+        });
     }
 
     public function headings(): array
@@ -81,6 +94,45 @@ class ProduksiBulananExport implements FromCollection, WithHeadings
             'Flag Progress',
             'Tanggal Pengumpulan',
         ];
+    }
+
+    
+    private function getDataForWord()
+    {
+        $query = ProduksiBulanan::query();
+
+        // Filter berdasarkan jenis kegiatan
+        $query->where('nama_kegiatan', 'LIKE', $this->jenisKegiatan . '%');
+
+        // Filter berdasarkan tahun
+        $query->whereYear('created_at', $this->tahun);
+
+        // Filter berdasarkan kegiatan spesifik
+        if (!empty($this->kegiatan)) {
+            $query->where('nama_kegiatan', $this->kegiatan);
+        }
+
+        // Filter berdasarkan search
+        if (!empty($this->search)) {
+            $searchTerm = $this->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
+                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        // Urutkan berdasarkan terbaru
+        $query->latest('id_produksi_bulanan');
+
+        // Ambil data sesuai range
+        if ($this->dataRange == 'current_page') {
+            $offset = ($this->currentPage - 1) * $this->perPage;
+            return $query->offset($offset)->limit($this->perPage)->get();
+        }
+
+        return $query->get();
     }
 
     public function exportToWord()
@@ -100,16 +152,19 @@ class ProduksiBulananExport implements FromCollection, WithHeadings
 
         // Set judul laporan dengan filter yang aktif
         $judulLaporan = 'Laporan Produksi Bulanan ' . strtoupper($this->jenisKegiatan) . ' Tahun ' . $this->tahun;
+
         if (!empty($this->kegiatan)) {
             $judulLaporan .= ' - ' . $this->kegiatan;
         }
+
         if ($this->dataRange == 'current_page') {
             $judulLaporan .= ' (Halaman ' . $this->currentPage . ')';
         }
 
         $templateProcessor->setValue('judul_laporan', $judulLaporan);
 
-        $data = $this->collection();
+        $data = $this->getDataForWord(); 
+
         $dataCount = $data->count();
 
         $placeholderToClone = 'id_produksi';
@@ -156,9 +211,11 @@ class ProduksiBulananExport implements FromCollection, WithHeadings
 
         // Generate nama file dengan filter
         $fileName = 'ProduksiBulanan_' . strtoupper($this->jenisKegiatan);
+
         if (!empty($this->kegiatan)) {
             $fileName .= '_' . str_replace(' ', '_', $this->kegiatan);
         }
+
         $fileName .= '_' . date('Ymd_His') . '.docx';
 
         $filePath = storage_path('exports/' . $fileName);

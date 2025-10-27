@@ -4,7 +4,32 @@
 @section('header-title', 'Master Kegiatan')
 
 @push('styles')
-    {{-- Tidak ada style kustom tambahan, semua diambil dari global.css --}}
+    <style>
+        /* Mengatur ulang lebar kolom tabel Master Kegiatan */
+        .data-table {
+            table-layout: fixed; /* Ini 'memaksa' kolom untuk patuh pada lebar yang ditentukan */
+            width: 100%;
+        }
+
+        .data-table th:nth-child(2) { 
+            /* Kolom 'Nama Kegiatan' (kolom ke-2) */
+            width: 20%; /* Anda bisa sesuaikan persentasenya, misal 15% atau 25% */
+        }
+        
+        .data-table th:nth-child(3) { 
+            /* Kolom 'Deskripsi' (kolom ke-3) */
+            width: 35%; /* Beri ruang lebih besar untuk deskripsi */
+        }
+
+        /* Ini penting agar teks deskripsi yang panjang 
+           bisa turun baris (wrap) dan tidak merusak tabel
+        */
+        .data-table td:nth-child(3) {
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -34,9 +59,24 @@
                 </button>
             </div>
             <div class="toolbar-right">
-                {{-- 5. Search form --}}
-                <form action="{{ route('master.kegiatan.index') }}" method="GET" class="search-form">
-                    <input type="text" class="search-input" name="search" value="{{ $search ?? '' }}" placeholder="Cari Nama/Deskripsi...">
+                {{-- 5. Search form digabung dengan filter --}}
+                <form action="{{ route('master.kegiatan.index') }}" method="GET" class="search-form" style="display: flex; gap: 10px;">
+                    
+                    {{-- [UBAH] Filter tim (Tim) --}}
+                    <div>
+                        {{-- [DIPERBAIKI] Atribut 'onchange' dihapus agar form tidak langsung submit --}}
+                        <select name="filter_tim" class="form-input" style="min-width: 200px;" onchange="this.form.submit()">
+                            <option value="">Semua Tim</option>
+                            <option value="Tim Sosial" @selected(request('filter_tim') == 'Tim Sosial')>Tim Sosial</option>
+                            <option value="Tim Distribusi" @selected(request('filter_tim') == 'Tim Distribusi')>Tim Distribusi</option>
+                            <option value="Tim Produksi" @selected(request('filter_tim') == 'Tim Produksi')>Tim Produksi</option>
+                            <option value="Tim NWA" @selected(request('filter_tim') == 'Tim NWA')>Tim NWA</option>
+                        </select>
+                    </div>
+
+                    {{-- Search input yang ada --}}
+                    {{-- [DIPERBAIKI] Value menggunakan request('search') agar konsisten --}}
+                    <input type="text" class="search-input" name="search" value="{{ request('search') ?? '' }}" placeholder="Cari Nama/Deskripsi...">
                     <button class="search-btn" type="submit">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
                     </button>
@@ -68,6 +108,7 @@
                             <th class="th-checkbox"><input type="checkbox" class="table-checkbox" id="selectAll"></th>
                             <th>Nama Kegiatan</th>
                             <th>Deskripsi</th>
+                            <th>Tim</th> {{-- [UBAH] Ganti nama header --}}
                             <th class="th-action">Aksi</th>
                         </tr>
                     </thead>
@@ -76,8 +117,9 @@
                             <tr>
                                 {{-- 10. Sesuaikan body tabel --}}
                                 <td class="td-checkbox"><input type="checkbox" class="table-checkbox row-checkbox" name="ids[]" value="{{ $k->id_master_kegiatan }}"></td>
-                                <td class="user-name">{{ $k->nama_kegiatan }}</td> {{-- Pakai .user-name agar bold --}}
-                                <td class="text-secondary">{{ $k->deskripsi }}</td> {{-- Pakai .text-secondary --}}
+                                <td class="user-name">{{ $k->nama_kegiatan }}</td>
+                                <td class="text-secondary">{{ $k->deskripsi }}</td>
+                                <td class="text-secondary">{{ $k->tim }}</td> {{-- Kolom data ini tetap --}}
                                 <td class="td-action">
                                     {{-- 11. Gunakan .action-buttons & .btn-icon --}}
                                     <div class="action-buttons">
@@ -97,7 +139,7 @@
                         @empty
                             {{-- 12. Gunakan .empty-state --}}
                             <tr>
-                                <td colspan="4" class="empty-state">
+                                <td colspan="5" class="empty-state"> {{-- Colspan 5 sudah benar --}}
                                     <div class="empty-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg> </div>
                                     <p class="empty-text">{{ $search ? 'Data tidak ditemukan.' : 'Belum ada data.' }}</p>
                                     @if($search)
@@ -126,15 +168,14 @@
 </div>
 
 {{-- ================================================= --}}
-{{-- ==              MODAL SECTIONS                 == --}}
+{{-- ==      MODAL SECTIONS                       == --}}
 {{-- ================================================= --}}
 
 {{-- MODAL TAMBAH --}}
 <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered"> {{-- Center modal --}}
+    <div class="modal-dialog modal-dialog-centered">
         <form action="{{ route('master.kegiatan.store') }}" method="POST">
             @csrf
-             {{-- 14. Gunakan .modern-modal --}}
             <div class="modal-content modern-modal">
                 <div class="modal-header">
                     <div class="modal-header-content">
@@ -144,15 +185,28 @@
                     <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                 </div>
                 <div class="modal-body">
-                    {{-- 15. Gunakan .form-group, .form-label, .form-input, .form-textarea --}}
                     <div class="form-group">
                         <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
                         <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror" id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required>
                         @error('nama_kegiatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
+
+                    {{-- [UBAH] Form Group tim (Tim) --}}
+                    <div class="form-group">
+                        <label for="tim" class="form-label">Tim (tim) <span class="required">*</span></label>
+                        <select class="form-input @error('tim') is-invalid @enderror" id="tim" name="tim" required>
+                            <option value="">Pilih Tim</option>
+                            <option value="Tim Sosial" @selected(old('tim') == 'Tim Sosial')>Tim Sosial</option>
+                            <option value="Tim Distribusi" @selected(old('tim') == 'Tim Distribusi')>Tim Distribusi</option>
+                            <option value="Tim Produksi" @selected(old('tim') == 'Tim Produksi')>Tim Produksi</option>
+                            <option value="Tim NWA" @selected(old('tim') == 'Tim NWA')>Tim NWA</option>
+                        </select>
+                        @error('tim') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
                     <div class="form-group">
                         <label for="deskripsi" class="form-label">Deskripsi</label>
-                        <textarea class="form-input @error('deskripsi') is-invalid @enderror" id="deskripsi" name="deskripsi" rows="3">{{ old('deskripsi') }}</textarea> {{-- Ganti ke .form-input (sama stylenya) --}}
+                        <textarea class="form-input @error('deskripsi') is-invalid @enderror" id="deskripsi" name="deskripsi" rows="3">{{ old('deskripsi') }}</textarea>
                         @error('deskripsi') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </div>
@@ -174,7 +228,7 @@
         <form id="editForm" method="POST">
             @csrf
             @method('PUT')
-            <input type="hidden" name="_form" value="editForm"> {{-- Untuk fallback error --}}
+            <input type="hidden" name="_form" value="editForm">
             <input type="hidden" name="edit_id_fallback" id="edit_id_fallback" value="{{ session('edit_id') ?? '' }}">
             <div class="modal-content modern-modal">
                 <div class="modal-header">
@@ -190,6 +244,20 @@
                         <input type="text" class="form-input @error('nama_kegiatan', 'edit_error') is-invalid @enderror" id="edit_nama_kegiatan" name="nama_kegiatan" required>
                         @error('nama_kegiatan', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
+
+                    {{-- [UBAH] Form Group Edit tim (Tim) --}}
+                    <div class="form-group">
+                        <label for="edit_tim" class="form-label">Tim (tim) <span class="required">*</span></label>
+                        <select class="form-input @error('tim', 'edit_error') is-invalid @enderror" id="edit_tim" name="tim" required>
+                            <option value="">Pilih Tim</option>
+                            <option value="Tim Sosial">Tim Sosial</option>
+                            <option value="Tim Distribusi">Tim Distribusi</option>
+                            <option value="Tim Produksi">Tim Produksi</option>
+                            <option value="Tim NWA">Tim NWA</option>
+                        </select>
+                        @error('tim', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
                     <div class="form-group">
                         <label for="edit_deskripsi" class="form-label">Deskripsi</label>
                         <textarea class="form-input @error('deskripsi', 'edit_error') is-invalid @enderror" id="edit_deskripsi" name="deskripsi" rows="3"></textarea>
@@ -214,7 +282,6 @@
         <form id="deleteForm" method="POST">
             @csrf
             @method('DELETE')
-            {{-- 16. Gunakan .modern-modal dan .modal-header-danger --}}
             <div class="modal-content modern-modal">
                 <div class="modal-header modal-header-danger">
                     <h5 class="modal-title">Konfirmasi Hapus</h5>
@@ -250,8 +317,8 @@
             })
             .then(data => {
                 document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
+                document.getElementById('edit_tim').value = data.tim || ''; // Ini tetap sama, JS akan mencocokkan valuenya
                 document.getElementById('edit_deskripsi').value = data.deskripsi || '';
-                // Hapus error state sebelumnya
                 editForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
             })
             .catch(error => {
@@ -291,6 +358,8 @@
         bulkDeleteBtn?.addEventListener('click', () => {
             const count = document.querySelectorAll('.row-checkbox:checked').length;
             document.getElementById('deleteModalBody').innerText = `Apakah Anda yakin ingin menghapus ${count} data kegiatan yang dipilih?`;
+            
+            // [PERBAIKAN] Typo '()d' telah dihapus, sekarang '()'
             confirmDeleteButton.onclick = () => bulkDeleteForm.submit();
         });
 

@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\Sosial\SosialSemesteran; // [DIUBAH] Model
+use App\Models\Sosial\SosialSemesteran; 
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;

@@ -127,12 +127,14 @@ class NwaTahunanController extends Controller
 
         NwaTahunan::create($validatedData);
 
+        session()->flash('success', 'Data berhasil ditambahkan!');
+        session()->flash('auto_hide', true);
+
         if ($request->ajax() || $request->wantsJson()) {
-            // [DIUBAH] Pesan disamakan
             return response()->json(['success' => 'Data berhasil ditambahkan!']);
         }
-        // [DIUBAH] Pesan disamakan
-        return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
+
+        return back();
     }
 
     /**
@@ -207,12 +209,15 @@ class NwaTahunanController extends Controller
 
         $tahunan->update($validatedData);
 
+        session()->flash('success', 'Data berhasil ditambahkan!');
+        session()->flash('auto_hide', true);
+
         if ($request->ajax() || $request->wantsJson()) {
             // [DIUBAH] Pesan disamakan
             return response()->json(['success' => 'Data berhasil diperbarui!']);
         }
         // [DIUBAH] Pesan disamakan
-        return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
+        return back();
     }
 
     /**
@@ -253,47 +258,40 @@ class NwaTahunanController extends Controller
     }
     
     public function export(Request $request)
-    {
-        // [DIUBAH] Logika export disesuaikan
-        $dataRange = $request->input('dataRange', 'all');
-        $exportFormat = $request->input('exportFormat');
-
-        $tahun = $request->input('tahun', date('Y'));
-        $kegiatan = $request->input('kegiatan');
-        $search = $request->input('search');
-
-        $currentPage = $request->input('page', 1);
-        $perPage = $request->input('per_page', 20);
-
-        if (!in_array($exportFormat, ['excel', 'csv', 'word'])) {
-            return back()->with('error', 'Format export tidak valid!');
-        }
-
-        // Buat instance export class (menggunakan NwaTahunanExport)
-        // [DIUBAH] Argumen kedua (dataFormat) diisi null
-        $exportClass = new NwaTahunanExport(
-            $dataRange,
-            null, 
-            $tahun,
-            $kegiatan,
-            $search,
-            $currentPage,
-            $perPage
-        );
-
-        // [DIUBAH] Logika nama file disederhanakan
-        $fileName = 'NWA_Tahunan_' . $tahun . '_' . date('YmdHis');
-
-        // Export berdasarkan format
-        if ($exportFormat == 'excel') {
-            return Excel::download($exportClass, $fileName . '.xlsx');
-        } elseif ($exportFormat == 'csv') {
-            return Excel::download($exportClass, $fileName . '.csv');
-        } elseif ($exportFormat == 'word') {
-            return $exportClass->exportToWord();
-        }
-        return back()->with('error', 'Format ekspor tidak didukung.');
+{
+    $dataRange = $request->input('dataRange', 'all');
+    $dataFormat = $request->input('dataFormat', 'formatted_values');
+    $exportFormat = $request->input('exportFormat');
+    
+    $kegiatan = $request->input('kegiatan');
+    $search = $request->input('search');
+    $tahun = $request->input('tahun', date('Y'));
+    
+    $currentPage = $request->input('page', 1);
+    $perPage = $request->input('per_page', 20);
+    if (!in_array($exportFormat, ['excel', 'csv', 'word'])) {
+        return back()->with('error', 'Format export tidak valid!');
     }
+    
+    $exportClass = new NwaTahunanExport(
+        $dataRange,
+        $dataFormat,
+        $kegiatan,
+        $search,
+        $tahun,
+        $currentPage,
+        $perPage        
+    );
+    $fileName = 'NWA_Tahunan_' . $tahun . '_' . date('YmdHis');
+    if ($exportFormat == 'excel') {
+        return Excel::download($exportClass, $fileName . '.xlsx');
+    } elseif ($exportFormat == 'csv') {
+        return Excel::download($exportClass, $fileName . '.csv');
+    } elseif ($exportFormat == 'word') {
+        return $exportClass->exportToWord();
+    }
+    return back()->with('error', 'Format ekspor tidak didukung.');
+}
 
     public function import(Request $request)
     {

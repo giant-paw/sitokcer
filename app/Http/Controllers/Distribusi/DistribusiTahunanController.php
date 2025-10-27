@@ -20,29 +20,25 @@ class DistribusiTahunanController extends Controller
     public function index(Request $request)
     {
         $selectedTahun = $request->input('tahun', date('Y'));
+
         $availableTahun = DistribusiTahunan::query()
-            ->select(DB::raw('YEAR(created_at) as tahun')) 
-            ->distinct()
-            ->whereNotNull('created_at')
+            ->select(DB::raw('YEAR(created_at) as tahun'))
+            ->distinct()->whereNotNull('created_at')
             ->orderBy('tahun', 'desc')
-            ->pluck('tahun')
-            ->toArray();
-            
+            ->pluck('tahun')->toArray();
+
         if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
             array_unshift($availableTahun, date('Y'));
         }
 
-
         $query = DistribusiTahunan::query()
-                    ->whereYear('created_at', $selectedTahun); // Filter tahun
+            ->whereYear('created_at', $selectedTahun);
 
-        // Filter Kegiatan (Tab)
         $selectedKegiatan = $request->input('kegiatan', '');
         if ($selectedKegiatan !== '') {
             $query->where('nama_kegiatan', $selectedKegiatan);
         }
 
-        // Filter Pencarian
         $search = $request->input('search', '');
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -59,147 +55,123 @@ class DistribusiTahunanController extends Controller
             $perPage = $total > 0 ? $total : 20;
         }
 
-        // Gunakan primary key 'id_distribusi'
         $listData = $query->latest('id_distribusi')->paginate($perPage)->withQueryString();
 
         $kegiatanCounts = DistribusiTahunan::query()
             ->whereYear('created_at', $selectedTahun)
-            ->whereNotNull('nama_kegiatan') 
-            ->where('nama_kegiatan', '!=', '')
             ->select('nama_kegiatan', DB::raw('count(*) as total'))
             ->groupBy('nama_kegiatan')
             ->orderBy('nama_kegiatan')
             ->get();
 
-        // Ambil master kegiatan jika perlu autocomplete
         $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
 
-        return view('timDistribusi.distribusitahunan', compact(
-            'listData',
-            'kegiatanCounts',
-            'masterKegiatanList', // Kirim ini
-            'availableTahun',     // Kirim ini
-            'selectedTahun',      // Kirim ini
-            'selectedKegiatan',   // Kirim ini
-            'search'              // Kirim ini
+        return view('timDistribusi.distribusiTahunan', compact(
+            'listData', 'kegiatanCounts', 'masterKegiatanList',
+            'availableTahun', 'selectedTahun', 'selectedKegiatan', 'search'
         ));
     }
 
-    /**
-     * Simpan data baru (AJAX ready).
-     */
     public function store(Request $request)
     {
-        // Gunakan Validator facade untuk AJAX response
         $baseRules = [
-            'nama_kegiatan'       => 'required|string|max:255', // Tambahkan exists jika perlu validasi ke master
-            'BS_Responden'        => 'required|string|max:255',
-            'pencacah'            => 'required|string|max:255', // Tambahkan exists jika perlu validasi ke master
-            'pengawas'            => 'required|string|max:255', // Tambahkan exists jika perlu validasi ke master
-            'target_penyelesaian' => 'required|date',         // Validasi sebagai date
-            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], // Sesuaikan opsi jika beda
-            'tanggal_pengumpulan' => 'nullable|date',         // Validasi sebagai date
+            'nama_kegiatan'       => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
+            'BS_Responden'        => 'required|string|max:255', // Dibuat required
+            'pencacah'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'target_penyelesaian' => 'required|date',
+            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], // Disesuaikan
+            'tanggal_pengumpulan' => 'nullable|date',
         ];
 
-        // $customMessages = [ ... ]; // Tambahkan jika perlu
+        $customMessages = [
+            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar.',
+            'pencacah.exists'      => 'Nama pencacah tidak terdaftar.',
+            'pengawas.exists'      => 'Nama pengawas tidak terdaftar.',
+        ];
 
-        $validator = Validator::make($request->all(), $baseRules /*, $customMessages*/);
+        $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
+                return response()->json(['message' => 'Data yang diberikan tidak valid.', 'errors' => $validator->errors()], 422);
             }
-            return back()->withErrors($validator)->withInput()->with('error_modal', 'tambahDataModal');
+            // [FIX] Tambah error bag 'tambahForm'
+            return back()->withErrors($validator, 'tambahForm')->withInput()->with('error_modal', 'tambahDataModal');
         }
 
         $validatedData = $validator->validated();
-
-        if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
+        if ($request->filled('target_penyelesaian')) {
             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
         }
-
         DistribusiTahunan::create($validatedData);
 
-        // ===== PERBAIKAN 1: SET FLASH MESSAGE SEBELUM RETURN =====
-        // Set flash message agar terbaca oleh JS 'location.reload()'
-        session()->flash('success', 'Data berhasil ditambahkan!');
-        session()->flash('auto_hide', true);
-        // ========================================================
+        // [FIX] Set session flash SEBELUM return JSON
+        $request->session()->flash('success', 'Data berhasil ditambahkan!');
+        $request->session()->flash('auto_hide', true);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil ditambahkan!']);
         }
-        
-        // Fallback (jika non-JS), flash sudah di-set di atas
-        return back();
+        return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
     }
-
     /**
-     * PERBAIKAN KUNCI: Ambil $id manual & format tanggal.
+     * PERBAIKAN KUNCI:
+     * 1. Ambil $id manual.
+     * 2. Format tanggal untuk JavaScript (Y-m-d).
      */
     public function edit($id)
     {
-        $distribusi = DistribusiTahunan::findOrFail($id);
-        $data = $distribusi->toArray();
-
-        // Format tanggal ke Y-m-d
-        $targetPenyelesaian = $distribusi->target_penyelesaian;
-        $tanggalPengumpulan = $distribusi->tanggal_pengumpulan;
+        $distribusi_tahunan = DistribusiTahunan::findOrFail($id);
+        $data = $distribusi_tahunan->toArray();
+        $targetPenyelesaian = $distribusi_tahunan->target_penyelesaian;
+        $tanggalPengumpulan = $distribusi_tahunan->tanggal_pengumpulan;
         $data['target_penyelesaian'] = $targetPenyelesaian ? Carbon::parse($targetPenyelesaian)->toDateString() : null;
         $data['tanggal_pengumpulan'] = $tanggalPengumpulan ? Carbon::parse($tanggalPengumpulan)->toDateString() : null;
-
         return response()->json($data);
     }
 
-    /**
-     * PERBAIKAN KUNCI: Ambil $id manual & validasi tanggal sebagai 'date'.
-     */
     public function update(Request $request, $id)
     {
-        $distribusi = DistribusiTahunan::findOrFail($id);
-
+        $distribusi_tahunan = DistribusiTahunan::findOrFail($id);
         $baseRules = [
-            'nama_kegiatan'       => 'required|string|max:255',
+            'nama_kegiatan'       => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
             'BS_Responden'        => 'required|string|max:255',
-            'pencacah'            => 'required|string|max:255',
-            'pengawas'            => 'required|string|max:255',
-            'target_penyelesaian' => 'required|date', // VALIDASI SEBAGAI DATE
-            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
-            'tanggal_pengumpulan' => 'nullable|date', // VALIDASI SEBAGAI DATE
+            'pencacah'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'target_penyelesaian' => 'required|date',
+            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], // Disesuaikan
+            'tanggal_pengumpulan' => 'nullable|date',
         ];
-
-        // $customMessages = [ ... ];
-        $validator = Validator::make($request->all(), $baseRules /*, $customMessages*/);
+        $customMessages = [ /* ... */ ];
+        $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
             }
-            return back()->withErrors($validator)->withInput()
+             // [FIX] Tambah error bag 'editForm'
+            return back()->withErrors($validator, 'editForm')->withInput()
                 ->with('error_modal', 'editDataModal')
-                ->with('edit_id', $distribusi->id_distribusi); // Kirim ID
+                ->with('edit_id', $distribusi_tahunan->distribusi);
         }
 
         $validatedData = $validator->validated();
-
-        if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+        if ($request->filled('target_penyelesaian')) {
+            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
         }
+        $distribusi_tahunan->update($validatedData);
 
-        $distribusi->update($validatedData);
-        
-        // ===== PERBAIKAN 2: SET FLASH MESSAGE SEBELUM RETURN =====
-        // Set flash message agar terbaca oleh JS 'location.reload()'
-        session()->flash('success', 'Data berhasil diperbarui!');
-        session()->flash('auto_hide', true);
-        // =======================================================
+        // [FIX] Set session flash SEBELUM return JSON
+        $request->session()->flash('success', 'Data berhasil diperbarui!');
+        $request->session()->flash('auto_hide', true);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil diperbarui!']);
         }
         
-        // Fallback (jika non-JS), flash sudah di-set di atas
-        return back();
+        // [FIX] Ganti redirect() menjadi back()
+        return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
     }
 
     /**

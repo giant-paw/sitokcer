@@ -144,11 +144,14 @@ class NwaTriwulananController extends Controller
         // 3. Ganti Model
         NwaTriwulanan::create($validatedData);
 
+        session()->flash('success', 'Data berhasil ditambahkan!');
+        session()->flash('auto_hide', true);
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil ditambahkan!']);
         }
 
-        return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
+        return back();
     }
 
     /**
@@ -232,11 +235,14 @@ class NwaTriwulananController extends Controller
         // 5. Update data
         $nwa_triwulanan->update($validatedData);
 
+        session()->flash('success', 'Data berhasil ditambahkan!');
+        session()->flash('auto_hide', true);
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil diperbarui!']);
         }
 
-        return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
+        return back();
     }
 
     /**

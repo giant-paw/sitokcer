@@ -204,6 +204,7 @@ Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
         Route::put('/{id}', [DistribusiTahunanController::class, 'update'])->name('update');
         Route::delete('/{id}', [DistribusiTahunanController::class, 'destroy'])->name('destroy');
         Route::post('/bulk-delete', [DistribusiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::get('/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
         Route::get('/export', [DistribusiTahunanController::class, 'export'])->name('export');
         Route::post('/import', [DistribusiTahunanController::class, 'import'])->name('import');
         Route::get('/download-template', [DistribusiTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
@@ -309,16 +310,13 @@ Route::prefix('tim-produksi')->name('tim-produksi.')->group(function () {
         Route::put('/{id}', [ProduksiTahunanController::class, 'update'])->name('update');
         Route::delete('/{id}', [ProduksiTahunanController::class, 'destroy'])->name('destroy');
 
-        // HAPUS RUTE RESOURCE YANG LAMA
-        // Route::resource('/', ProduksiTahunanController::class)->parameters(['' => 'tahunan']); // <-- HAPUS/KOMENTARI
     });
 
     // --- ROUTE PRODUKSI CATURWULANAN ---
     Route::prefix('caturwulanan')->name('caturwulanan.')->group(function () {
         Route::post('/bulk-delete', [ProduksiCaturwulananController::class, 'bulkDelete'])->name('bulkDelete');
         Route::get('/search-petugas', [ProduksiCaturwulananController::class, 'searchPetugas'])->name('searchPetugas');
-        Route::get('/{jenisKegiatan}/export', [ProduksiCaturwulananController::class, 'export'])->name('export')
-            ->where('jenisKegiatan', 'ubinan padi palawija|updating utp palawija');
+         Route::get('/{jenisKegiatan}/export', [ProduksiCaturwulananController::class, 'export'])->name('export');
 
         Route::post('/import', [ProduksiCaturwulananController::class, 'import'])->name('import');
         Route::get('/download-template', [ProduksiCaturwulananController::class, 'downloadTemplate'])->name('downloadTemplate');

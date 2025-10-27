@@ -12,7 +12,7 @@ use Carbon\Carbon;
 
 class SosialSemesteranImport implements ToCollection, WithHeadingRow, SkipsOnError
 {
-    use SkipsErrors;
+      use SkipsErrors;
 
     protected $errors = [];
     protected $successCount = 0;
@@ -20,10 +20,13 @@ class SosialSemesteranImport implements ToCollection, WithHeadingRow, SkipsOnErr
     public function collection(Collection $rows)
     {
         foreach ($rows as $index => $row) {
-            $rowNumber = $index + 2;
+            $rowNumber = $index + 2; // Baris 1 adalah header, mulai dari baris 2
+
             try {
+                // Convert Collection ke array
                 $rowArray = $row->toArray();
 
+                // VALIDASI WAJIB ISI SEMUA KOLOM + FORMAT
                 $validation = $this->validateRow($rowArray, $rowNumber);
                 if (!$validation['valid']) {
                     $this->errors[] = [
@@ -33,110 +36,216 @@ class SosialSemesteranImport implements ToCollection, WithHeadingRow, SkipsOnErr
                     continue;
                 }
 
-                $targetPenyelesaian = $this->parseDate($rowArray['target_penyelesaian']);
-                $tanggalPengumpulan = $this->parseDate($rowArray['tanggal_pengumpulan']);
+                // Parse tanggal (target_penyelesaian WAJIB, tanggal_pengumpulan OPSIONAL)
+                $targetPenyelesaian = $this->parseDate($this->val($rowArray, 'target_penyelesaian'));
+                $tanggalPengumpulan = $this->val($rowArray, 'tanggal_pengumpulan');
 
+                // Parse tanggal pengumpulan jika ada
+                if ($tanggalPengumpulan !== null && $tanggalPengumpulan !== '') {
+                    try {
+                        $tanggalPengumpulan = $this->parseDate($tanggalPengumpulan);
+                    } catch (\Exception $e) {
+                        $this->errors[] = [
+                            'row' => $rowNumber,
+                            'error' => 'Baris ' . $rowNumber . ': Format Tanggal Pengumpulan tidak valid'
+                        ];
+                        continue;
+                    }
+                } else {
+                    $tanggalPengumpulan = null;
+                }
+
+                // Hitung tahun_kegiatan dari target_penyelesaian
+                $tahunKegiatan = null;
+                try {
+                    $tahunKegiatan = Carbon::parse($targetPenyelesaian)->year;
+                } catch (\Exception $e) {
+                    // Jika gagal parse, biarkan null
+                }
+
+                // Insert data
                 SosialSemesteran::create([
-                    'nama_kegiatan' => $rowArray['nama_kegiatan'],
-                    'BS_Responden' => $rowArray['bs_responden'],
-                    'pencacah' => $rowArray['pencacah'],
-                    'pengawas' => $rowArray['pengawas'],
+                    'nama_kegiatan'       => $this->val($rowArray, 'nama_kegiatan'),
+                    'BS_Responden'        => $this->val($rowArray, 'bs_responden'),
+                    'pencacah'            => $this->val($rowArray, 'pencacah'),
+                    'pengawas'            => $this->val($rowArray, 'pengawas'),
                     'target_penyelesaian' => $targetPenyelesaian,
-                    'flag_progress' => strtoupper($rowArray['flag_progress']),
+                    'tahun_kegiatan'      => $tahunKegiatan,
+                    'flag_progress'       => $this->val($rowArray, 'flag_progress'),
                     'tanggal_pengumpulan' => $tanggalPengumpulan,
                 ]);
+
                 $this->successCount++;
             } catch (\Exception $e) {
                 $this->errors[] = [
                     'row' => $rowNumber,
-                    'error' => $e->getMessage()
+                    'error' => 'Baris ' . $rowNumber . ': ' . $e->getMessage()
                 ];
             }
         }
     }
 
+    /**
+     * Helper: ambil nilai + trim spasi
+     */
+    protected function val($row, $key)
+    {
+        if (!array_key_exists($key, $row)) {
+            return null;
+        }
+
+        $v = $row[$key];
+        if (is_string($v)) {
+            $v = trim($v);
+        }
+
+        return $v === '' ? null : $v;
+    }
+
+    /**
+     * Validasi setiap baris
+     */
     protected function validateRow($row, $rowNumber)
     {
+        // 1. CEK SEMUA FIELD WAJIB DIISI
         $requiredFields = [
-            'nama_kegiatan' => 'Nama Kegiatan',
-            'bs_responden' => 'BS Responden',
-            'pencacah' => 'Pencacah',
-            'pengawas' => 'Pengawas',
-            'target_penyelesaian' => 'Target Penyelesaian',
-            'flag_progress' => 'Flag Progress',
-            'tanggal_pengumpulan' => 'Tanggal Pengumpulan',
+            'nama_kegiatan'        => 'Nama Kegiatan',
+            'bs_responden'         => 'BS Responden',
+            'pencacah'             => 'Pencacah',
+            'pengawas'             => 'Pengawas',
+            'target_penyelesaian'  => 'Target Penyelesaian',
+            'flag_progress'        => 'Flag Progress',
+            // tanggal_pengumpulan OPSIONAL, tidak masuk required
         ];
+
         foreach ($requiredFields as $field => $label) {
-            if (empty($row[$field])) {
+            if ($this->val($row, $field) === null) {
                 return [
                     'valid' => false,
-                    'message' => "{$label} tidak boleh kosong"
+                    'message' => "Baris {$rowNumber}: {$label} tidak boleh kosong"
                 ];
             }
         }
-        // Validasi nama_kegiatan, pencacah, pengawas harus mengandung huruf
-        foreach (['nama_kegiatan', 'pencacah', 'pengawas'] as $col) {
-            if (!preg_match('/[a-zA-Z]/', $row[$col] ?? '')) {
-                return [
-                    'valid' => false,
-                    'message' => ucfirst($col) . " harus mengandung huruf"
-                ];
-            }
-        }
-        // Flag progress
-        $validFlags = ['BELUM', 'SELESAI', 'BELUM SELESAI'];
-        $flagValue = strtoupper($this->val($row, 'flag_progress'));
-        if (strpos($flagValue, 'BELUM') === false && $flagValue !== 'SELESAI') {
+
+        // 2. VALIDASI NAMA KEGIATAN (tidak boleh pure angka)
+        if (!$this->isValidText($this->val($row, 'nama_kegiatan'))) {
             return [
-            'valid' => false,
-            'message' => "Baris {$rowNumber}: Flag Progress harus mengandung kata BELUM atau SELESAI"
+                'valid' => false,
+                'message' => "Baris {$rowNumber}: Nama Kegiatan harus berisi huruf, tidak boleh hanya angka"
             ];
         }
 
+        // 3. VALIDASI PENCACAH (tidak boleh pure angka)
+        if (!$this->isValidText($this->val($row, 'pencacah'))) {
+            return [
+                'valid' => false,
+                'message' => "Baris {$rowNumber}: Pencacah harus berisi huruf, tidak boleh hanya angka"
+            ];
+        }
+
+        // 4. VALIDASI PENGAWAS (tidak boleh pure angka)
+        if (!$this->isValidText($this->val($row, 'pengawas'))) {
+            return [
+                'valid' => false,
+                'message' => "Baris {$rowNumber}: Pengawas harus berisi huruf, tidak boleh hanya angka"
+            ];
+        }
+
+        // 5. VALIDASI FLAG PROGRESS (HANYA "Belum Selesai" ATAU "Selesai")
+        $validFlags = ['Belum Selesai', 'Selesai', 'belum selesai', 'selesai'];
+        $flagValue = $this->val($row, 'flag_progress'); 
+
+        // Normalisasi untuk perbandingan case-insensitive
         if (!in_array($flagValue, $validFlags)) {
             return [
                 'valid' => false,
-                'message' => "Baris {$rowNumber}: Flag Progress hanya boleh: BELUM SELESAI atau SELESAI"
+                'message' => "Baris {$rowNumber}: Flag Progress hanya boleh: 'Belum Selesai' atau 'Selesai'"
             ];
         }
-        
-        // Format tanggal
+
+        // 6. VALIDASI FORMAT TANGGAL target_penyelesaian (WAJIB)
         try {
-            $this->parseDate($row['target_penyelesaian']);
-            $this->parseDate($row['tanggal_pengumpulan']);
+            $this->parseDate($this->val($row, 'target_penyelesaian'));
         } catch (\Exception $e) {
             return [
                 'valid' => false,
-                'message' => $e->getMessage()
+                'message' => "Baris {$rowNumber}: " . $e->getMessage()
             ];
         }
+
         return ['valid' => true];
     }
 
+    /**
+     * Validasi text: harus mengandung huruf, tidak boleh pure angka
+     */
+    protected function isValidText($value)
+    {
+        if ($value === null || $value === '') {
+            return false;
+        }
+
+        // Cek apakah pure numeric (angka saja)
+        if (is_numeric($value)) {
+            return false;
+        }
+
+        // Cek apakah mengandung minimal 1 huruf
+        if (!preg_match('/[a-zA-Z]/', $value)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Parse tanggal dari berbagai format
+     */
     protected function parseDate($date)
     {
-        if ($date === null) throw new \Exception("Tanggal wajib diisi dan tidak boleh kosong");
-        if (is_numeric($date)) {
-            return Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($date))->format('Y-m-d');
+        if ($date === null) {
+            throw new \Exception("Tanggal wajib diisi dan tidak boleh kosong");
         }
-        $formats = ['Y-m-d', 'd/m/Y', 'd-m-Y', 'Y/m/d'];
+
+        // Excel serial number
+        if (is_numeric($date)) {
+            try {
+                return Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($date))
+                    ->format('Y-m-d');
+            } catch (\Exception $e) {
+                throw new \Exception("Format tanggal Excel tidak valid: {$date}");
+            }
+        }
+
+        // Coba parse berbagai format
+        $formats = ['Y-m-d', 'd/m/Y', 'd-m-Y', 'Y/m/d', 'm/d/Y'];
         foreach ($formats as $format) {
             try {
                 return Carbon::createFromFormat($format, (string)$date)->format('Y-m-d');
             } catch (\Exception $e) {
+                // coba format lain
             }
         }
+
+        // Fallback parse bebas
         try {
             return Carbon::parse((string)$date)->format('Y-m-d');
         } catch (\Exception $e) {
+            throw new \Exception("Format tanggal tidak valid: {$date} (gunakan YYYY-MM-DD atau DD/MM/YYYY)");
         }
-        throw new \Exception("Format tanggal tidak valid: {$date} (gunakan YYYY-MM-DD atau DD/MM/YYYY)");
     }
 
+    /**
+     * Get errors list
+     */
     public function getErrors()
     {
         return $this->errors;
     }
+
+    /**
+     * Get success count
+     */
     public function getSuccessCount()
     {
         return $this->successCount;

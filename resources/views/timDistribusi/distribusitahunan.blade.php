@@ -45,7 +45,7 @@
 
 @section('content')
     <div class="container-fluid px-4 py-4">{{-- Alert Success --}}
-        {{-- Alert Success --}}
+        <!-- {{-- Alert Success --}}
         @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
                 {{ session('success') }}
@@ -77,7 +77,7 @@
                 </ul>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        @endif
+        @endif -->
         
 
         {{-- 1. Menggunakan Page Header --}}
@@ -149,6 +149,24 @@
                     </form>
                 </div>
             </div>
+
+             @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show mx-4" role="alert">
+                <div class="alert-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <span>{{ session('success') }}</span>
+                <button type="button" class="alert-close" data-bs-dismiss="alert">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        @endif
 
             {{-- 11. Table --}}
             <div class="table-wrapper">

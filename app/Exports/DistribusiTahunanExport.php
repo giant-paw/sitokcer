@@ -5,13 +5,9 @@ namespace App\Exports;
 use App\Models\Distribusi\DistribusiTahunan;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use Carbon\Carbon; // PENTING
+use PhpOffice\PhpWord\TemplateProcessor;
 
-class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMapping, WithColumnFormatting
+class DistribusiTahunanExport implements FromCollection, WithHeadings
 {
     protected $dataRange;
     protected $dataFormat;
@@ -36,12 +32,15 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
     {
         $query = DistribusiTahunan::query();
 
+        // Filter berdasarkan tahun
         $query->whereYear('created_at', $this->selectedTahun);
 
+        // Filter berdasarkan kegiatan spesifik
         if (!empty($this->kegiatan)) {
             $query->where('nama_kegiatan', $this->kegiatan);
         }
 
+        // Filter berdasarkan search
         if (!empty($this->search)) {
             $searchTerm = $this->search;
             $query->where(function ($q) use ($searchTerm) {
@@ -52,14 +51,43 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
             });
         }
 
+        // Urutkan berdasarkan terbaru
         $query->latest('id_distribusi');
 
+        // Ambil data sesuai range
         if ($this->dataRange == 'current_page' && $this->perPage > 0) {
             $offset = ($this->currentPage - 1) * $this->perPage;
-            return $query->offset($offset)->limit($this->perPage)->get();
+            $data = $query->offset($offset)->limit($this->perPage)->get();
+        } else {
+            $data = $query->get();
         }
 
-        return $query->get();
+        
+        return $data->map(function ($item) {
+            // Jika user pilih 'raw_values', kembalikan format lengkap dengan jam
+            if ($this->dataFormat === 'raw_values') {
+                return [
+                    $item->nama_kegiatan,
+                    $item->BS_Responden,
+                    $item->pencacah,
+                    $item->pengawas,
+                    $item->target_penyelesaian ? $item->target_penyelesaian->format('Y-m-d H:i:s') : null,
+                    $item->flag_progress,
+                    $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('Y-m-d H:i:s') : null,
+                ];
+            }
+
+            // Jika user pilih 'formatted_values', kembalikan format tanggal saja (tanpa jam)
+            return [
+                $item->nama_kegiatan,
+                $item->BS_Responden,
+                $item->pencacah,
+                $item->pengawas,
+                $item->target_penyelesaian ? $item->target_penyelesaian->format('Y-m-d') : null,
+                $item->flag_progress,
+                $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('Y-m-d') : null,
+            ];
+        });
     }
 
     public function headings(): array
@@ -75,66 +103,142 @@ class DistribusiTahunanExport implements FromCollection, WithHeadings, WithMappi
         ];
     }
 
-    /**
-     * @var DistribusiTahunan $row
-     */
-    public function map($row): array
+    private function getDataForWord()
     {
-        // Jika user minta 'raw_values', kembalikan data mentah (termasuk 00:00:00)
-        if ($this->dataFormat === 'raw_values') {
-            return [
-                $row->nama_kegiatan,
-                $row->BS_Responden,
-                $row->pencacah,
-                $row->pengawas,
-                $row->target_penyelesaian,
-                $row->flag_progress,
-                $row->tanggal_pengumpulan,
-            ];
+        $query = DistribusiTahunan::query();
+
+        // Filter berdasarkan tahun
+        $query->whereYear('created_at', $this->selectedTahun);
+
+        // Filter berdasarkan kegiatan
+        if (!empty($this->kegiatan)) {
+            $query->where('nama_kegiatan', $this->kegiatan);
         }
 
-        // --- PERBAIKAN FORMAT TANGGAL ---
-        // Paksa parsing tanggal sebelum konversi ke Excel
-        $target = null;
-        if ($row->target_penyelesaian) {
-            try {
-                // Parse string/object TANGGAL (bukan datetime) lalu konversi
-                $target = Date::dateTimeToExcel(Carbon::parse($row->target_penyelesaian)->startOfDay());
-            } catch (\Exception $e) {
-                $target = $row->target_penyelesaian; // fallback
-            }
+        // Filter berdasarkan search
+        if (!empty($this->search)) {
+            $searchTerm = $this->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
+                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
+                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+            });
         }
 
-        $kumpul = null;
-        if ($row->tanggal_pengumpulan) {
-             try {
-                $kumpul = Date::dateTimeToExcel(Carbon::parse($row->tanggal_pengumpulan)->startOfDay());
-            } catch (\Exception $e) {
-                $kumpul = $row->tanggal_pengumpulan; // fallback
-            }
+        // Urutkan berdasarkan terbaru
+        $query->latest('id_distribusi');
+
+        // Ambil data sesuai range
+        if ($this->dataRange == 'current_page' && $this->perPage > 0) {
+            $offset = ($this->currentPage - 1) * $this->perPage;
+            return $query->offset($offset)->limit($this->perPage)->get();
         }
-        
-        return [
-            $row->nama_kegiatan,
-            $row->BS_Responden,
-            $row->pencacah,
-            $row->pengawas,
-            $target, // Kirim nilai yang sudah dikonversi
-            $row->flag_progress,
-            $kumpul, // Kirim nilai yang sudah dikonversi
-        ];
+
+        return $query->get();
     }
 
-    public function columnFormats(): array
+    public function exportToWord()
     {
-        if ($this->dataFormat === 'raw_values') {
-            return [];
+        $templatePath = storage_path('templates/distribusi_tahunan_template.docx');
+
+        if (!file_exists($templatePath)) {
+            return response()->json([
+                'error' => 'Template Word tidak ditemukan di: ' . $templatePath
+            ], 404);
         }
 
-        // Terapkan format 'dd/mm/yyyy' ke kolom E (Target) dan G (Kumpul)
-        return [
-            'E' => NumberFormat::FORMAT_DATE_DDMMYYYY,
-            'G' => NumberFormat::FORMAT_DATE_DDMMYYYY,
-        ];
+        $templateProcessor = new TemplateProcessor($templatePath);
+
+        // Set tanggal cetak
+        $templateProcessor->setValue('tanggal_cetak', now()->format('d F Y'));
+
+        // Set judul laporan
+        $judulLaporan = 'Laporan Distribusi Tahunan Tahun ' . $this->selectedTahun;
+
+        if (!empty($this->kegiatan)) {
+            $judulLaporan .= ' - ' . $this->kegiatan;
+        }
+
+        if ($this->dataRange == 'current_page') {
+            $judulLaporan .= ' (Halaman ' . $this->currentPage . ')';
+        }
+
+        $templateProcessor->setValue('judul_laporan', $judulLaporan);
+
+        $data = $this->getDataForWord();
+
+        $dataCount = $data->count();
+
+        $placeholderToClone = 'id_distribusi';
+
+        if ($dataCount > 0) {
+            try {
+                $templateProcessor->cloneRow($placeholderToClone, $dataCount);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Gagal mengkloning baris di template. Pastikan placeholder `' . $placeholderToClone . '` ada di template Word.',
+                    'details' => $e->getMessage()
+                ], 500);
+            }
+
+            foreach ($data as $index => $row) {
+                $i = $index + 1;
+                $templateProcessor->setValue('no#' . $i, $i);
+                $templateProcessor->setValue('id_distribusi#' . $i, $row->id_distribusi ?? '');
+                $templateProcessor->setValue('nama_kegiatan#' . $i, $row->nama_kegiatan ?? '');
+                $templateProcessor->setValue('blok_sensus#' . $i, $row->BS_Responden ?? '');
+                $templateProcessor->setValue('pencacahan#' . $i, $row->pencacah ?? '');
+                $templateProcessor->setValue('pengawas#' . $i, $row->pengawas ?? '');
+                $templateProcessor->setValue('tanggal_target#' . $i, $row->target_penyelesaian ?? '');
+                $templateProcessor->setValue('flag_progress#' . $i, $row->flag_progress ?? '');
+                $templateProcessor->setValue('tanggal_pengumpulan#' . $i, $row->tanggal_pengumpulan ?? '');
+            }
+        } else {
+            // Jika data kosong
+            try {
+                $templateProcessor->cloneRow($placeholderToClone, 1);
+                $templateProcessor->setValue('no#1', '-');
+                $templateProcessor->setValue('id_distribusi#1', 'Tidak ada data');
+                $templateProcessor->setValue('nama_kegiatan#1', '-');
+                $templateProcessor->setValue('blok_sensus#1', '-');
+                $templateProcessor->setValue('pencacahan#1', '-');
+                $templateProcessor->setValue('pengawas#1', '-');
+                $templateProcessor->setValue('tanggal_target#1', '-');
+                $templateProcessor->setValue('flag_progress#1', '-');
+                $templateProcessor->setValue('tanggal_pengumpulan#1', '-');
+            } catch (\Exception $e) {
+                // Ignore jika gagal
+            }
+        }
+
+        // Generate nama file
+        $fileName = 'DistribusiTahunan';
+
+        if (!empty($this->kegiatan)) {
+            $fileName .= '_' . str_replace(' ', '_', $this->kegiatan);
+        }
+
+        $fileName .= '_' . $this->selectedTahun . '_' . date('Ymd_His') . '.docx';
+
+        $filePath = storage_path('exports/' . $fileName);
+
+        // Pastikan folder exports ada
+        if (!is_dir(storage_path('exports'))) {
+            mkdir(storage_path('exports'), 0775, true);
+        }
+
+        // Simpan file Word
+        try {
+            $templateProcessor->saveAs($filePath);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Gagal menyimpan file Word.',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+
+        // Download file dan hapus setelah download
+        return response()->download($filePath)->deleteFileAfterSend(true);
     }
 }

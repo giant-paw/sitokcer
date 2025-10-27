@@ -133,7 +133,7 @@
                                 <span class="quick-icon">💧</span>
                                 <span class="quick-label">Air Bersih</span>
                             </div>
-                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan padi palawija']) }}"
+                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan padi']) }}"
                                 class="quick-item quick-item-link">
                                 <span class="quick-icon">🌾</span>
                                 <span class="quick-label">UTP Palawija</span>
