@@ -398,6 +398,12 @@
 
 {{-- STYLE DARI FILE KEDUA --}}
 <style>
+
+    .user-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #fff !important;
+    }
     /* ===== RESET & BASE ===== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     /* ===== SIDEBAR CONTAINER ===== */

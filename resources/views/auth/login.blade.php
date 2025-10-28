@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -20,11 +21,46 @@
             }
         }
     </script>
-</head>
-<body class="bg-gray-100 font-sans antialiased">
+    
+    <!-- Custom styles after Tailwind -->
+    <style>
+        .bg-image {
+            background-image: url('/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
 
-    <!-- Container Utama - Mencentang card di tengah layar -->
-    <div class="flex items-center justify-center min-h-screen p-4">
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+            z-index: 1;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <!-- Background Image -->
+    <div class="bg-image"></div>
+    <!-- Overlay -->
+    <div class="bg-overlay"></div>
+
+    <!-- Container Utama - Wrap in content-wrapper -->
+    <div class="content-wrapper flex items-center justify-center min-h-screen p-4">
 
         <div class="w-full max-w-md">
             

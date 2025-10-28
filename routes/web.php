@@ -43,6 +43,10 @@ use App\Http\Controllers\User\UserController;
 
 use App\Http\Controllers\ProfileController;
 
+Route::get('/', function () {
+    return redirect('/login');
+});
+
 Route::middleware('guest')->group(function () {
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
