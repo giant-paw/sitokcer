@@ -373,7 +373,7 @@
                   tapi 'onclick' akan men-submit form di atasnya.
                 --}}
                 <a href="{{ route('logout') }}" 
-                   class="dropdown-item text-danger"
+                   class="dropdown-item text-warning"
                    onclick="event.preventDefault(); this.closest('form').submit();">
                    
                     <i class="bi bi-box-arrow-right"></i>
@@ -573,10 +573,71 @@
 
         // Toggle User Profile Dropdown
         if (userProfileToggle && userProfileDropdown) {
-             userProfileToggle.addEventListener('click', function(e) {
+            userProfileToggle.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                userProfileDropdown.classList.toggle('active');
+
+                // Cek apakah sidebar sedang collapsed
+                if (wrapper && wrapper.classList.contains('sidebar-collapsed')) {
+                    
+                    // --- LOGIKA POPUP UNTUK PROFIL ---
+
+                    // Jika popup profil ini sudah aktif, tutup saja
+                    if (popup.style.display === 'block' && activePopupMenuItem === userProfileToggle) {
+                        closePopup();
+                        return;
+                    }
+
+                    // Tutup popup menu lain (jika ada) sebelum membuka yang ini
+                    if (popup.style.display === 'block') {
+                        closePopup();
+                    }
+
+                    // 1. Atur Judul dan Konten Popup
+                    popupTitle.textContent = 'Profil Pengguna';
+                    const userMenuContent = document.getElementById('userDropdownMenu');
+                    
+                    if (userMenuContent) {
+                        // Ambil HTML dari menu logout dan masukkan ke popup
+                        popupContent.innerHTML = userMenuContent.innerHTML;
+                    } else {
+                        popupContent.innerHTML = '<a href="#" class="dropdown-item">Tidak ada aksi</a>';
+                    }
+
+                    // 2. Tampilkan dan Posisikan Popup
+                    popup.style.left = `65px`; // Jarak standar dari sidebar collapsed
+                    popup.style.display = 'block';
+
+                    // 3. Posisikan Vertikal (agar pas, tidak terpotong di bawah)
+                    requestAnimationFrame(() => {
+                        const iconRect = this.getBoundingClientRect(); // Posisi tombol profil
+                        const popupRect = popup.getBoundingClientRect(); // Ukuran popup
+                        const viewportHeight = window.innerHeight;
+
+                        // Posisikan 'bottom' popup sejajar dengan 'bottom' tombol
+                        let newTop = iconRect.bottom - popupRect.height;
+
+                        // Jika terlalu ke atas (mentok viewport), geser ke bawah
+                        if (newTop < 10) {
+                            newTop = 10;
+                        }
+                        
+                        // Jika terlalu ke bawah (jarang terjadi, tapi untuk keamanan)
+                        if (newTop + popupRect.height > viewportHeight - 10) {
+                             newTop = Math.max(10, viewportHeight - popupRect.height - 10);
+                        }
+
+                        popup.style.top = `${newTop}px`;
+                    });
+
+                    // Tandai bahwa tombol profil ini yang sedang membuka popup
+                    activePopupMenuItem = userProfileToggle;
+
+                } else {
+                    
+                    // --- LOGIKA DROPDUP BIASA (SAAT SIDEBAR TERBUKA) ---
+                    userProfileDropdown.classList.toggle('active');
+                }
             });
         }
         

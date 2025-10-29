@@ -40,18 +40,9 @@
             color: var(--card-bg, #fff);
         }
 
-        /* Helper class untuk grid 2 kolom di modal */
-        .modal-grid-2col {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--spacing-lg, 1.5rem); /* Gunakan spacing dari global.css */
-        }
-        @media (max-width: 768px) { /* Kembali ke 1 kolom di layar kecil */
-            .modal-grid-2col {
-                grid-template-columns: 1fr;
-                gap: var(--spacing-md, 1rem);
-            }
-        }
+        /* CSS Grid Kustom dihapus karena akan pakai Bootstrap Grid */
+        /* .modal-grid-2col { ... } */
+        /* .modal-column { ... } */
 
         .modern-modal .form-select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
@@ -191,7 +182,7 @@
                     </svg>
                 </button>
             </div>
-        @endif
+            @endif
 
             {{-- 11. Menggunakan .table-wrapper dan .data-table --}}
             <div class="table-wrapper">
@@ -213,7 +204,7 @@
                         @forelse ($listData ?? [] as $item)
                             <tr>
                                 <td class="td-checkbox"><input type="checkbox" class="table-checkbox row-checkbox"
-                                        value="{{ $item->id_produksi }}"></td>
+                                        value="{{ $item->id_produksi }}"></td> {{-- ID Primary Key: id_produksi --}}
                                 <td>{{ $item->nama_kegiatan }}</td>
                                 <td class="text-secondary">{{ $item->BS_Responden }}</td>
                                 <td class="text-secondary">{{ $item->pencacah }}</td>
@@ -222,7 +213,7 @@
                                 <td>
                                     @php
                                         $flag = $item->flag_progress;
-                                        $badgeClass = ($flag === 'Selesai') ? 'badge-success' : 'badge-warning';
+                                        $badgeClass = ($flag === 'Selesai') ? 'badge-success' : 'badge-warning'; // Opsi hanya Selesai/Belum Selesai
                                     @endphp
                                     <span class="badge {{ $badgeClass }}">{{ $flag ?? '-' }}</span>
                                 </td>
@@ -231,12 +222,12 @@
                                     <div class="action-buttons">
                                         <button class="btn-icon btn-icon-edit" title="Edit" data-bs-toggle="modal"
                                             data-bs-target="#editDataModal"
-                                            onclick="editData({{ $item->id_produksi }})">
+                                            onclick="editData({{ $item->id_produksi }})"> {{-- ID Primary Key: id_produksi --}}
                                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                                         </button>
                                         <button class="btn-icon btn-icon-delete" title="Hapus" data-bs-toggle="modal"
                                             data-bs-target="#deleteDataModal"
-                                            onclick="deleteData({{ $item->id_produksi }})">
+                                            onclick="deleteData({{ $item->id_produksi }})"> {{-- ID Primary Key: id_produksi --}}
                                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                         </button>
                                     </div>
@@ -245,13 +236,13 @@
                         @empty
                             <tr>
                                 <td colspan="9" class="empty-state">
-                                     <div class="empty-icon">
-                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-                                    </div>
-                                    <p class="empty-text">Tidak ada data yang ditemukan.</p>
-                                     @if(request('search') || request('kegiatan'))
-                                        <a href="{{ route('tim-produksi.tahunan.index', ['tahun' => $selectedTahun ?? date('Y')]) }}" class="empty-link">Reset filter</a>
-                                    @endif
+                                       <div class="empty-icon">
+                                             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                                       </div>
+                                       <p class="empty-text">Tidak ada data yang ditemukan.</p>
+                                         @if(request('search') || request('kegiatan'))
+                                             <a href="{{ route('tim-produksi.tahunan.index', ['tahun' => $selectedTahun ?? date('Y')]) }}" class="empty-link">Reset filter</a>
+                                        @endif
                                 </td>
                             </tr>
                         @endforelse
@@ -272,8 +263,7 @@
         </div>
     </div>
 
-<!-- Modal Import Data -->
-    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form action="{{ route('tim-produksi.tahunan.import') }}" method="POST" enctype="multipart/form-data">
@@ -284,7 +274,6 @@
                     </div>
 
                     <div class="modal-body">
-                        <!-- Alert info -->
                         <div class="alert alert-info" role="alert">
                             <small>
                                 <strong>Format yang didukung:</strong> Excel (.xlsx, .xls) atau CSV<br>
@@ -292,13 +281,11 @@
                                 <strong>Catatan:</strong> ID akan di-generate otomatis
                             </small>
                         </div>
-                        <!-- Download template -->
                         <div class="mb-3">
                             <a href="{{ route('tim-produksi.tahunan.downloadTemplate') }}" class="btn btn-sm btn-secondary">
                                 <i class="bi bi-download"></i> Download Template Excel
                             </a>
                         </div>
-                        <!-- File input -->
                         <div class="mb-3">
                             <label for="importFile" class="form-label">Pilih File</label>
                             <input type="file" class="form-control" id="importFile" name="file" required
@@ -307,7 +294,6 @@
                                 Pastikan format kolom sesuai dengan template
                             </div>
                         </div>
-                        <!-- Preview area (optional) -->
                         <div id="filePreview" class="d-none">
                             <small class="text-muted">File dipilih: <span id="fileName"></span></small>
                         </div>
@@ -329,12 +315,12 @@
     {{-- ==              MODAL SECTIONS                 == --}}
     {{-- ================================================= --}}
 
- <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+   <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form action="{{ route('tim-produksi.tahunan.export') }}" method="GET" id="exportForm">
                 <div class="modal-content modern-modal">
                     <div class="modal-header">
-                        <div class="modal-header-content"> <h5 class="modal-title">Ekspor Data Distribusi Tahunan</h5> <p class="modal-subtitle">Pilih opsi ekspor Anda</p> </div>
+                        <div class="modal-header-content"> <h5 class="modal-title">Ekspor Data Produksi Tahunan</h5> <p class="modal-subtitle">Pilih opsi ekspor Anda</p> </div>
                         <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
@@ -356,8 +342,9 @@
         </div>
     </div>
 
+    {{-- Modal Tambah Data --}}
     <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
-         {{-- **** [DIUBAH] Gunakan modal-lg untuk 2 kolom **** --}}
+        {{-- **** [DIUBAH] Pastikan modal-lg ada **** --}}
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <form action="{{ route('tim-produksi.tahunan.store') }}" method="POST" id="tambahForm">
                 @csrf
@@ -374,62 +361,71 @@
                     <div class="modal-body">
                         <input type="hidden" name="_form" value="tambahForm">
 
-                        {{-- **** [DIUBAH] Terapkan grid 2 kolom **** --}}
-                        <div class="modal-grid-2col">
-                             <div class="modal-column"> {{-- Kolom 1 --}}
-                                <div class="form-group autocomplete-container">
-                                    <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
-                                    <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror"
-                                        id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
-                                        placeholder="Ketik untuk mencari..." required autocomplete="off">
-                                    <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
-                                    <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
-                                </div>
+                        {{-- **** [DIUBAH] Terapkan layout Bootstrap Grid seperti NWA **** --}}
+                        <div class="form-group autocomplete-container">
+                            <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
+                            <input type="text" class="form-input @error('nama_kegiatan', 'tambahForm') is-invalid @enderror"
+                                id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
+                                placeholder="Ketik untuk mencari..." required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
+                            <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan', 'tambahForm') {{ $message }} @enderror</div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="BS_Responden" class="form-label">Blok Sensus/Responden <span class="required">*</span></label>
-                                    <input type="text" class="form-input @error('BS_Responden') is-invalid @enderror"
+                                    <input type="text" class="form-input @error('BS_Responden', 'tambahForm') is-invalid @enderror"
                                         id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
-                                    <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden') {{ $message }} @enderror</div>
+                                    <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
-                                 <div class="form-group autocomplete-container">
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
                                     <label for="pencacah" class="form-label">Pencacah <span class="required">*</span></label>
-                                    <input type="text" class="form-input @error('pencacah') is-invalid @enderror"
+                                    <input type="text" class="form-input @error('pencacah', 'tambahForm') is-invalid @enderror"
                                         id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off">
                                     <div class="autocomplete-suggestions" id="pencacah-suggestions"></div>
-                                    <div class="invalid-feedback" data-field="pencacah">@error('pencacah') {{ $message }} @enderror</div>
+                                    <div class="invalid-feedback" data-field="pencacah">@error('pencacah', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                             <div class="col-md-6">
                                 <div class="form-group autocomplete-container">
                                     <label for="pengawas" class="form-label">Pengawas <span class="required">*</span></label>
-                                    <input type="text" class="form-input @error('pengawas') is-invalid @enderror"
+                                    <input type="text" class="form-input @error('pengawas', 'tambahForm') is-invalid @enderror"
                                         id="pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off">
                                     <div class="autocomplete-suggestions" id="pengawas-suggestions"></div>
-                                    <div class="invalid-feedback" data-field="pengawas">@error('pengawas') {{ $message }} @enderror</div>
+                                    <div class="invalid-feedback" data-field="pengawas">@error('pengawas', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
-                             </div>
-
-                             <div class="modal-column"> {{-- Kolom 2 --}}
+                            </div>
+                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label>
-                                    <input type="date" class="form-input @error('target_penyelesaian') is-invalid @enderror"
+                                    <input type="date" class="form-input @error('target_penyelesaian', 'tambahForm') is-invalid @enderror"
                                         id="target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required>
-                                    <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian') {{ $message }} @enderror</div>
+                                    <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="flag_progress" class="form-label">Flag Progress <span class="required">*</span></label>
-                                    <select class="form-select @error('flag_progress') is-invalid @enderror" id="flag_progress" name="flag_progress" required>
+                                    <select class="form-select @error('flag_progress', 'tambahForm') is-invalid @enderror" id="flag_progress" name="flag_progress" required>
                                         <option value="Belum Selesai" {{ old('flag_progress') == 'Belum Selesai' ? 'selected' : '' }}>Belum Selesai</option>
                                         <option value="Selesai" {{ old('flag_progress') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
                                     </select>
-                                    <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress') {{ $message }} @enderror</div>
+                                    <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
-                                    <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror"
+                                    <input type="date" class="form-input @error('tanggal_pengumpulan', 'tambahForm') is-invalid @enderror"
                                         id="tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}">
-                                    <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan') {{ $message }} @enderror</div>
+                                    <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
-                             </div>
+                            </div>
                         </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -444,8 +440,9 @@
         </div>
     </div>
 
+    {{-- Modal Edit Data --}}
     <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true">
-         {{-- **** [DIUBAH] Gunakan modal-lg untuk 2 kolom **** --}}
+         {{-- **** [DIUBAH] Pastikan modal-lg ada **** --}}
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <form id="editForm" method="POST">
                 @csrf
@@ -460,64 +457,74 @@
                             <p class="modal-subtitle">Perbarui informasi data yang diperlukan</p>
                         </div>
                         <button type="button" class="modal-close" data-bs-dismiss="modal">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
                     <div class="modal-body">
-                         {{-- **** [DIUBAH] Terapkan grid 2 kolom **** --}}
-                         <div class="modal-grid-2col">
-                             <div class="modal-column"> {{-- Kolom 1 --}}
-                                <div class="form-group autocomplete-container">
-                                    <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
-                                    <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror"
-                                        id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off">
-                                    <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
-                                    <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
-                                </div>
+                         {{-- **** [DIUBAH] Terapkan layout Bootstrap Grid seperti NWA **** --}}
+                        <div class="form-group autocomplete-container">
+                            <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
+                            <input type="text" class="form-input @error('nama_kegiatan', 'editForm') is-invalid @enderror"
+                                id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
+                            <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan', 'editForm') {{ $message }} @enderror</div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="edit_BS_Responden" class="form-label">Blok Sensus/Responden <span class="required">*</span></label>
-                                    <input type="text" class="form-input @error('BS_Responden') is-invalid @enderror"
+                                    <input type="text" class="form-input @error('BS_Responden', 'editForm') is-invalid @enderror"
                                         id="edit_BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
-                                    <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden') {{ $message }} @enderror</div>
-                                </div>
-                                <div class="form-group autocomplete-container">
-                                    <label for="edit_pencacah" class="form-label">Pencacah <span class="required">*</span></label>
-                                    <input type="text" class="form-input @error('pencacah') is-invalid @enderror"
-                                        id="edit_pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off">
-                                    <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
-                                    <div class="invalid-feedback" data-field="pencacah">@error('pencacah') {{ $message }} @enderror</div>
-                                </div>
-                                <div class="form-group autocomplete-container">
-                                    <label for="edit_pengawas" class="form-label">Pengawas <span class="required">*</span></label>
-                                    <input type="text" class="form-input @error('pengawas') is-invalid @enderror"
-                                        id="edit_pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off">
-                                    <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div>
-                                    <div class="invalid-feedback" data-field="pengawas">@error('pengawas') {{ $message }} @enderror</div>
+                                    <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden', 'editForm') {{ $message }} @enderror</div>
                                 </div>
                             </div>
-                            <div class="modal-column"> {{-- Kolom 2 --}}
+                            <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
+                                    <label for="edit_pencacah" class="form-label">Pencacah <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('pencacah', 'editForm') is-invalid @enderror"
+                                        id="edit_pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off">
+                                    <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
+                                    <div class="invalid-feedback" data-field="pencacah">@error('pencacah', 'editForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
+                                    <label for="edit_pengawas" class="form-label">Pengawas <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('pengawas', 'editForm') is-invalid @enderror"
+                                        id="edit_pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off">
+                                    <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div>
+                                    <div class="invalid-feedback" data-field="pengawas">@error('pengawas', 'editForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="edit_target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label>
-                                    <input type="date" class="form-input @error('target_penyelesaian') is-invalid @enderror"
+                                    <input type="date" class="form-input @error('target_penyelesaian', 'editForm') is-invalid @enderror"
                                         id="edit_target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required>
-                                    <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian') {{ $message }} @enderror</div>
+                                    <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian', 'editForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="edit_flag_progress" class="form-label">Flag Progress <span class="required">*</span></label>
-                                    <select class="form-select @error('flag_progress') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required>
+                                    <select class="form-select @error('flag_progress', 'editForm') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required>
                                         <option value="Belum Selesai">Belum Selesai</option>
                                         <option value="Selesai">Selesai</option>
                                     </select>
-                                    <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress') {{ $message }} @enderror</div>
+                                    <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress', 'editForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
-                                    <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror"
+                                    <input type="date" class="form-input @error('tanggal_pengumpulan', 'editForm') is-invalid @enderror"
                                         id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}">
-                                    <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan') {{ $message }} @enderror</div>
+                                    <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan', 'editForm') {{ $message }} @enderror</div>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -532,6 +539,7 @@
         </div>
     </div>
 
+    {{-- Modal Delete Data (Tidak perlu diubah) --}}
     <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form id="deleteForm" method="POST">
@@ -541,7 +549,7 @@
                     <div class="modal-header modal-header-danger">
                         <h5 class="modal-title">Konfirmasi Hapus</h5>
                         <button type="button" class="modal-close modal-close-white" data-bs-dismiss="modal">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
                     <div class="modal-body">
@@ -568,17 +576,18 @@
     <script>
         /** Autocomplete */
         function initAutocomplete(inputId, suggestionsId, searchUrl) {
-            // ... (Fungsi ini sudah SANGAT BAGUS, tidak perlu diubah) ...
+            // ... (Fungsi ini tidak diubah) ...
             const input = document.getElementById(inputId);
             if (!input) return;
             const suggestionsContainer = document.getElementById(suggestionsId);
+            if (!suggestionsContainer) return;
             let debounceTimer;
             let activeSuggestionIndex = -1;
             input.addEventListener('input', function() {
                 const query = this.value;
                 clearTimeout(debounceTimer);
                 if (query.length < 1) {
-                    if (suggestionsContainer) suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.innerHTML = '';
                     activeSuggestionIndex = -1;
                     return;
                 }
@@ -643,22 +652,23 @@
             });
         }
 
-        // --- PERBAIKAN 1: Tentukan URL basis baru ---
-        const produksiTahunanBaseUrl = '/tim-produksi/tahunan';
+        // Tentukan URL basis untuk Produksi Tahunan
+        const produksiTahunanBaseUrl = '/tim-produksi/tahunan'; // Sesuaikan dengan route group Anda
 
         /** Edit Data */
         function editData(id) {
+            // ... (Logika fetch dan isi form tidak diubah, hanya URL action form) ...
             const editModalEl = document.getElementById('editDataModal');
             if (!editModalEl) return;
             const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
             const editForm = document.getElementById('editForm');
+            if (!editForm) return;
 
-            // --- PERBAIKAN 2: Gunakan URL baru ---
-            editForm.action = `${produksiTahunanBaseUrl}/${id}`;
+            editForm.action = `${produksiTahunanBaseUrl}/${id}`; // Gunakan URL baru
             clearFormErrors(editForm);
+            document.getElementById('edit_id_fallback').value = id; // Set fallback ID
 
-            // --- PERBAIKAN 2: Gunakan URL baru ---
-            fetch(`${produksiTahunanBaseUrl}/${id}/edit`)
+            fetch(`${produksiTahunanBaseUrl}/${id}/edit`) // Gunakan URL baru
                 .then(response => {
                     if (!response.ok) {
                         return response.text().then(text => {
@@ -672,12 +682,9 @@
                     document.getElementById('edit_BS_Responden').value = data.BS_Responden || '';
                     document.getElementById('edit_pencacah').value = data.pencacah || '';
                     document.getElementById('edit_pengawas').value = data.pengawas || '';
-
-                    // --- PERBAIKAN 3: Sederhanakan (karena controller sudah kirim Y-m-d) ---
                     document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian || '';
                     document.getElementById('edit_flag_progress').value = data.flag_progress || 'Belum Selesai';
                     document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan || '';
-
                     editModal.show();
                 })
                 .catch(error => {
@@ -688,13 +695,14 @@
 
         /** Delete Data */
         function deleteData(id) {
+             // ... (Logika delete tidak diubah, hanya URL action form) ...
             const deleteModalEl = document.getElementById('deleteDataModal');
             if (!deleteModalEl) return;
             const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
             const deleteForm = document.getElementById('deleteForm');
+            if (!deleteForm) return;
 
-            // --- PERBAIKAN 2: Gunakan URL baru ---
-            deleteForm.action = `${produksiTahunanBaseUrl}/${id}`;
+            deleteForm.action = `${produksiTahunanBaseUrl}/${id}`; // Gunakan URL baru
 
             let methodInput = deleteForm.querySelector('input[name="_method"]');
             if (!methodInput) {
@@ -705,10 +713,18 @@
             }
             methodInput.value = 'DELETE';
             deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
-            document.getElementById('deleteModalBody').innerText = 'Apakah Anda yakin ingin menghapus data ini?';
-            const newConfirmButton = document.getElementById('confirmDeleteButton').cloneNode(true);
-            document.getElementById('confirmDeleteButton').parentNode.replaceChild(newConfirmButton, document
-                .getElementById('confirmDeleteButton'));
+
+            const deleteModalBody = document.getElementById('deleteModalBody');
+            if (deleteModalBody) {
+                deleteModalBody.innerText = 'Apakah Anda yakin ingin menghapus data ini?';
+            }
+
+            const confirmBtn = document.getElementById('confirmDeleteButton');
+            if (!confirmBtn) return;
+
+            const newConfirmButton = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmButton, confirmBtn);
+
             newConfirmButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 deleteForm.submit();
@@ -717,13 +733,15 @@
         }
 
         /** AJAX Helpers */
-        // ... (Fungsi clearFormErrors, showFormErrors, handleFormSubmitAjax sudah SANGAT BAGUS, tidak perlu diubah) ...
+        // ... (Fungsi clearFormErrors, showFormErrors, handleFormSubmitAjax tidak diubah) ...
         function clearFormErrors(form) {
+            if (!form) return;
             form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
             form.querySelectorAll('.invalid-feedback[data-field]').forEach(el => el.textContent = '');
         }
 
         function showFormErrors(form, errors) {
+            if (!form) return;
             for (const [field, messages] of Object.entries(errors)) {
                 const input = form.querySelector(`[name="${field}"]`);
                 const errorDiv = form.querySelector(`.invalid-feedback[data-field="${field}"]`);
@@ -733,11 +751,14 @@
         }
         async function handleFormSubmitAjax(event, form, modalInstance) {
             event.preventDefault();
+            if (!form || !modalInstance) return;
+
             const sb = form.querySelector('button[type="submit"]');
-            const sp = sb.querySelector('.spinner-border');
-            sb.disabled = true;
+            const sp = sb ? sb.querySelector('.spinner-border') : null;
+            if (sb) sb.disabled = true;
             if (sp) sp.classList.remove('d-none');
             clearFormErrors(form);
+
             try {
                 const fd = new FormData(form);
                 const response = await fetch(form.action, {
@@ -753,17 +774,17 @@
                     if (response.status === 422 && data.errors) {
                         showFormErrors(form, data.errors);
                     } else {
-                        alert(data.message || 'Error.');
+                        alert(data.message || 'Terjadi error tidak diketahui.');
                     }
                 } else {
                     modalInstance.hide();
-                    location.reload();
+                    location.reload(); // Reload halaman setelah sukses
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
-                alert('Tidak terhubung.');
+                alert('Tidak dapat terhubung ke server.');
             } finally {
-                sb.disabled = false;
+                if (sb) sb.disabled = false;
                 if (sp) sp.classList.add('d-none');
             }
         }
@@ -779,8 +800,7 @@
             @else
                 console.warn('Rute kegiatan search tidak ada.');
             @endif
-            @if (Route::has('tim-produksi.tahunan.searchPetugas'))
-                // Gunakan rute searchPetugas yang benar
+            @if (Route::has('tim-produksi.tahunan.searchPetugas')) // Gunakan route name yang benar
                 const petugasSearchUrl = '{{ route('tim-produksi.tahunan.searchPetugas') }}';
                 initAutocomplete('pencacah', 'pencacah-suggestions', petugasSearchUrl);
                 initAutocomplete('pengawas', 'pengawas-suggestions', petugasSearchUrl);
@@ -791,7 +811,6 @@
             @endif
 
             // --- Init AJAX Form Handlers ---
-            // (Logika ini sudah benar)
             const tme = document.getElementById('tambahDataModal');
             const tf = document.getElementById('tambahForm');
             if (tme && tf) {
@@ -811,7 +830,6 @@
             }
 
             // --- Select All & Bulk Delete ---
-            // (Logika ini sudah benar, pastikan route() helper-nya)
             const sa = document.getElementById('selectAll');
             const rcb = document.querySelectorAll('.row-checkbox');
             const bdb = document.getElementById('bulkDeleteBtn');
@@ -821,42 +839,64 @@
                 const cc = document.querySelectorAll('.row-checkbox:checked').length;
                 if (bdb) bdb.disabled = cc === 0;
             }
-            sa?.addEventListener('change', () => {
-                rcb.forEach(cb => cb.checked = sa.checked);
-                ubdbs();
-            });
+            if (sa) {
+                sa.addEventListener('change', () => {
+                    rcb.forEach(cb => cb.checked = sa.checked);
+                    ubdbs();
+                });
+            }
             rcb.forEach(cb => cb.addEventListener('change', ubdbs));
             ubdbs();
-            bdb?.addEventListener('click', () => {
-                const count = document.querySelectorAll('.row-checkbox:checked').length;
-                if (count === 0) return;
-                const dme = document.getElementById('deleteDataModal');
-                if (!dme || !df) return;
-                const dm = bootstrap.Modal.getOrCreateInstance(dme);
-                df.action = '{{ route('tim-produksi.tahunan.bulkDelete') }}';
-                let mi = df.querySelector('input[name="_method"]');
-                if (mi) mi.value = 'POST';
-                df.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
-                document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
-                    const i = document.createElement('input');
-                    i.type = 'hidden';
-                    i.name = 'ids[]';
-                    i.value = cb.value;
-                    df.appendChild(i);
+
+            if (bdb) {
+                bdb.addEventListener('click', () => {
+                    const count = document.querySelectorAll('.row-checkbox:checked').length;
+                    if (count === 0) return;
+                    const dme = document.getElementById('deleteDataModal');
+                    if (!dme || !df) return;
+
+                    const dm = bootstrap.Modal.getOrCreateInstance(dme);
+                    df.action = '{{ route('tim-produksi.tahunan.bulkDelete') }}'; // Gunakan route name yang benar
+
+                    let mi = df.querySelector('input[name="_method"]');
+                    // Rute bulkDelete menggunakan POST
+                    if (mi) {
+                        mi.value = 'POST';
+                    } else {
+                        const postInput = document.createElement('input');
+                        postInput.type = 'hidden';
+                        postInput.name = '_method';
+                        postInput.value = 'POST';
+                        df.appendChild(postInput);
+                    }
+
+                    df.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
+                    document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
+                        const i = document.createElement('input');
+                        i.type = 'hidden';
+                        i.name = 'ids[]';
+                        i.value = cb.value;
+                        df.appendChild(i);
+                    });
+
+                    const deleteModalBody = document.getElementById('deleteModalBody');
+                    if(deleteModalBody) deleteModalBody.innerText = `Hapus ${count} data terpilih?`;
+
+                    const confirmBtn = document.getElementById('confirmDeleteButton');
+                    if (!confirmBtn) return;
+
+                    const ncb = confirmBtn.cloneNode(true);
+                    confirmBtn.parentNode.replaceChild(ncb, confirmBtn);
+
+                    ncb.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        df.submit();
+                    });
+                    dm.show();
                 });
-                document.getElementById('deleteModalBody').innerText = `Hapus ${count} data?`;
-                const ncb = document.getElementById('confirmDeleteButton').cloneNode(true);
-                document.getElementById('confirmDeleteButton').parentNode.replaceChild(ncb, document
-                    .getElementById('confirmDeleteButton'));
-                ncb.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    df.submit();
-                });
-                dm.show();
-            });
+            }
 
             // --- Filters Per Page & Tahun ---
-            // (Logika ini sudah benar)
             const pps = document.getElementById('perPageSelect');
             const ts = document.getElementById('tahunSelect');
             const ks = document.getElementById('kegiatanSelect');
@@ -867,25 +907,22 @@
                 if (ts) p.set('tahun', ts.value);
                 if (ks) {
                     if (ks.value) { p.set('kegiatan', ks.value); }
-                    else { p.delete('kegiatan'); } // Hapus jika 'Semua'
+                    else { p.delete('kegiatan'); }
                 }
-                
-                // Ambil search term dari URL agar tidak hilang
+
                 const currentSearch = new URLSearchParams(window.location.search).get('search');
                 if (currentSearch) {
                     p.set('search', currentSearch);
                 }
 
-                p.set('page', 1); // Selalu reset ke halaman 1
+                p.set('page', 1);
                 window.location.href = cu.pathname + '?' + p.toString();
             }
             if (pps) pps.addEventListener('change', hfc);
             if (ts) ts.addEventListener('change', hfc);
             if (ks) ks.addEventListener('change', hfc);
 
-
-            // --- PERBAIKAN 4: Fallback Error Modals ---
-
+            // --- Fallback Error Modals ---
             @if (session('error_modal') == 'tambahDataModal' && $errors->any())
                 const tmef = document.getElementById('tambahDataModal');
                 if (tmef) bootstrap.Modal.getOrCreateInstance(tmef).show();
@@ -896,98 +933,91 @@
                 if (eid) {
                     const editModalEl = document.getElementById('editDataModal');
                     const editForm = document.getElementById('editForm');
-
                     if (editForm) {
-                        // 1. Set action form ke URL update yang benar
-                        editForm.action = `${produksiTahunanBaseUrl}/${eid}`;
-
-                        // 2. Terapkan error classes & messages dari Blade
+                        editForm.action = `${produksiTahunanBaseUrl}/${eid}`; // Gunakan URL baru
                         @foreach ($errors->keys() as $f)
                             const fel = editForm.querySelector('[name="{{ $f }}"]');
                             if (fel) fel.classList.add('is-invalid');
-
                             const erel = editForm.querySelector(
                                 `.invalid-feedback[data-field="{{ $f }}"]`);
                             if (erel) erel.textContent = '{{ $errors->first($f) }}';
                         @endforeach
                     }
-
-                    // 3. Tampilkan modal. 
                     if (editModalEl) {
                         bootstrap.Modal.getOrCreateInstance(editModalEl).show();
                     }
                 }
             @endif
 
-            // SCRIPT UNTUK EXPORT DATA
-            // ========================================
-            document.getElementById('exportForm').addEventListener('submit', function(e) {
-                const dataRange = document.getElementById('dataRange').value;
-                const exportFormat = document.getElementById('exportFormat').value;
-                // Validasi input
-                if (!dataRange) {
-                    e.preventDefault();
-                    alert('Silakan pilih range data yang akan di-export!');
-                    return false;
-                }
-                if (!exportFormat) {
-                    e.preventDefault();
-                    alert('Silakan pilih format export!');
-                    return false;
-                }
-                // Update hidden inputs dengan nilai terbaru dari filter aktif
-                document.getElementById('export_tahun').value = '{{ $selectedTahun }}';
-                document.getElementById('export_kegiatan').value = '{{ request('kegiatan') }}';
-                document.getElementById('export_search').value = '{{ request('search') }}';
-                document.getElementById('export_page').value = '{{ $listData->currentPage() }}';
-                document.getElementById('export_per_page').value = '{{ $listData->perPage() }}';
-                // Biarkan form submit secara normal (GET request)
-                return true;
-            });
-            // Update jumlah data pada dropdown saat modal dibuka
-            document.getElementById('exportDataModal').addEventListener('show.bs.modal', function() {
-                const currentPageOption = document.querySelector('#dataRange option[value="current_page"]');
-                const totalData = {{ $listData->total() }};
-                const currentPageData = {{ $listData->count() }};
+            // --- JAVASCRIPT EXPORT ---
+            const exportForm = document.getElementById('exportForm');
+            if (exportForm) {
+                exportForm.addEventListener('submit', function(e) {
+                    const dataRange = document.getElementById('exportDataRangeDist').value;
+                    const exportFormat = document.getElementById('exportExportFormatDist').value;
 
-                currentPageOption.textContent = `Halaman Saat Ini (${currentPageData} data)`;
+                    if (!dataRange) {
+                        e.preventDefault();
+                        alert('Silakan pilih range data yang akan di-export!');
+                        return false;
+                    }
+                    if (!exportFormat) {
+                        e.preventDefault();
+                        alert('Silakan pilih format export!');
+                        return false;
+                    }
 
-                const allDataOption = document.querySelector('#dataRange option[value="all"]');
-                allDataOption.textContent = `Semua Data yang Difilter (${totalData} data)`;
-            });
+                    // Ambil nilai filter saat ini dari elemen filter
+                    const currentTahun = document.getElementById('tahunSelect')?.value || '{{ date('Y') }}';
+                    const currentKegiatan = document.getElementById('kegiatanSelect')?.value || '';
+                    const currentSearch = document.querySelector('.search-input[name="search"]')?.value || '';
+                    const currentPage = '{{ $listData->currentPage() }}';
+                    const currentPerPage = document.getElementById('perPageSelect')?.value || '{{ $listData->perPage() }}';
 
+                    // Update hidden inputs di form export
+                    document.getElementById('export_tahun').value = currentTahun;
+                    document.getElementById('export_kegiatan').value = currentKegiatan;
+                    document.getElementById('export_search').value = currentSearch;
+                    document.getElementById('export_page').value = currentPage;
+                    document.getElementById('export_per_page').value = currentPerPage;
 
+                    return true;
+                });
+            }
+
+            const exportModalEl = document.getElementById('exportModal');
+            if (exportModalEl) {
+                exportModalEl.addEventListener('show.bs.modal', function() {
+                    const currentPageOption = document.querySelector('#exportDataRangeDist option[value="current_page"]');
+                    const totalData = {{ $listData->total() }};
+                    const currentPageData = {{ $listData->count() }};
+
+                    if (currentPageOption) {
+                        currentPageOption.textContent = `Halaman Ini (${currentPageData} record)`;
+                    }
+                    const allDataOption = document.querySelector('#exportDataRangeDist option[value="all"]');
+                    if (allDataOption) {
+                         allDataOption.textContent = `Semua Data (${totalData} record)`; // Sesuaikan teks jika perlu
+                    }
+                });
+            }
+             // --- AKHIR JAVASCRIPT EXPORT ---
+
+             // --- Auto-hide Alerts Sukses ---
             const successAlerts = document.querySelectorAll('.alert-success.alert-dismissible');
             successAlerts.forEach(function (alert) {
-                // Cek apakah alert ini TIDAK berada di dalam modal
                 if (!alert.closest('.modal')) {
-                    // Ambil status auto_hide dari PHP (jika ada saat load awal)
                     const initialAutoHide = {{ session('auto_hide', 'false') ? 'true' : 'false' }};
-
-                    // Jika auto_hide true saat load awal ATAU alert muncul setelah reload (tanpa session auto_hide lagi)
-                    // Kita anggap semua alert sukses di luar modal harus auto-hide
-                    if (initialAutoHide || alert.offsetParent !== null) { // offsetParent !== null -> cek jika elemen visible
-                        console.log("Setting timeout for alert:", alert.innerText.substring(0, 30) + "..."); // Debugging log
+                     if (initialAutoHide || alert.offsetParent !== null) {
                         setTimeout(() => {
-                            console.log("Closing alert:", alert.innerText.substring(0, 30) + "..."); // Debugging log
-                            // Gunakan Bootstrap Alert instance untuk menutupnya
                             const alertInstance = bootstrap.Alert.getOrCreateInstance(alert);
                             if (alertInstance) {
                                 alertInstance.close();
                             } else {
-                                alert.remove(); // Fallback jika instance tidak didapat
+                                alert.remove();
                             }
                         }, 5000); // 5 detik
                     }
-                }
-            });
-
-            // Anda mungkin juga ingin menambahkan ini untuk alert error/warning jika perlu
-            const otherAlerts = document.querySelectorAll('.alert-danger.alert-dismissible, .alert-warning.alert-dismissible');
-            otherAlerts.forEach(function (alert) {
-                if (!alert.closest('.modal')) {
-                    // Logika auto-hide untuk error/warning jika diperlukan
-                    // Mungkin tidak perlu auto-hide untuk error/warning
                 }
             });
 

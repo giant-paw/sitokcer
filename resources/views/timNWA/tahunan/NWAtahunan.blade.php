@@ -41,18 +41,10 @@
             color: var(--card-bg, #fff);
         }
 
-        /* Helper class untuk grid 2 kolom di modal */
-        .modal-grid-2col {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--spacing-lg, 1.5rem); /* Gunakan spacing dari global.css */
-        }
-        @media (max-width: 768px) { /* Kembali ke 1 kolom di layar kecil */
-            .modal-grid-2col {
-                grid-template-columns: 1fr;
-                gap: var(--spacing-md, 1rem);
-            }
-        }
+        /* CSS KUSTOM GRID DIHAPUS, KARENA KITA AKAN PAKAI row DAN col-md-6
+        .modal-grid-2col { ... }
+        .modal-column { ... }
+        */
 
         .modern-modal .form-select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
@@ -193,7 +185,7 @@
                     </svg>
                 </button>
             </div>
-        @endif
+            @endif
 
             {{-- 11. Menggunakan .table-wrapper dan .data-table --}}
             <div class="table-wrapper">
@@ -279,7 +271,7 @@
     </div>
 
     {{-- ================================================= --}}
-    {{-- ==              MODAL SECTIONS                 == --}}
+    {{-- ==        MODAL SECTIONS                 == --}}
     {{-- ================================================= --}}
 
     {{-- Modal Import --}}
@@ -357,6 +349,7 @@
             </form>
         </div>
     </div>
+
     {{-- Modal Tambah Data --}}
     <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -377,29 +370,41 @@
                     <div class="modal-body">
                         <input type="hidden" name="_form" value="tambahForm">
 
-                        <div class="modal-grid-2col">
-                            <div class="modal-column"> {{-- Kolom 1 --}}
-                                <div class="form-group autocomplete-container">
-                                    <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
-                                    <input type="text" class="form-input @error('nama_kegiatan', 'tambahForm') is-invalid @enderror"
-                                        id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
-                                        placeholder="Ketik untuk mencari..." required autocomplete="off">
-                                    <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
-                                    <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan', 'tambahForm') {{ $message }} @enderror</div>
-                                </div>
+                        {{-- ============================================== --}}
+                        {{-- == PERUBAHAN LAYOUT DIMULAI DI SINI == --}}
+                        {{-- ============================================== --}}
+                        
+                        {{-- 'Nama Kegiatan' dibuat full-width, sama seperti layout Triwulanan --}}
+                        <div class="form-group autocomplete-container">
+                            <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
+                            <input type="text" class="form-input @error('nama_kegiatan', 'tambahForm') is-invalid @enderror"
+                                id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
+                                placeholder="Ketik untuk mencari..." required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
+                            {{-- Error bag 'tambahForm' dipertahankan --}}
+                            <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan', 'tambahForm') {{ $message }} @enderror</div>
+                        </div>
+
+                        {{-- Sisanya dimasukkan ke grid Bootstrap row g-3 --}}
+                        <div class="row g-3">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="BS_Responden" class="form-label">Blok Sensus/Responden <span class="required">*</span></label>
                                     <input type="text" class="form-input @error('BS_Responden', 'tambahForm') is-invalid @enderror"
                                         id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
                                     <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
-                                 <div class="form-group autocomplete-container">
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
                                     <label for="pencacah" class="form-label">Pencacah <span class="required">*</span></label>
                                     <input type="text" class="form-input @error('pencacah', 'tambahForm') is-invalid @enderror"
                                         id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off">
                                     <div class="autocomplete-suggestions" id="pencacah-suggestions"></div>
                                     <div class="invalid-feedback" data-field="pencacah">@error('pencacah', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group autocomplete-container">
                                     <label for="pengawas" class="form-label">Pengawas <span class="required">*</span></label>
                                     <input type="text" class="form-input @error('pengawas', 'tambahForm') is-invalid @enderror"
@@ -408,23 +413,26 @@
                                     <div class="invalid-feedback" data-field="pengawas">@error('pengawas', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
                             </div>
-
-                            <div class="modal-column"> {{-- Kolom 2 --}}
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label>
                                     <input type="date" class="form-input @error('target_penyelesaian', 'tambahForm') is-invalid @enderror"
                                         id="target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required>
                                     <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="flag_progress" class="form-label">Flag Progress <span class="required">*</span></label>
                                     <select class="form-select @error('flag_progress', 'tambahForm') is-invalid @enderror" id="flag_progress" name="flag_progress" required>
-                                        {{-- [DIUBAH] Opsi disesuaikan dengan controller NWA --}}
+                                        {{-- Opsi 'tahunan' dipertahankan --}}
                                         <option value="Belum Selesai" {{ old('flag_progress') == 'Belum Selesai' ? 'selected' : '' }}>Belum Selesai</option>
                                         <option value="Selesai" {{ old('flag_progress') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
                                     </select>
                                     <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
                                     <input type="date" class="form-input @error('tanggal_pengumpulan', 'tambahForm') is-invalid @enderror"
@@ -433,6 +441,9 @@
                                 </div>
                             </div>
                         </div>
+                        {{-- ============================================== --}}
+                        {{-- == PERUBAHAN LAYOUT SELESAI == --}}
+                        {{-- ============================================== --}}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -469,21 +480,31 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                         <div class="modal-grid-2col">
-                            <div class="modal-column"> {{-- Kolom 1 --}}
-                                <div class="form-group autocomplete-container">
-                                    <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
-                                    <input type="text" class="form-input @error('nama_kegiatan', 'editForm') is-invalid @enderror"
-                                        id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off">
-                                    <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
-                                    <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan', 'editForm') {{ $message }} @enderror</div>
-                                </div>
+                        {{-- ============================================== --}}
+                        {{-- == PERUBAHAN LAYOUT DIMULAI DI SINI == --}}
+                        {{-- ============================================== --}}
+
+                        {{-- 'Nama Kegiatan' dibuat full-width --}}
+                        <div class="form-group autocomplete-container">
+                            <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
+                            <input type="text" class="form-input @error('nama_kegiatan', 'editForm') is-invalid @enderror"
+                                id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
+                            {{-- Error bag 'editForm' dipertahankan --}}
+                            <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan', 'editForm') {{ $message }} @enderror</div>
+                        </div>
+
+                        {{-- Sisanya dimasukkan ke grid Bootstrap row g-3 --}}
+                        <div class="row g-3">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="edit_BS_Responden" class="form-label">Blok Sensus/Responden <span class="required">*</span></label>
                                     <input type="text" class="form-input @error('BS_Responden', 'editForm') is-invalid @enderror"
                                         id="edit_BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
                                     <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden', 'editForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group autocomplete-container">
                                     <label for="edit_pencacah" class="form-label">Pencacah <span class="required">*</span></label>
                                     <input type="text" class="form-input @error('pencacah', 'editForm') is-invalid @enderror"
@@ -491,6 +512,8 @@
                                     <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
                                     <div class="invalid-feedback" data-field="pencacah">@error('pencacah', 'editForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group autocomplete-container">
                                     <label for="edit_pengawas" class="form-label">Pengawas <span class="required">*</span></label>
                                     <input type="text" class="form-input @error('pengawas', 'editForm') is-invalid @enderror"
@@ -499,22 +522,26 @@
                                     <div class="invalid-feedback" data-field="pengawas">@error('pengawas', 'editForm') {{ $message }} @enderror</div>
                                 </div>
                             </div>
-                            <div class="modal-column"> {{-- Kolom 2 --}}
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="edit_target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label>
                                     <input type="date" class="form-input @error('target_penyelesaian', 'editForm') is-invalid @enderror"
                                         id="edit_target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required>
                                     <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian', 'editForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="edit_flag_progress" class="form-label">Flag Progress <span class="required">*</span></label>
                                     <select class="form-select @error('flag_progress', 'editForm') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required>
-                                        {{-- [DIUBAH] Opsi disesuaikan dengan controller NWA --}}
+                                        {{-- Opsi 'tahunan' dipertahankan --}}
                                         <option value="Belum Selesai">Belum Selesai</option>
                                         <option value="Selesai">Selesai</option>
                                     </select>
                                     <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress', 'editForm') {{ $message }} @enderror</div>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
                                     <input type="date" class="form-input @error('tanggal_pengumpulan', 'editForm') is-invalid @enderror"
@@ -523,6 +550,9 @@
                                 </div>
                             </div>
                         </div>
+                        {{-- ============================================== --}}
+                        {{-- == PERUBAHAN LAYOUT SELESAI == --}}
+                        {{-- ============================================== --}}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -989,8 +1019,9 @@
             if (exportForm) {
                 exportForm.addEventListener('submit', function(e) {
                     
-                    const dataRange = document.getElementById('dataRangeExport').value;
-                    const exportFormat = document.getElementById('exportFormatExport').value;
+                    // ID di form export modal ini berbeda, jadi kita pakai ID yang ada di sana
+                    const dataRange = document.getElementById('exportDataRangeDist').value;
+                    const exportFormat = document.getElementById('exportExportFormatDist').value;
                     
                     if (!dataRange) {
                         e.preventDefault(); 
@@ -1002,24 +1033,13 @@
                         alert('Silakan pilih format export!');
                         return false;
                     }
-
-                    // Hapus input filter lama (jika ada)
-                    this.querySelectorAll('input[name="tahun"], input[name="kegiatan"], input[name="search"], input[name="page"], input[name="per_page"]').forEach(el => el.remove());
-
-                    function addHiddenInput(form, name, value) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = name;
-                        input.value = value || ''; 
-                        form.appendChild(input);
-                    }
-
-                    // Tambahkan nilai filter saat ini ke form export
-                    addHiddenInput(this, 'tahun', '{{ $selectedTahun ?? date('Y') }}');
-                    addHiddenInput(this, 'kegiatan', '{{ request('kegiatan') }}');
-                    addHiddenInput(this, 'search', '{{ request('search') }}');
-                    addHiddenInput(this, 'page', '{{ $listData->currentPage() }}');
-                    addHiddenInput(this, 'per_page', '{{ $listData->perPage() }}');
+                    
+                    // Kita gunakan input hidden yang sudah ada di form export
+                    document.getElementById('export_tahun').value = '{{ $selectedTahun ?? date('Y') }}';
+                    document.getElementById('export_kegiatan').value = '{{ request('kegiatan') }}';
+                    document.getElementById('export_search').value = '{{ request('search') }}';
+                    document.getElementById('export_page').value = '{{ $listData->currentPage() }}';
+                    document.getElementById('export_per_page').value = '{{ $listData->perPage() }}';
                     
                     // Biarkan form submit
                     return true;
@@ -1030,17 +1050,18 @@
             
             if (exportModalEl) { 
                 exportModalEl.addEventListener('show.bs.modal', function() {
-                    const currentPageOption = document.querySelector('#dataRangeExport option[value="current_page"]');
+                    // Pastikan selector-nya sesuai dengan ID di modal export
+                    const currentPageOption = document.querySelector('#exportDataRangeDist option[value="current_page"]');
                     const totalData = {{ $listData->total() }};
                     const currentPageData = {{ $listData->count() }};
 
                     if (currentPageOption) {
-                        currentPageOption.textContent = `Halaman Saat Ini (${currentPageData} data)`;
+                        currentPageOption.textContent = `Halaman Ini (${currentPageData} data)`;
                     }
 
-                    const allDataOption = document.querySelector('#dataRangeExport option[value="all"]');
+                    const allDataOption = document.querySelector('#exportDataRangeDist option[value="all"]');
                     if (allDataOption) {
-                        allDataOption.textContent = `Semua Data yang Difilter (${totalData} data)`;
+                        allDataOption.textContent = `Semua Data (${totalData} record)`;
                     }
                 });
             }

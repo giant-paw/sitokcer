@@ -75,11 +75,16 @@
             @if ($errors->any())
                 <div class="mb-4 p-4 text-sm text-red-800 bg-red-100 border border-red-300 rounded-lg" role="alert">
                     <div class="font-medium">Oops! Ada yang salah.</div>
-                    <ul class="mt-1.5 list-disc list-inside">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+
+                    @if ($errors->has('email') || $errors->has('password'))
+                        <div class="mt-1.5">Email atau password salah. Silakan coba lagi.</div>
+                    @else
+                        <ul class="mt-1.5 list-disc list-inside">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
                 </div>
             @endif
 

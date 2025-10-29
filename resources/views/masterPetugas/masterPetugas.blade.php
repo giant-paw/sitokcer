@@ -3,6 +3,14 @@
 @section('title', 'Master Petugas')
 @section('header-title', 'Master Petugas')
 
+@push('styles')
+    <style>
+        .data-table tbody td .user-name {
+             color: #2b2b2cff !important;
+        }
+    </style>
+@endpush
+
 @section('content')
 <div class="container-fluid px-4 py-4">
     

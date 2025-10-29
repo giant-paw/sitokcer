@@ -27,9 +27,9 @@
         .autocomplete-suggestion-item:hover,
         .autocomplete-suggestion-item.active { background-color: var(--primary-color, #0d6efd); color: var(--card-bg, #fff); }
 
-        /* Helper class untuk grid 2 kolom di modal */
-        .modal-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg, 1.5rem); }
-        @media (max-width: 768px) { .modal-grid-2col { grid-template-columns: 1fr; gap: var(--spacing-md, 1rem); } }
+        /* CSS Grid Kustom dihapus */
+        /* .modal-grid-2col { ... } */
+        /* .modal-column { ... } */
 
         .modern-modal .form-select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
@@ -45,29 +45,7 @@
 
 @section('content')
     <div class="container-fluid px-4 py-4">
-<!-- 
-        {{-- Alert Success --}}
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-        {{-- Alert Error --}}
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert">
-                {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-         {{-- Alert Warning (dari import sebagian) --}}
-        @if (session('warning'))
-            <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warningAlert">
-                {{ session('warning') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif -->
-        {{-- Alert Import Errors--}}
+{{-- Alert Import Errors--}}
         @if (session('import_errors'))
             <div class="alert alert-warning alert-dismissible fade show" role="alert" id="importErrorAlert">
                 <strong>Beberapa baris gagal diimport:</strong>
@@ -134,19 +112,6 @@
                         </select>
                     </div>
 
-                     <div class="filter-group">
-                        <label class="filter-label">Kegiatan:</label>
-                        <select class="filter-select" id="kegiatanSelect" name="kegiatan">
-                            <option value="">Semua Kegiatan</option>
-                            @foreach ($kegiatanCounts ?? [] as $kegiatan)
-                                <option value="{{ $kegiatan->nama_kegiatan }}"
-                                    {{ $selectedKegiatan == $kegiatan->nama_kegiatan ? 'selected' : '' }}>
-                                    {{ $kegiatan->nama_kegiatan }} ({{ $kegiatan->total }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    
                     <div class="filter-group">
                         <label class="filter-label">Tahun:</label>
                         <select class="filter-select" id="tahunSelect">
@@ -161,7 +126,7 @@
                         <button class="search-btn" type="submit"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg> </button>
                     </form>
                 </div>
-            </div> 
+            </div>
 
              @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show mx-4" role="alert">
@@ -179,7 +144,7 @@
                     </svg>
                 </button>
             </div>
-        @endif
+            @endif
 
             {{-- 11. Table --}}
             <div class="table-wrapper">
@@ -231,7 +196,7 @@
                 </table>
             </div>
 
-             {{-- Pagination --}}
+            {{-- Pagination --}}
             @if ($listData->hasPages())
             <div class="table-footer">
                 <div class="footer-info"> Displaying {{ $listData->firstItem() ?? 0 }} - {{ $listData->lastItem() ?? 0 }} of {{ $listData->total() ?? 0 }} </div>
@@ -242,7 +207,6 @@
     </div>
 
 
-    <!-- Modal Import Data -->
     <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -255,7 +219,6 @@
                     </div>
 
                     <div class="modal-body">
-                        <!-- Alert info -->
                         <div class="alert alert-info" role="alert">
                             <small>
                                 <strong>Format yang didukung:</strong> Excel (.xlsx, .xls) atau CSV<br>
@@ -263,14 +226,12 @@
                                 <strong>Catatan:</strong> ID akan di-generate otomatis
                             </small>
                         </div>
-                        <!-- Download template -->
                         <div class="mb-3">
                             <a href="{{ route('tim-distribusi.triwulanan.downloadTemplate') }}"
                                 class="btn btn-sm btn-secondary">
                                 <i class="bi bi-download"></i> Download Template Excel
                             </a>
                         </div>
-                        <!-- File input -->
                         <div class="mb-3">
                             <label for="importFile" class="form-label">Pilih File</label>
                             <input type="file" class="form-control" id="importFile" name="file" required
@@ -279,7 +240,6 @@
                                 Pastikan format kolom sesuai dengan template
                             </div>
                         </div>
-                        <!-- Preview area (optional) -->
                         <div id="filePreview" class="d-none">
                             <small class="text-muted">File dipilih: <span id="fileName"></span></small>
                         </div>
@@ -298,7 +258,7 @@
     {{-- ==              MODAL SECTIONS                 == --}}
     {{-- ================================================= --}}
 
-     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form action="{{ route('tim-distribusi.triwulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET" id="exportForm">
                  <div class="modal-content modern-modal">
@@ -307,12 +267,14 @@
                         <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" name="tahun" id="export_tahun_tri" value="{{ $selectedTahun ?? date('Y') }}">
-                        <input type="hidden" name="kegiatan" id="export_kegiatan_tri" value="{{ $selectedKegiatan ?? '' }}">
-                        <input type="hidden" name="search" id="export_search_tri" value="{{ $search ?? '' }}">
-                        <input type="hidden" name="page" id="export_page_tri" value="{{ $listData->currentPage() }}">
-                        <input type="hidden" name="per_page" id="export_per_page_tri" value="{{ request('per_page', $listData->perPage()) }}">
-                        <div class="form-group"> <label for="exportDataRangeDistTri" class="form-label">Jangkauan Data</label> <select class="form-select" id="exportDataRangeDistTri" name="dataRange" required> <option value="all">Semua Data ({{ $listData->total() }})</option> <option value="current_page">Halaman Ini ({{ $listData->count() }})</option> </select> </div>
+                        {{-- Hidden inputs akan diupdate oleh JS saat modal show --}}
+                        <input type="hidden" name="tahun" id="export_tahun_tri">
+                        <input type="hidden" name="kegiatan" id="export_kegiatan_tri">
+                        <input type="hidden" name="search" id="export_search_tri">
+                        <input type="hidden" name="page" id="export_page_tri">
+                        <input type="hidden" name="per_page" id="export_per_page_tri">
+
+                        <div class="form-group"> <label for="exportDataRangeDistTri" class="form-label">Jangkauan Data</label> <select class="form-select" id="exportDataRangeDistTri" name="dataRange" required> <option value="all">Semua Data</option> <option value="current_page">Halaman Ini</option> </select> </div>
                         <div class="form-group"> <label for="exportDataFormatDistTri" class="form-label">Format Nilai Tanggal</label> <select class="form-select" id="exportDataFormatDistTri" name="dataFormat"> <option value="formatted_values" selected>Format Tampilan</option> <option value="raw_values">Nilai Asli Database</option> </select> <small class="form-text text-muted">Pilih "Raw Values" untuk olah data.</small> </div>
                         <div class="form-group"> <label for="exportExportFormatDistTri" class="form-label">Format File</label> <select class="form-select" id="exportExportFormatDistTri" name="exportFormat" required> <option value="excel">Excel (.xlsx)</option> <option value="csv">CSV (.csv)</option> </select> </div>
                     </div>
@@ -325,6 +287,7 @@
         </div>
     </div>
 
+    {{-- Modal Tambah Data --}}
     <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered"> {{-- Gunakan modal-lg --}}
             <form action="{{ route('tim-distribusi.triwulanan.store') }}" method="POST" id="tambahForm">
@@ -336,17 +299,65 @@
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="_form" value="tambahForm">
-                        <div class="modal-grid-2col"> {{-- Layout 2 kolom --}}
-                            <div class="modal-column"> {{-- Kolom 1 --}}
-                                <div class="form-group autocomplete-container"> <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label> <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror" id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" placeholder="Ketik {{ strtoupper($jenisKegiatan) }}-TW..." required autocomplete="off"> <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div> <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div> </div>
-                                <div class="form-group"> <label for="BS_Responden" class="form-label">BS/Responden <span class="required">*</span></label> <input type="text" class="form-input @error('BS_Responden') is-invalid @enderror" id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required> <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden') {{ $message }} @enderror</div> </div>
-                                <div class="form-group autocomplete-container"> <label for="pencacah" class="form-label">Pencacah <span class="required">*</span></label> <input type="text" class="form-input @error('pencacah') is-invalid @enderror" id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="pencacah-suggestions"></div> <div class="invalid-feedback" data-field="pencacah">@error('pencacah') {{ $message }} @enderror</div> </div>
-                                <div class="form-group autocomplete-container"> <label for="pengawas" class="form-label">Pengawas <span class="required">*</span></label> <input type="text" class="form-input @error('pengawas') is-invalid @enderror" id="pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="pengawas-suggestions"></div> <div class="invalid-feedback" data-field="pengawas">@error('pengawas') {{ $message }} @enderror</div> </div>
+
+                         {{-- **** [DIUBAH] Terapkan layout Bootstrap Grid **** --}}
+                        <div class="form-group autocomplete-container">
+                            <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
+                            <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror"
+                                id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
+                                placeholder="Ketik {{ strtoupper($jenisKegiatan) }}-TW..." required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
+                            <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="BS_Responden" class="form-label">BS/Responden <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('BS_Responden') is-invalid @enderror" id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
+                                    <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden') {{ $message }} @enderror</div>
+                                </div>
                             </div>
-                            <div class="modal-column"> {{-- Kolom 2 --}}
-                                <div class="form-group"> <label for="target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label> <input type="date" class="form-input @error('target_penyelesaian') is-invalid @enderror" id="target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required> <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian') {{ $message }} @enderror</div> </div>
-                                <div class="form-group"> <label for="flag_progress" class="form-label">Flag Progress <span class="required">*</span></label> <select class="form-select @error('flag_progress') is-invalid @enderror" id="flag_progress" name="flag_progress" required> @php $oldFlag = old('flag_progress', 'Belum Selesai'); @endphp <option value="Belum Selesai" @selected($oldFlag === 'Belum Selesai')>Belum Selesai</option> <option value="Selesai" @selected($oldFlag === 'Selesai')>Selesai</option> </select> <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress') {{ $message }} @enderror</div> </div>
-                                <div class="form-group"> <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label> <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror" id="tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}"> <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan') {{ $message }} @enderror</div> </div>
+                            <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
+                                    <label for="pencacah" class="form-label">Pencacah <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('pencacah') is-invalid @enderror" id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off">
+                                    <div class="autocomplete-suggestions" id="pencacah-suggestions"></div>
+                                    <div class="invalid-feedback" data-field="pencacah">@error('pencacah') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
+                                    <label for="pengawas" class="form-label">Pengawas <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('pengawas') is-invalid @enderror" id="pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off">
+                                    <div class="autocomplete-suggestions" id="pengawas-suggestions"></div>
+                                    <div class="invalid-feedback" data-field="pengawas">@error('pengawas') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label>
+                                    <input type="date" class="form-input @error('target_penyelesaian') is-invalid @enderror" id="target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required>
+                                    <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="flag_progress" class="form-label">Flag Progress <span class="required">*</span></label>
+                                    <select class="form-select @error('flag_progress') is-invalid @enderror" id="flag_progress" name="flag_progress" required>
+                                        @php $oldFlag = old('flag_progress', 'Belum Selesai'); @endphp
+                                        <option value="Belum Selesai" @selected($oldFlag === 'Belum Selesai')>Belum Selesai</option>
+                                        <option value="Selesai" @selected($oldFlag === 'Selesai')>Selesai</option>
+                                    </select>
+                                    <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
+                                    <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror" id="tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}">
+                                    <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan') {{ $message }} @enderror</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -359,6 +370,7 @@
         </div>
     </div>
 
+    {{-- Modal Edit Data --}}
     <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered"> {{-- Gunakan modal-lg --}}
             <form id="editForm" method="POST">
@@ -370,18 +382,62 @@
                         <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
-                         <div class="modal-grid-2col"> {{-- Layout 2 kolom --}}
-                             <div class="modal-column"> {{-- Kolom 1 --}}
-                                <div class="form-group autocomplete-container"> <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label> <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror" id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div> <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div> </div>
-                                <div class="form-group"> <label for="edit_BS_Responden" class="form-label">BS/Responden <span class="required">*</span></label> <input type="text" class="form-input @error('BS_Responden') is-invalid @enderror" id="edit_BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required> <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden') {{ $message }} @enderror</div> </div>
-                                <div class="form-group autocomplete-container"> <label for="edit_pencacah" class="form-label">Pencacah <span class="required">*</span></label> <input type="text" class="form-input @error('pencacah') is-invalid @enderror" id="edit_pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div> <div class="invalid-feedback" data-field="pencacah">@error('pencacah') {{ $message }} @enderror</div> </div>
-                                <div class="form-group autocomplete-container"> <label for="edit_pengawas" class="form-label">Pengawas <span class="required">*</span></label> <input type="text" class="form-input @error('pengawas') is-invalid @enderror" id="edit_pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div> <div class="invalid-feedback" data-field="pengawas">@error('pengawas') {{ $message }} @enderror</div> </div>
-                             </div>
-                             <div class="modal-column"> {{-- Kolom 2 --}}
-                                <div class="form-group"> <label for="edit_target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label> <input type="date" class="form-input @error('target_penyelesaian') is-invalid @enderror" id="edit_target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required> <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian') {{ $message }} @enderror</div> </div>
-                                <div class="form-group"> <label for="edit_flag_progress" class="form-label">Flag Progress <span class="required">*</span></label> <select class="form-select @error('flag_progress') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required> <option value="Belum Selesai">Belum Selesai</option> <option value="Selesai">Selesai</option> </select> <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress') {{ $message }} @enderror</div> </div>
-                                <div class="form-group"> <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label> <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror" id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}"> <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan') {{ $message }} @enderror</div> </div>
-                             </div>
+                         {{-- **** [DIUBAH] Terapkan layout Bootstrap Grid **** --}}
+                        <div class="form-group autocomplete-container">
+                            <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
+                            <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror" id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
+                            <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
+                        </div>
+
+                        <div class="row g-3">
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_BS_Responden" class="form-label">BS/Responden <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('BS_Responden') is-invalid @enderror" id="edit_BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
+                                    <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
+                                    <label for="edit_pencacah" class="form-label">Pencacah <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('pencacah') is-invalid @enderror" id="edit_pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off">
+                                    <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
+                                    <div class="invalid-feedback" data-field="pencacah">@error('pencacah') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
+                                    <label for="edit_pengawas" class="form-label">Pengawas <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('pengawas') is-invalid @enderror" id="edit_pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off">
+                                    <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div>
+                                    <div class="invalid-feedback" data-field="pengawas">@error('pengawas') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label>
+                                    <input type="date" class="form-input @error('target_penyelesaian') is-invalid @enderror" id="edit_target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required>
+                                    <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_flag_progress" class="form-label">Flag Progress <span class="required">*</span></label>
+                                    <select class="form-select @error('flag_progress') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required>
+                                        <option value="Belum Selesai">Belum Selesai</option>
+                                        <option value="Selesai">Selesai</option>
+                                    </select>
+                                    <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
+                                    <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror" id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}">
+                                    <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -393,6 +449,7 @@
         </div>
     </div>
 
+    {{-- Modal Delete (Tidak perlu diubah) --}}
     <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form id="deleteForm" method="POST">

@@ -44,8 +44,8 @@ class ProduksiCaturwulananController extends Controller
 
         // 3. Kueri Utama
         $query = ProduksiCaturwulanan::query()
-            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%') // Filter jenis
-            ->whereYear('created_at', $selectedTahun); // Filter tahun
+            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%') 
+            ->whereYear('created_at', $selectedTahun); 
 
         // Filter Kegiatan Spesifik (Tab)
         $selectedKegiatan = $request->input('kegiatan', '');
@@ -350,7 +350,6 @@ class ProduksiCaturwulananController extends Controller
         try {
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            // ===== SET HEADER (Baris 1) =====
             $headers = [
                 'nama_kegiatan',
                 'bs_responden',
