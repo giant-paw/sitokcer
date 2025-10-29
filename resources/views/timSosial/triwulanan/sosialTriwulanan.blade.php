@@ -7,6 +7,7 @@
 {{-- STYLES UNTUK AUTOCOMPLETE --}}
 @push('styles')
     <style>
+        /* Style Autocomplete */
         .autocomplete-container { position: relative; }
         .autocomplete-suggestions {
             position: absolute; border: 1px solid var(--border-color, #d1d3e2); border-top: none;
@@ -18,36 +19,26 @@
         .autocomplete-suggestion-item { padding: 8px 12px; cursor: pointer; font-size: var(--font-size-sm, 0.875rem); }
         .autocomplete-suggestion-item:hover,
         .autocomplete-suggestion-item.active { background-color: var(--primary-color, #0d6efd); color: var(--card-bg, #fff); }
-        .modal-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg, 1.5rem); }
-        @media (max-width: 768px) { .modal-grid-2col { grid-template-columns: 1fr; gap: var(--spacing-md, 1rem); } }
+
+        /* [DIUBAH] CSS Grid Kustom dihapus karena tidak dipakai lagi */
+        /* .modal-grid-2col { ... } */
+        /* .modal-column { ... } */
+
+        .modern-modal .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
     </style>
 @endpush
 
 @section('content')
     <div class="container-fluid px-4 py-4">
-<!-- 
-        {{-- Alert Sukses --}}
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-        {{-- Alert Error --}}
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert">
-                {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-         {{-- Alert Warning (dari import sebagian) --}}
-        @if (session('warning'))
-            <div class="alert alert-warning alert-dismissible fade show" role="alert" id="warningAlert">
-                {{ session('warning') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif -->
-        {{-- Alert Import Errors--}}
+{{-- Alert Import Errors--}}
         @if (session('import_errors'))
             <div class="alert alert-warning alert-dismissible fade show" role="alert" id="importErrorAlert">
                 <strong>Beberapa baris gagal diimport:</strong>
@@ -85,7 +76,7 @@
                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                         Ekspor Hasil
                     </button>
-                    <button type="button" class="btn-action btn-danger" data-bs-toggle="modal" data-bs-target="#deleteDataModal" id="bulkDeleteBtn" disabled>
+                    <button type="button" class="btn-action btn-danger" data-bs-target="#deleteDataModal" id="bulkDeleteBtn" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         Hapus Terpilih
                     </button>
@@ -140,7 +131,7 @@
                     </svg>
                 </button>
             </div>
-        @endif
+            @endif
 
             {{-- Table --}}
             <div class="table-wrapper">
@@ -215,27 +206,27 @@
                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                      </div>
                      <div class="modal-body">
-                          <div class="alert alert-info" role="alert">
-                              <small>
-                                  <strong>Format yang didukung:</strong> Excel (.xlsx, .xls)<br>
-                                  <strong>Ukuran maksimal:</strong> 2 MB<br>
-                                  <strong>Catatan:</strong> Pastikan header (snake_case) dan nilai 'flag_progress' (Belum Selesai/Selesai) sesuai template.
-                              </small>
-                          </div>
-                          <div class="mb-3">
-                              <a href="{{ route('sosial.triwulanan.downloadTemplate') }}" class="btn btn-sm btn-secondary">
-                                  <i class="bi bi-download"></i> Download Template Excel
-                              </a>
-                          </div>
-                          <div class="mb-3">
-                              <label for="importFile" class="form-label">Pilih File</label>
-                              <input type="file" class="form-control" id="importFile" name="file" required accept=".xlsx,.xls">
-                              <div class="form-text"> Pastikan format kolom sesuai dengan template </div>
-                          </div>
-                     </div>
+                         <div class="alert alert-info" role="alert">
+                             <small>
+                                 <strong>Format yang didukung:</strong> Excel (.xlsx, .xls)<br>
+                                 <strong>Ukuran maksimal:</strong> 2 MB<br>
+                                 <strong>Catatan:</strong> Pastikan header (snake_case) dan nilai 'flag_progress' (Belum Selesai/Selesai) sesuai template.
+                             </small>
+                         </div>
+                         <div class="mb-3">
+                             <a href="{{ route('sosial.triwulanan.downloadTemplate') }}" class="btn btn-sm btn-secondary">
+                                 <i class="bi bi-download"></i> Download Template Excel
+                             </a>
+                         </div>
+                         <div class="mb-3">
+                             <label for="importFile" class="form-label">Pilih File</label>
+                             <input type="file" class="form-control" id="importFile" name="file" required accept=".xlsx,.xls">
+                             <div class="form-text"> Pastikan format kolom sesuai dengan template </div>
+                         </div>
+                    </div>
                      <div class="modal-footer">
-                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                         <button type="submit" class="btn btn-primary"> <i class="bi bi-upload"></i> Import </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary"> <i class="bi bi-upload"></i> Import </button>
                      </div>
                  </form>
              </div>
@@ -274,8 +265,9 @@
         </div>
     </div>
 
+    {{-- Modal Tambah Data --}}
     <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered"> {{-- Gunakan modal-lg --}}
             <form action="{{ route('sosial.triwulanan.store') }}" method="POST" id="tambahForm">
                 @csrf
                 <div class="modal-content modern-modal">
@@ -284,17 +276,52 @@
                         <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" name="_form" value="tambahForm">
-                         <div class="modal-grid-2col">
-                             <div class="modal-column">
-                                <div class="form-group autocomplete-container"> <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label> <input type="text" class="form-input @error('nama_kegiatan', 'tambahForm') is-invalid @enderror" id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" placeholder="Ketik Seruti-TW..." required autocomplete="off"> <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div> <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan', 'tambahForm') {{ $message }} @enderror</div> </div>
-                                <div class="form-group"> <label for="BS_Responden" class="form-label">BS/Responden <span class="required">*</span></label> <input type="text" class="form-input @error('BS_Responden', 'tambahForm') is-invalid @enderror" id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required> <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden', 'tambahForm') {{ $message }} @enderror</div> </div>
-                                <div class="form-group autocomplete-container"> <label for="pencacah" class="form-label">Pencacah <span class="required">*</span></label> <input type="text" class="form-input @error('pencacah', 'tambahForm') is-invalid @enderror" id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="pencacah-suggestions"></div> <div class="invalid-feedback" data-field="pencacah">@error('pencacah', 'tambahForm') {{ $message }} @enderror</div> </div>
-                                <div class="form-group autocomplete-container"> <label for="pengawas" class="form-label">Pengawas <span class="required">*</span></label> <input type="text" class="form-input @error('pengawas', 'tambahForm') is-invalid @enderror" id="pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="pengawas-suggestions"></div> <div class="invalid-feedback" data-field="pengawas">@error('pengawas', 'tambahForm') {{ $message }} @enderror</div> </div>
-                             </div>
-                             <div class="modal-column">
-                                <div class="form-group"> <label for="target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label> <input type="date" class="form-input @error('target_penyelesaian', 'tambahForm') is-invalid @enderror" id="target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required> <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian', 'tambahForm') {{ $message }} @enderror</div> </div>
-                                <div class="form-group"> <label for="flag_progress" class="form-label">Flag Progress <span class="required">*</span></label>
+                        <input type="hidden" name="_form" value="tambahForm"> {{-- Error Bag --}}
+                         
+                         {{-- **** [DIUBAH] Terapkan layout Bootstrap Grid **** --}}
+                        <div class="form-group autocomplete-container">
+                            <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
+                            <input type="text" class="form-input @error('nama_kegiatan', 'tambahForm') is-invalid @enderror"
+                                id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
+                                placeholder="Ketik Seruti-TW..." required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
+                            <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan', 'tambahForm') {{ $message }} @enderror</div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="BS_Responden" class="form-label">BS/Responden <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('BS_Responden', 'tambahForm') is-invalid @enderror" id="BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
+                                    <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden', 'tambahForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
+                                    <label for="pencacah" class="form-label">Pencacah <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('pencacah', 'tambahForm') is-invalid @enderror" id="pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off">
+                                    <div class="autocomplete-suggestions" id="pencacah-suggestions"></div>
+                                    <div class="invalid-feedback" data-field="pencacah">@error('pencacah', 'tambahForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
+                                    <label for="pengawas" class="form-label">Pengawas <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('pengawas', 'tambahForm') is-invalid @enderror" id="pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off">
+                                    <div class="autocomplete-suggestions" id="pengawas-suggestions"></div>
+                                    <div class="invalid-feedback" data-field="pengawas">@error('pengawas', 'tambahForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label>
+                                    <input type="date" class="form-input @error('target_penyelesaian', 'tambahForm') is-invalid @enderror" id="target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required>
+                                    <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian', 'tambahForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="flag_progress" class="form-label">Flag Progress <span class="required">*</span></label>
                                     <select class="form-select @error('flag_progress', 'tambahForm') is-invalid @enderror" id="flag_progress" name="flag_progress" required>
                                         @php $oldFlag = old('flag_progress', 'Belum Selesai'); @endphp
                                         <option value="Belum Selesai" @selected($oldFlag === 'Belum Selesai')>Belum Selesai</option>
@@ -302,9 +329,15 @@
                                     </select>
                                     <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress', 'tambahForm') {{ $message }} @enderror</div>
                                 </div>
-                                <div class="form-group"> <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label> <input type="date" class="form-input @error('tanggal_pengumpulan', 'tambahForm') is-invalid @enderror" id="tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}"> <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan', 'tambahForm') {{ $message }} @enderror</div> </div>
-                             </div>
-                         </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
+                                    <input type="date" class="form-input @error('tanggal_pengumpulan', 'tambahForm') is-invalid @enderror" id="tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}">
+                                    <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan', 'tambahForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -315,8 +348,9 @@
         </div>
     </div>
 
+    {{-- Modal Edit Data --}}
     <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered"> {{-- Gunakan modal-lg --}}
             <form id="editForm" method="POST">
                 @csrf @method('PUT')
                 <input type="hidden" name="_form" value="editForm"> <input type="hidden" name="edit_id_fallback" id="edit_id_fallback" value="{{ session('edit_id') ?? '' }}">
@@ -326,25 +360,63 @@
                         <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
-                          <div class="modal-grid-2col">
-                              <div class="modal-column">
-                                <div class="form-group autocomplete-container"> <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label> <input type="text" class="form-input @error('nama_kegiatan', 'editForm') is-invalid @enderror" id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div> <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan', 'editForm') {{ $message }} @enderror</div> </div>
-                                <div class="form-group"> <label for="edit_BS_Responden" class="form-label">BS/Responden <span class="required">*</span></label> <input type="text" class="form-input @error('BS_Responden', 'editForm') is-invalid @enderror" id="edit_BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required> <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden', 'editForm') {{ $message }} @enderror</div> </div>
-                                <div class="form-group autocomplete-container"> <label for="edit_pencacah" class="form-label">Pencacah <span class="required">*</span></label> <input type="text" class="form-input @error('pencacah', 'editForm') is-invalid @enderror" id="edit_pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div> <div class="invalid-feedback" data-field="pencacah">@error('pencacah', 'editForm') {{ $message }} @enderror</div> </div>
-                                <div class="form-group autocomplete-container"> <label for="edit_pengawas" class="form-label">Pengawas <span class="required">*</span></label> <input type="text" class="form-input @error('pengawas', 'editForm') is-invalid @enderror" id="edit_pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off"> <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div> <div class="invalid-feedback" data-field="pengawas">@error('pengawas', 'editForm') {{ $message }} @enderror</div> </div>
-                              </div>
-                              <div class="modal-column">
-                                <div class="form-group"> <label for="edit_target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label> <input type="date" class="form-input @error('target_penyelesaian', 'editForm') is-invalid @enderror" id="edit_target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required> <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian', 'editForm') {{ $message }} @enderror</div> </div>
-                                <div class="form-group"> <label for="edit_flag_progress" class="form-label">Flag Progress <span class="required">*</span></label>
+                         {{-- **** [DIUBAH] Terapkan layout Bootstrap Grid **** --}}
+                        <div class="form-group autocomplete-container">
+                            <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
+                            <input type="text" class="form-input @error('nama_kegiatan', 'editForm') is-invalid @enderror" id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off">
+                            <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
+                            <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan', 'editForm') {{ $message }} @enderror</div>
+                        </div>
+
+                        <div class="row g-3">
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_BS_Responden" class="form-label">BS/Responden <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('BS_Responden', 'editForm') is-invalid @enderror" id="edit_BS_Responden" name="BS_Responden" value="{{ old('BS_Responden') }}" required>
+                                    <div class="invalid-feedback" data-field="BS_Responden">@error('BS_Responden', 'editForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
+                                    <label for="edit_pencacah" class="form-label">Pencacah <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('pencacah', 'editForm') is-invalid @enderror" id="edit_pencacah" name="pencacah" value="{{ old('pencacah') }}" required autocomplete="off">
+                                    <div class="autocomplete-suggestions" id="edit-pencacah-suggestions"></div>
+                                    <div class="invalid-feedback" data-field="pencacah">@error('pencacah', 'editForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group autocomplete-container">
+                                    <label for="edit_pengawas" class="form-label">Pengawas <span class="required">*</span></label>
+                                    <input type="text" class="form-input @error('pengawas', 'editForm') is-invalid @enderror" id="edit_pengawas" name="pengawas" value="{{ old('pengawas') }}" required autocomplete="off">
+                                    <div class="autocomplete-suggestions" id="edit-pengawas-suggestions"></div>
+                                    <div class="invalid-feedback" data-field="pengawas">@error('pengawas', 'editForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_target_penyelesaian" class="form-label">Target Penyelesaian <span class="required">*</span></label>
+                                    <input type="date" class="form-input @error('target_penyelesaian', 'editForm') is-invalid @enderror" id="edit_target_penyelesaian" name="target_penyelesaian" value="{{ old('target_penyelesaian') }}" required>
+                                    <div class="invalid-feedback" data-field="target_penyelesaian">@error('target_penyelesaian', 'editForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_flag_progress" class="form-label">Flag Progress <span class="required">*</span></label>
                                     <select class="form-select @error('flag_progress', 'editForm') is-invalid @enderror" id="edit_flag_progress" name="flag_progress" required>
                                          <option value="Belum Selesai">Belum Selesai</option>
                                          <option value="Selesai">Selesai</option>
-                                     </select>
+                                      </select>
                                     <div class="invalid-feedback" data-field="flag_progress">@error('flag_progress', 'editForm') {{ $message }} @enderror</div>
                                 </div>
-                                <div class="form-group"> <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label> <input type="date" class="form-input @error('tanggal_pengumpulan', 'editForm') is-invalid @enderror" id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}"> <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan', 'editForm') {{ $message }} @enderror</div> </div>
-                              </div>
-                          </div>
+                            </div>
+                           <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label>
+                                    <input type="date" class="form-input @error('tanggal_pengumpulan', 'editForm') is-invalid @enderror" id="edit_tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}">
+                                    <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan', 'editForm') {{ $message }} @enderror</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -355,6 +427,7 @@
         </div>
     </div>
 
+    {{-- Modal Delete (Tidak perlu diubah) --}}
     <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form id="deleteForm" method="POST">
@@ -366,7 +439,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="delete-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> </div>
-                        <p class="delete-text" id="deleteModalBody">Hapus data ini?</p>
+                        <p class="delete-text" id="deleteModalBody">Hapus data {{ strtoupper($jenisKegiatan) }} ini?</p> {{-- Pesan disesuaikan --}}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
