@@ -99,6 +99,7 @@
     <div class="row g-4">
         {{-- Kegiatan Tahunan --}}
         <div class="col-lg-4">
+            <a href="{{ route('dashboard.distribusi.tahunan') }}" class="card-clickable">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center mb-3">
@@ -152,10 +153,12 @@
                     </div>
                 </div>
             </div>
+            </a>
         </div>
 
         {{-- Kegiatan Triwulanan --}}
         <div class="col-lg-4">
+            <a href="{{ route('dashboard.distribusi.triwulanan') }}" class="card-clickable">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center mb-3">
@@ -209,10 +212,12 @@
                     </div>
                 </div>
             </div>
+            </a>
         </div>
 
         {{-- Kegiatan Bulanan --}}
         <div class="col-lg-4">
+            <a href="{{ route('dashboard.distribusi.bulanan') }}" class="card-clickable">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center mb-3">
@@ -266,18 +271,27 @@
                     </div>
                 </div>
             </div>
+            </a>
         </div>
     </div>
 </div>
 
 <style>
-    .card {
+    /* Menargetkan .card di dalam link */
+    .card-clickable .card {
         transition: all 0.3s ease;
     }
     
-    .card:hover {
+    /* Efek hover pada link akan memicu animasi pada card */
+    .card-clickable:hover .card {
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(0,0,0,0.08) !important;
+    }
+    
+    /* Menghilangkan garis bawah dan warna biru standar link */
+    .card-clickable, .card-clickable:hover {
+        text-decoration: none;
+        color: inherit; /* Mewarisi warna teks dari parent */
     }
     
     .bg-light {

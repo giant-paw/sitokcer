@@ -30,34 +30,62 @@ class DistribusiTriwulananController extends Controller
 
         // 2. Logika Filter Tahun (Konsisten)
         $selectedTahun = $request->input('tahun', date('Y'));
+        
+        // Query ini bisa tetap sama, karena hanya mengambil daftar tahun
         $availableTahun = DistribusiTriwulanan::query()
+             // Kita filter berdasarkan prefix nama_kegiatan lokal,
+             // ini akan mencakup data bersih dan kotor
             ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
             ->select(DB::raw('YEAR(created_at) as tahun'))
             ->distinct()->whereNotNull('created_at')->orderBy('tahun', 'desc')
             ->pluck('tahun')->toArray();
+            
         if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
             array_unshift($availableTahun, date('Y'));
         }
 
-        // 3. Kueri Utama
+        // 3. Kueri Utama [PERBAIKAN UTAMA DI SINI]
         $query = DistribusiTriwulanan::query()
-            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%') // Filter jenis
-            ->whereYear('created_at', $selectedTahun); // Filter tahun
+            // Gunakan LEFT JOIN agar data yang 'master_kegiatan_id' nya NULL tetap muncul
+            ->leftJoin('master_kegiatan', 'distribusi_triwulanan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+            
+            // Filter jenis kegiatan: Cek di master JIKA ADA, atau cek di tabel lokal JIKA NULL
+            ->where(function($q) use ($prefixKegiatan) {
+                // 1. Cek di tabel master (untuk data bersih)
+                $q->where('master_kegiatan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+                  // 2. ATAU cek di tabel lokal jika ID-nya NULL (untuk data kotor)
+                  ->orWhere(function($sub) use ($prefixKegiatan) {
+                      $sub->whereNull('distribusi_triwulanan.master_kegiatan_id')
+                          ->where('distribusi_triwulanan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%');
+                  });
+            })
+            ->whereYear('distribusi_triwulanan.created_at', $selectedTahun); // Filter tahun
 
-        // Filter Kegiatan Spesifik (Tab)
+        // Filter Kegiatan Spesifik (Tab) [PERBAIKAN]
         $selectedKegiatan = $request->input('kegiatan', '');
         if ($selectedKegiatan !== '') {
-            $query->where('nama_kegiatan', $selectedKegiatan);
+            // $selectedKegiatan bisa berupa ID (data bersih) atau Teks (data kotor)
+            if (is_numeric($selectedKegiatan)) {
+                // Jika ID (data bersih), filter berdasarkan ID
+                $query->where('distribusi_triwulanan.master_kegiatan_id', $selectedKegiatan);
+            } else {
+                // Jika Teks (data kotor), filter berdasarkan nama & pastikan ID-nya NULL
+                $query->whereNull('distribusi_triwulanan.master_kegiatan_id')
+                      ->where('distribusi_triwulanan.nama_kegiatan', $selectedKegiatan);
+            }
         }
 
-        // Filter Pencarian
+        // Filter Pencarian [PERBAIKAN]
         $search = $request->input('search', '');
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
-                $q->where('BS_Responden', 'like', "%{$search}%")
-                    ->orWhere('pencacah', 'like', "%{$search}%")
-                    ->orWhere('pengawas', 'like', "%{$search}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$search}%");
+                // Tentukan tabel dengan jelas untuk menghindari "ambiguous column"
+                $q->where('distribusi_triwulanan.BS_Responden', 'like', "%{$search}%")
+                  ->orWhere('distribusi_triwulanan.pencacah', 'like', "%{$search}%")
+                  ->orWhere('distribusi_triwulanan.pengawas', 'like', "%{$search}%")
+                  // Cari di kedua kolom nama (master untuk data bersih, lokal untuk data kotor)
+                  ->orWhere('master_kegiatan.nama_kegiatan', 'like', "%{$search}%")
+                  ->orWhere('distribusi_triwulanan.nama_kegiatan', 'like', "%{$search}%");
             });
         }
 
@@ -68,26 +96,52 @@ class DistribusiTriwulananController extends Controller
             $perPage = $total > 0 ? $total : 20;
         }
 
-        // 5. Ambil Data
-        $listData = $query->latest('id_distribusi_triwulanan')->paginate($perPage)->withQueryString();
+        // 5. Ambil Data [PERBAIKAN]
+        $listData = $query
+            // PENTING: Pilih kolom dari tabel utama untuk menghindari data 'created_at' yg tumpang tindih
+            ->select('distribusi_triwulanan.*') 
+            // Eager load relasi (akan null jika ID-nya null, tapi ini bagus)
+            ->with('masterKegiatan') 
+            // Tentukan tabel untuk 'latest'
+            ->latest('distribusi_triwulanan.id_distribusi_triwulanan') 
+            ->paginate($perPage)
+            ->withQueryString();
 
-        // 6. Logika Hitung Tab
+        // 6. Logika Hitung Tab (Dashboard) [PERBAIKAN BESAR]
         $kegiatanCounts = DistribusiTriwulanan::query()
-            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
-            ->whereYear('created_at', $selectedTahun)
-            ->select('nama_kegiatan', DB::raw('count(*) as total'))
-            ->groupBy('nama_kegiatan')
-            ->orderBy('nama_kegiatan')
+            ->leftJoin('master_kegiatan', 'distribusi_triwulanan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+            // Gunakan filter WHERE yang sama persis dengan $query utama
+            ->where(function($q) use ($prefixKegiatan) {
+                $q->where('master_kegiatan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+                  ->orWhere(function($sub) use ($prefixKegiatan) {
+                      $sub->whereNull('distribusi_triwulanan.master_kegiatan_id')
+                          ->where('distribusi_triwulanan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%');
+                  });
+            })
+            ->whereYear('distribusi_triwulanan.created_at', $selectedTahun)
+            ->select(
+                // "Ambil ID master JIKA ADA, kalau tidak, ambil Teks ngawurnya"
+                // Ini akan jadi 'value' di dropdown
+                DB::raw('COALESCE(master_kegiatan.id_master_kegiatan, distribusi_triwulanan.nama_kegiatan) as filter_value'),
+                
+                // "Ambil NAMA master JIKA ADA, kalau tidak, ambil Teks ngawurnya"
+                // Ini akan jadi 'nama' di dropdown
+                DB::raw('COALESCE(master_kegiatan.nama_kegiatan, distribusi_triwulanan.nama_kegiatan) as display_name'),
+                
+                DB::raw('count(distribusi_triwulanan.id_distribusi_triwulanan) as total')
+            )
+            ->groupBy('filter_value', 'display_name')
+            ->orderBy('display_name')
             ->get();
 
-        // Ambil master kegiatan hanya untuk jenis yang relevan
+        // Ambil master kegiatan hanya untuk jenis yang relevan (ini masih oke)
         $masterKegiatanList = MasterKegiatan::where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
                                             ->orderBy('nama_kegiatan')->get();
 
         // 7. Kirim ke View
         return view('timDistribusi.distribusiTriwulanan', compact(
             'listData',
-            'kegiatanCounts',
+            'kegiatanCounts', // <-- $kegiatanCounts sekarang berisi data bersih & kotor
             'jenisKegiatan',
             'masterKegiatanList',
             'availableTahun',
@@ -96,26 +150,34 @@ class DistribusiTriwulananController extends Controller
             'search'
         ));
     }
-
-    /**
-     * Simpan data baru (AJAX ready).
-     */
+    
     public function store(Request $request)
     {
+        // --- [PERUBAHAN UTAMA DI SINI] ---
         $baseRules = [
-            'nama_kegiatan'       => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
+            // 1. Validasi utama sekarang berdasarkan ID, bukan Teks
+            'master_kegiatan_id' => 'required|integer|exists:master_kegiatan,id_master_kegiatan', 
+            
+            // 2. 'nama_kegiatan' tetap wajib, tapi tidak perlu 'exists' lagi
+            'nama_kegiatan'       => 'required|string|max:255',
+            
             'BS_Responden'        => 'required|string|max:255',
+            
             'pencacah'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'pengawas'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            
             'target_penyelesaian' => 'required|date',
-            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], // Sesuaikan opsi
+            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], 
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-         $customMessages = [
-            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar.',
-            'pencacah.exists'      => 'Nama pencacah tidak terdaftar.',
-            'pengawas.exists'      => 'Nama pengawas tidak terdaftar.',
-         ];
+         
+        $customMessages = [
+            'master_kegiatan_id.required' => 'Kegiatan wajib dipilih dari daftar.',
+            'master_kegiatan_id.exists'   => 'ID Kegiatan tidak terdaftar di master.',
+            'pencacah.exists'             => 'Nama pencacah tidak terdaftar di master.',
+            'pengawas.exists'             => 'Nama pengawas tidak terdaftar di master.',
+        ];
+
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
@@ -125,27 +187,31 @@ class DistribusiTriwulananController extends Controller
             return back()->withErrors($validator)->withInput()->with('error_modal', 'tambahDataModal');
         }
 
+        // $validatedData sekarang akan berisi 'master_kegiatan_id'
         $validatedData = $validator->validated();
+
+        // Tambahkan 'tahun_kegiatan' (jika masih dipakai)
         if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try { 
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; 
+            } catch (\Exception $e) {
+                // Abaikan jika parsing gagal
+            }
         }
 
+        // Buat data baru. Ini akan berhasil jika 'master_kegiatan_id' ada di $fillable Model
         DistribusiTriwulanan::create($validatedData);
 
-        // ===== PERBAIKAN: SET FLASH MESSAGE SEBELUM RETURN =====
+        // Kirim pesan sukses
         session()->flash('success', 'Data berhasil ditambahkan!');
         session()->flash('auto_hide', true);
-        // ========================================================
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil ditambahkan!']);
         }
-        return back(); // Flash sudah di-set di atas
+        return back();
     }
 
-    /**
-     * Ambil data untuk modal edit ($id manual + format tanggal).
-     */
     public function edit($id)
     {
         $distribusi_triwulanan = DistribusiTriwulanan::findOrFail($id);
@@ -166,8 +232,9 @@ class DistribusiTriwulananController extends Controller
     public function update(Request $request, $id)
     {
         $distribusi_triwulanan = DistribusiTriwulanan::findOrFail($id);
-        $baseRules = [ // Sama seperti store, tambahkan exists
-            'nama_kegiatan'       => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
+        $baseRules = [ 
+            'master_kegiatan_id' => 'required|integer|exists:master_kegiatan,id_master_kegiatan',
+            'nama_kegiatan'      => 'required|string|max:255',
             'BS_Responden'        => 'required|string|max:255',
             'pencacah'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'pengawas'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
@@ -176,7 +243,8 @@ class DistribusiTriwulananController extends Controller
             'tanggal_pengumpulan' => 'nullable|date',
         ];
          $customMessages = [
-            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar.',
+            'master_kegiatan_id.exists' => 'ID Kegiatan tidak terdaftar.',
+            'master_kegiatan_id.required' => 'Silakan pilih kegiatan dari daftar.',
             'pencacah.exists'      => 'Nama pencacah tidak terdaftar.',
             'pengawas.exists'      => 'Nama pengawas tidak terdaftar.',
          ];
@@ -270,7 +338,8 @@ class DistribusiTriwulananController extends Controller
          $data = $kegiatanQuery
              ->where('nama_kegiatan', 'LIKE', "%{$query}%")
              ->limit(10)
-             ->pluck('nama_kegiatan');
+             ->select('id_master_kegiatan', 'nama_kegiatan') 
+            ->get();
          return response()->json($data);
      }
 

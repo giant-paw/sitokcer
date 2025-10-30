@@ -19,7 +19,8 @@ class MasterKegiatan extends Model
     protected $fillable = [
         'nama_kegiatan',
         'deskripsi',
-        'tim'
+        'tim',
+        'target'
     ];
 
     public function distribusiTahunan()

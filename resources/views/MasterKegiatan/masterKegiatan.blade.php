@@ -23,10 +23,19 @@
             width: 35%;
             /* Beri ruang lebih besar untuk deskripsi */
         }
+        
+        /* [PERBAIKAN] Sesuaikan kolom 4 & 5 (Tim & Target) */
+        .data-table th:nth-child(4) {
+            width: 15%; /* Tim */
+        }
+        .data-table th:nth-child(5) {
+            width: 10%; /* Target */
+        }
+
 
         /* Ini penting agar teks deskripsi yang panjang 
-               bisa turun baris (wrap) dan tidak merusak tabel
-            */
+           bisa turun baris (wrap) dan tidak merusak tabel
+        */
         .data-table td:nth-child(3) {
             white-space: normal;
             word-wrap: break-word;
@@ -129,6 +138,26 @@
                         </svg> </button>
                 </div>
             @endif
+
+            {{-- [PERBAIKAN "Tidak Bisa Destroy"] Tambahkan alert untuk session('error') --}}
+            @if (session('error'))
+                <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert">
+                    <div class="alert-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" 
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg> </div>
+                    <span>{{ session('error') }}</span>
+                    <button type="button" class="alert-close" data-bs-dismiss="alert"> <svg xmlns="http://www.w3.org/2000/svg"
+                            width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg> </button>
+                </div>
+            @endif
+            
             @if ($errors->any() && !session('error_modal'))
                 <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert"> <strong>Error!</strong> Periksa
                     form.<button type="button" class="btn-close" data-bs-dismiss="alert"></button> </div>
@@ -147,6 +176,7 @@
                                 <th>Nama Kegiatan</th>
                                 <th>Deskripsi</th>
                                 <th>Tim</th> {{-- [UBAH] Ganti nama header --}}
+                                <th>Target</th> {{-- [TAMBAH] Kolom Target --}}
                                 <th class="th-action">Aksi</th>
                             </tr>
                         </thead>
@@ -159,6 +189,7 @@
                                     <td class="user-name">{{ $k->nama_kegiatan }}</td>
                                     <td class="text-secondary">{{ $k->deskripsi }}</td>
                                     <td class="text-secondary">{{ $k->tim }}</td> {{-- Kolom data ini tetap --}}
+                                    <td class="text-secondary">{{ $k->target ?? 0 }}</td> {{-- [TAMBAH] Data Target --}}
                                     <td class="td-action">
                                         {{-- 11. Gunakan .action-buttons & .btn-icon --}}
                                         <div class="action-buttons">
@@ -189,7 +220,7 @@
                             @empty
                                 {{-- 12. Gunakan .empty-state --}}
                                 <tr>
-                                    <td colspan="5" class="empty-state"> {{-- Colspan 5 sudah benar --}}
+                                    <td colspan="6" class="empty-state"> {{-- [PERBAIKAN] Colspan 6 --}}
                                         <div class="empty-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
                                                 stroke-linecap="round" stroke-linejoin="round">
@@ -269,6 +300,14 @@
                             @error('tim') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
+                        {{-- [TAMBAH] Form Group Target --}}
+                        <div class="form-group">
+                            <label for="target" class="form-label">Target</label>
+                            <input type="number" class="form-input @error('target') is-invalid @enderror"
+                                   id="target" name="target" value="{{ old('target', 0) }}" min="0">
+                            @error('target') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+
                         <div class="form-group">
                             <label for="deskripsi" class="form-label">Deskripsi</label>
                             <textarea class="form-input @error('deskripsi') is-invalid @enderror" id="deskripsi"
@@ -336,6 +375,15 @@
                             </select>
                             @error('tim', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
+
+                        {{-- [TAMBAH] Form Group Edit Target --}}
+                        <div class="form-group">
+                            <label for="edit_target" class="form-label">Target</label>
+                            <input type="number" class="form-input @error('target', 'edit_error') is-invalid @enderror"
+                                   id="edit_target" name="target" min="0">
+                            @error('target', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+
 
                         <div class="form-group">
                             <label for="edit_deskripsi" class="form-label">Deskripsi</label>
@@ -417,6 +465,7 @@
                 .then(data => {
                     document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
                     document.getElementById('edit_tim').value = data.tim || ''; // Ini tetap sama, JS akan mencocokkan valuenya
+                    document.getElementById('edit_target').value = data.target ?? 0; // <-- [TAMBAH] Isi data target
                     document.getElementById('edit_deskripsi').value = data.deskripsi || '';
                     editForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
                 })

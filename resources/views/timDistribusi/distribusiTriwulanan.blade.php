@@ -104,9 +104,10 @@
                         <select class="filter-select" id="kegiatanSelect" name="kegiatan">
                             <option value="">Semua Kegiatan</option>
                             @foreach ($kegiatanCounts ?? [] as $kegiatan)
-                                <option value="{{ $kegiatan->nama_kegiatan }}"
-                                    {{ request('kegiatan') == $kegiatan->nama_kegiatan ? 'selected' : '' }}>
-                                    {{ $kegiatan->nama_kegiatan }} ({{ $kegiatan->total }})
+                                <option value="{{ $kegiatan->filter_value }}" 
+                                    {{ request('kegiatan') == $kegiatan->filter_value ? 'selected' : '' }}>
+                                    
+                                    {{ $kegiatan->display_name }} ({{ $kegiatan->total }})
                                 </option>
                             @endforeach
                         </select>
@@ -122,8 +123,17 @@
                     <form action="{{ route('tim-distribusi.triwulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET" class="search-form">
                         <input type="hidden" name="tahun" value="{{ $selectedTahun ?? date('Y') }}">
                         @if(!empty($selectedKegiatan)) <input type="hidden" name="kegiatan" value="{{ $selectedKegiatan }}"> @endif
-                        <input type="text" class="search-input" placeholder="Cari..." name="search" value="{{ $search ?? '' }}">
-                        <button class="search-btn" type="submit"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg> </button>
+                        
+                        <input type="text" 
+                            class="search-input" 
+                            id="searchInput" {{-- <-- TAMBAHKAN INI --}}
+                            placeholder="Cari..." 
+                            name="search" 
+                            value="{{ $search ?? '' }}">
+                            
+                        <button class="search-btn" type="submit"> 
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg> 
+                        </button>
                     </form>
                 </div>
             </div>
@@ -300,14 +310,17 @@
                     <div class="modal-body">
                         <input type="hidden" name="_form" value="tambahForm">
 
-                         {{-- **** [DIUBAH] Terapkan layout Bootstrap Grid **** --}}
                         <div class="form-group autocomplete-container">
                             <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
                             <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror"
                                 id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
                                 placeholder="Ketik {{ strtoupper($jenisKegiatan) }}-TW..." required autocomplete="off">
+
+                            <input type="hidden" id="master_kegiatan_id" name="master_kegiatan_id" value="{{ old('master_kegiatan_id') }}">
                             <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
+
                             <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
+                            <div class="invalid-feedback" data-field="master_kegiatan_id">@error('master_kegiatan_id') {{ $message }} @enderror</div>
                         </div>
 
                         <div class="row g-3">
@@ -382,12 +395,17 @@
                         <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
-                         {{-- **** [DIUBAH] Terapkan layout Bootstrap Grid **** --}}
                         <div class="form-group autocomplete-container">
                             <label for="edit_nama_kegiatan" class="form-label">Nama Kegiatan <span class="required">*</span></label>
-                            <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror" id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off">
+                            
+                            <input type="text" class="form-input @error('nama_kegiatan') is-invalid @enderror" 
+                                id="edit_nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required autocomplete="off">
+                            
+                            <input type="hidden" id="edit_master_kegiatan_id" name="master_kegiatan_id" value="{{ old('master_kegiatan_id') }}">
+                            
                             <div class="autocomplete-suggestions" id="edit-kegiatan-suggestions"></div>
                             <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
+                            <div class="invalid-feedback" data-field="master_kegiatan_id">@error('master_kegiatan_id') {{ $message }} @enderror</div>
                         </div>
 
                         <div class="row g-3">
@@ -476,74 +494,312 @@
 
 @push('scripts')
 <script>
-    
-    function initAutocomplete(inputId, suggestionsId, searchUrl) { const input = document.getElementById(inputId); if (!input || !searchUrl) return; const suggestionsContainer = document.getElementById(suggestionsId); let debounceTimer; let activeSuggestionIndex = -1; input.addEventListener('input', function() { const query = this.value; clearTimeout(debounceTimer); if (query.length < 1) { if (suggestionsContainer) suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; return; } debounceTimer = setTimeout(() => { const finalSearchUrl = `${searchUrl}&query=${encodeURIComponent(query)}`; fetch(finalSearchUrl).then(response => { if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } return response.json(); }).then(data => { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; if (Array.isArray(data)) { data.forEach((item, index) => { const div = document.createElement('div'); div.textContent = item; div.classList.add('autocomplete-suggestion-item'); div.onclick = () => { input.value = item; suggestionsContainer.innerHTML = ''; }; div.onmouseover = () => { document.querySelectorAll(`#${suggestionsId} .autocomplete-suggestion-item`).forEach(el => el.classList.remove('active')); div.classList.add('active'); activeSuggestionIndex = index; }; suggestionsContainer.appendChild(div); }); } else { console.error('Autocomplete data is not an array:', data); } }).catch(error => console.error('Autocomplete error:', error)); }, 300); }); input.addEventListener('keydown', function(e) { const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item'); if (suggestions.length === 0) return; if (e.key === 'ArrowDown') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'ArrowUp') { e.preventDefault(); activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length; updateActiveSuggestion(suggestions, activeSuggestionIndex); } else if (e.key === 'Enter') { if (activeSuggestionIndex > -1) { e.preventDefault(); input.value = suggestions[activeSuggestionIndex].textContent; suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } } else if (e.key === 'Escape') { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); function updateActiveSuggestion(suggestions, index) { suggestions.forEach(el => el.classList.remove('active')); if (suggestions[index]) suggestions[index].classList.add('active'); } document.addEventListener('click', (e) => { if (e.target.id !== inputId && suggestionsContainer) { suggestionsContainer.innerHTML = ''; activeSuggestionIndex = -1; } }); }
+    // --- [PERBAIKAN 404] ---
+    // Gunakan helper url() dari Blade untuk membuat URL yang benar
+    const distribusiTriwulananBaseUrl = '{{ url("tim-distribusi/triwulanan") }}';
+    const currentJenisKegiatan = '{{ $jenisKegiatan }}';
 
-    // --- URL Basis BARU ---
-    const distribusiTriwulananBaseUrl = '/tim-distribusi/triwulanan'; // Sesuaikan
-    const currentJenisKegiatan = '{{ $jenisKegiatan }}'; // Ambil jenis kegiatan
+    /**
+     * [VERSI FINAL] Autocomplete "Pintar"
+     * - Bisa menangani data Objek (kegiatan) dan String (petugas)
+     * - hiddenInput dideklarasikan DENGAN BENAR di dalamnya.
+     */
+    function initAutocomplete(inputId, suggestionsId, searchUrl) {
+        const input = document.getElementById(inputId);
+        if (!input || !searchUrl) return;
 
-    /** Edit Data (Sudah Benar) */
+        const suggestionsContainer = document.getElementById(suggestionsId);
+
+        // [PERBAIKAN] Deklarasi hiddenInput ada DI DALAM fungsi
+        let hiddenInput = null;
+        if (inputId === 'nama_kegiatan' || inputId === 'edit_nama_kegiatan') {
+            const hiddenInputId = (inputId === 'edit_nama_kegiatan') ? 'edit_master_kegiatan_id' : 'master_kegiatan_id';
+            hiddenInput = document.getElementById(hiddenInputId);
+        }
+        
+        let debounceTimer;
+        let activeSuggestionIndex = -1;
+
+        input.addEventListener('input', function() {
+            const query = this.value;
+            clearTimeout(debounceTimer);
+
+            if (query.length < 1) {
+                if (suggestionsContainer) suggestionsContainer.innerHTML = '';
+                if (hiddenInput) hiddenInput.value = ''; // Kosongkan ID
+                activeSuggestionIndex = -1;
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                const finalSearchUrl = `${searchUrl}&query=${encodeURIComponent(query)}`;
+                
+                fetch(finalSearchUrl)
+                    .then(response => {
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        suggestionsContainer.innerHTML = '';
+                        activeSuggestionIndex = -1;
+                        
+                        if (Array.isArray(data)) {
+                            data.forEach((item, index) => {
+                                let textContent;
+                                let idContent = null;
+
+                                // [LOGIKA PINTAR] Cek tipe data
+                                if (typeof item === 'object' && item !== null) {
+                                    // Ini OBJEK (dari searchKegiatan)
+                                    textContent = item.nama_kegiatan;
+                                    idContent = item.id_master_kegiatan;
+                                } else if (typeof item === 'string') {
+                                    // Ini STRING (dari searchPetugas)
+                                    textContent = item;
+                                } else {
+                                    return; // Format tidak dikenal
+                                }
+
+                                const div = document.createElement('div');
+                                div.textContent = textContent;
+                                div.classList.add('autocomplete-suggestion-item');
+                                
+                                if (idContent !== null) {
+                                    div.setAttribute('data-id', idContent);
+                                }
+
+                                div.onclick = () => {
+                                    input.value = textContent;
+                                    if (idContent !== null && hiddenInput) {
+                                        hiddenInput.value = idContent;
+                                    }
+                                    suggestionsContainer.innerHTML = '';
+                                };
+                                
+                                div.onmouseover = () => {
+                                    document.querySelectorAll(`#${suggestionsId} .autocomplete-suggestion-item`).forEach(el => el.classList.remove('active'));
+                                    div.classList.add('active');
+                                    activeSuggestionIndex = index;
+                                };
+                                suggestionsContainer.appendChild(div);
+                            });
+                        } else {
+                            console.error('Autocomplete data is not an array:', data);
+                        }
+                    })
+                    .catch(error => console.error('Autocomplete error:', error));
+            }, 300);
+        });
+
+        input.addEventListener('keydown', function(e) {
+            const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion-item');
+            if (suggestions.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeSuggestionIndex = (activeSuggestionIndex + 1) % suggestions.length;
+                updateActiveSuggestion(suggestions, activeSuggestionIndex);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeSuggestionIndex = (activeSuggestionIndex - 1 + suggestions.length) % suggestions.length;
+                updateActiveSuggestion(suggestions, activeSuggestionIndex);
+            } else if (e.key === 'Enter') {
+                if (activeSuggestionIndex > -1) {
+                    e.preventDefault();
+                    const selectedSuggestion = suggestions[activeSuggestionIndex];
+                    
+                    const textContent = selectedSuggestion.textContent;
+                    const idContent = selectedSuggestion.getAttribute('data-id'); // null jika petugas
+
+                    input.value = textContent;
+                    if (idContent !== null && hiddenInput) {
+                        hiddenInput.value = idContent;
+                    }
+
+                    suggestionsContainer.innerHTML = '';
+                    activeSuggestionIndex = -1;
+                }
+            } else if (e.key === 'Escape') {
+                suggestionsContainer.innerHTML = '';
+                activeSuggestionIndex = -1;
+            }
+        });
+
+        function updateActiveSuggestion(suggestions, index) {
+            suggestions.forEach(el => el.classList.remove('active'));
+            if (suggestions[index]) suggestions[index].classList.add('active');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.id !== inputId && suggestionsContainer) {
+                suggestionsContainer.innerHTML = '';
+                activeSuggestionIndex = -1;
+            }
+        });
+    }
+
+
+    /**
+     * [FUNGSI EDIT DATA]
+     * - Mengisi data ke modal Edit, termasuk hidden input
+     */
     function editData(id) {
-        // ... (fungsi editData sudah benar dari jawaban sebelumnya) ...
-        const editModalEl = document.getElementById('editDataModal'); if (!editModalEl) return;
+        const editModalEl = document.getElementById('editDataModal');
+        if (!editModalEl) return;
+        
         const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
         const editForm = document.getElementById('editForm');
-        editForm.action = `${distribusiTriwulananBaseUrl}/${id}`;
-        clearFormErrors(editForm);
+        
+        // [PERBAIKAN 404] Menggunakan URL Basis yang benar
+        editForm.action = `${distribusiTriwulananBaseUrl}/${id}`; 
+
+        if (typeof clearFormErrors === 'function') {
+            clearFormErrors(editForm);
+        }
+
         const fallbackInput = editForm.querySelector('#edit_id_fallback');
-        if(fallbackInput) fallbackInput.value = id;
+        if (fallbackInput) fallbackInput.value = id;
+
+        // [PERBAIKAN 404] Menggunakan URL Basis yang benar
         fetch(`${distribusiTriwulananBaseUrl}/${id}/edit`)
-            .then(response => { if (!response.ok) { return response.text().then(text => { throw new Error(text || 'Data tidak ditemukan'); }); } return response.json(); })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Data tidak ditemukan');
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
+                
+                // [PENTING] Mengisi hidden input ID
+                document.getElementById('edit_master_kegiatan_id').value = data.master_kegiatan_id || '';
+                
                 document.getElementById('edit_BS_Responden').value = data.BS_Responden || '';
                 document.getElementById('edit_pencacah').value = data.pencacah || '';
                 document.getElementById('edit_pengawas').value = data.pengawas || '';
-                document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian || ''; // Sudah Y-m-d
+                document.getElementById('edit_target_penyelesaian').value = data.target_penyelesaian || ''; // Y-m-d
                 document.getElementById('edit_flag_progress').value = data.flag_progress || 'Belum Selesai';
-                document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan || ''; // Sudah Y-m-d
+                document.getElementById('edit_tanggal_pengumpulan').value = data.tanggal_pengumpulan || ''; // Y-m-d
+
                 editModal.show();
             })
-            .catch(error => { console.error("Error loading edit data:", error); alert('Tidak dapat memuat data. Error: ' + error.message); });
+            .catch(error => {
+                console.error("Error loading edit data:", error);
+                alert('Tidak dapat memuat data. Error: ' + error.message);
+            });
     }
 
-    /** Delete Data (Sudah Benar) */
+    /**
+     * [FUNGSI HAPUS DATA]
+     * - Mengatur form action untuk hapus
+     */
     function deleteData(id) {
-        // ... (fungsi deleteData sudah benar dari jawaban sebelumnya) ...
-        const deleteModalEl = document.getElementById('deleteDataModal'); if (!deleteModalEl) return;
+        const deleteModalEl = document.getElementById('deleteDataModal');
+        if (!deleteModalEl) return;
         const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
         const deleteForm = document.getElementById('deleteForm');
-        deleteForm.action = `${distribusiTriwulananBaseUrl}/${id}`;
-        let methodInput = deleteForm.querySelector('input[name="_method"]'); if (!methodInput) { methodInput = document.createElement('input'); methodInput.type = 'hidden'; methodInput.name = '_method'; deleteForm.appendChild(methodInput); } methodInput.value = 'DELETE';
+        
+        // [PERBAIKAN 404] Menggunakan URL Basis yang benar
+        deleteForm.action = `${distribusiTriwulananBaseUrl}/${id}`; 
+        
+        let methodInput = deleteForm.querySelector('input[name="_method"]');
+        if (!methodInput) {
+            methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            deleteForm.appendChild(methodInput);
+        }
+        methodInput.value = 'DELETE';
+        
         deleteForm.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
+        
         document.getElementById('deleteModalBody').innerText = `Apakah Anda yakin ingin menghapus data ${currentJenisKegiatan.toUpperCase()} ini?`;
+        
         const confirmBtn = document.getElementById('confirmDeleteButton');
         const newConfirmBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-        newConfirmBtn.addEventListener('click', (e) => { e.preventDefault(); deleteForm.submit(); });
+        
+        newConfirmBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            deleteForm.submit(); 
+        });
+        
         deleteModal.show();
     }
 
-    /** AJAX Helpers (Sudah Benar) */
-    // ... (fungsi clearFormErrors, showFormErrors, handleFormSubmitAjax tidak perlu diubah) ...
-     function clearFormErrors(form) { form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid')); form.querySelectorAll('.invalid-feedback[data-field]').forEach(el => el.textContent = ''); }
-     function showFormErrors(form, errors) { for (const [field, messages] of Object.entries(errors)) { const input = form.querySelector(`[name="${field}"]`); const errorDiv = form.querySelector(`.invalid-feedback[data-field="${field}"]`); if (input) input.classList.add('is-invalid'); if (errorDiv) errorDiv.textContent = messages[0]; } }
-     async function handleFormSubmitAjax(event, form, modalInstance) { event.preventDefault(); const sb = form.querySelector('button[type="submit"]'); const sp = sb.querySelector('.spinner-border'); sb.disabled = true; if (sp) sp.classList.remove('d-none'); clearFormErrors(form); try { const fd = new FormData(form); const response = await fetch(form.action, { method: form.method, body: fd, headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': fd.get('_token') } }); const data = await response.json(); if (!response.ok) { if (response.status === 422 && data.errors) { showFormErrors(form, data.errors); } else { alert(data.message || 'Error.'); } } else { modalInstance.hide(); location.reload(); } } catch (error) { console.error('Fetch error:', error); alert('Tidak terhubung.'); } finally { sb.disabled = false; if (sp) sp.classList.add('d-none'); } }
+    /* --- AJAX Helper Functions (PENTING!) --- */
+    function clearFormErrors(form) {
+        form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        form.querySelectorAll('.invalid-feedback[data-field]').forEach(el => el.textContent = '');
+    }
 
-    /** DOM Ready */
+    function showFormErrors(form, errors) {
+        for (const [field, messages] of Object.entries(errors)) {
+            const input = form.querySelector(`[name="${field}"]`);
+            const errorDiv = form.querySelector(`.invalid-feedback[data-field="${field}"]`);
+            if (input) input.classList.add('is-invalid');
+            if (errorDiv) errorDiv.textContent = messages[0];
+            
+            // Fallback untuk 'master_kegiatan_id' agar errornya muncul di 'nama_kegiatan'
+            if (field === 'master_kegiatan_id' && !errorDiv) {
+                 const visibleErrorDiv = form.querySelector(`.invalid-feedback[data-field="nama_kegiatan"]`);
+                 if(visibleErrorDiv) visibleErrorDiv.textContent = messages[0];
+            }
+        }
+    }
+
+    async function handleFormSubmitAjax(event, form, modalInstance) {
+        event.preventDefault();
+        const sb = form.querySelector('button[type="submit"]');
+        const sp = sb.querySelector('.spinner-border');
+        sb.disabled = true;
+        if (sp) sp.classList.remove('d-none');
+        clearFormErrors(form);
+        try {
+            const fd = new FormData(form);
+            const response = await fetch(form.action, {
+                method: form.method,
+                body: fd,
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': fd.get('_token')
+                }
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                if (response.status === 422 && data.errors) {
+                    showFormErrors(form, data.errors);
+                } else {
+                    alert(data.message || 'Error.');
+                }
+            } else {
+                modalInstance.hide();
+                location.reload(); // Reload halaman untuk lihat perubahan
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+            alert('Tidak terhubung.');
+        } finally {
+            sb.disabled = false;
+            if (sp) sp.classList.add('d-none');
+        }
+    }
+
+
+    /* --- DOM Ready (Menjalankan semua) --- */
     document.addEventListener('DOMContentLoaded', function() {
 
-        // --- Init Autocomplete (PERBAIKAN URL) ---
+        // --- Init Autocomplete ---
         @if(Route::has('tim-distribusi.triwulanan.searchKegiatan'))
-             // Kirim jenis kegiatan saat ini ke URL search
             const kegiatanSearchUrl = `{{ route("tim-distribusi.triwulanan.searchKegiatan", ['jenisKegiatan' => $jenisKegiatan]) }}?`;
             initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', kegiatanSearchUrl);
             initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', kegiatanSearchUrl);
         @else console.warn('Rute tim-distribusi.triwulanan.searchKegiatan tidak ditemukan.'); @endif
 
         @if(Route::has('tim-distribusi.triwulanan.searchPetugas'))
-            const petugasSearchUrl = '{{ route("tim-distribusi.triwulanan.searchPetugas") }}?'; // Hapus field=...
+            const petugasSearchUrl = '{{ route("tim-distribusi.triwulanan.searchPetugas") }}?';
             initAutocomplete('pencacah', 'pencacah-suggestions', petugasSearchUrl);
             initAutocomplete('pengawas', 'pengawas-suggestions', petugasSearchUrl);
             initAutocomplete('edit_pencacah', 'edit-pencacah-suggestions', petugasSearchUrl);
@@ -551,56 +807,213 @@
         @else console.warn('Rute tim-distribusi.triwulanan.searchPetugas tidak ditemukan.'); @endif
 
 
-        // --- Init AJAX Form Handlers (Sudah Benar) ---
-        // ... (kode sama seperti sebelumnya) ...
-        const tme = document.getElementById('tambahDataModal'); const tf = document.getElementById('tambahForm'); if (tme && tf) { const tm = bootstrap.Modal.getOrCreateInstance(tme); tf.addEventListener('submit', (e) => handleFormSubmitAjax(e, tf, tm)); tme.addEventListener('hidden.bs.modal', () => { clearFormErrors(tf); tf.reset(); }); }
-        const eme = document.getElementById('editDataModal'); const ef = document.getElementById('editForm'); if (eme && ef) { const em = bootstrap.Modal.getOrCreateInstance(eme); ef.addEventListener('submit', (e) => handleFormSubmitAjax(e, ef, em)); eme.addEventListener('hidden.bs.modal', () => clearFormErrors(ef)); }
+        // --- Init AJAX Form Handlers ---
+        const tme = document.getElementById('tambahDataModal');
+        const tf = document.getElementById('tambahForm');
+        if (tme && tf) {
+            const tm = bootstrap.Modal.getOrCreateInstance(tme);
+            tf.addEventListener('submit', (e) => handleFormSubmitAjax(e, tf, tm));
+            tme.addEventListener('hidden.bs.modal', () => {
+                clearFormErrors(tf);
+                tf.reset();
+            });
+        }
+        
+        const eme = document.getElementById('editDataModal');
+        const ef = document.getElementById('editForm');
+        if (eme && ef) {
+            const em = bootstrap.Modal.getOrCreateInstance(eme);
+            ef.addEventListener('submit', (e) => handleFormSubmitAjax(e, ef, em));
+            eme.addEventListener('hidden.bs.modal', () => clearFormErrors(ef));
+        }
 
-        // --- Select All & Bulk Delete (Sudah Benar) ---
-        // ... (kode sama seperti sebelumnya) ...
-        const sa = document.getElementById('selectAll'); const rcb = document.querySelectorAll('.row-checkbox'); const bdb = document.getElementById('bulkDeleteBtn'); const df = document.getElementById('deleteForm'); function ubdbs() { const cc = document.querySelectorAll('.row-checkbox:checked').length; if (bdb) bdb.disabled = cc === 0; } sa?.addEventListener('change', () => { rcb.forEach(cb => cb.checked = sa.checked); ubdbs(); }); rcb.forEach(cb => cb.addEventListener('change', ubdbs)); ubdbs(); bdb?.addEventListener('click', () => { const count = document.querySelectorAll('.row-checkbox:checked').length; if (count === 0) return; const dme = document.getElementById('deleteDataModal'); if (!dme || !df) return; const dm = bootstrap.Modal.getOrCreateInstance(dme);
-        df.action = '{{ route("tim-distribusi.triwulanan.bulkDelete") }}'; let mi = df.querySelector('input[name="_method"]'); if (mi) mi.value = 'POST'; df.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove()); document.querySelectorAll('.row-checkbox:checked').forEach(cb => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'ids[]'; i.value = cb.value; df.appendChild(i); }); document.getElementById('deleteModalBody').innerText = `Hapus ${count} data terpilih?`; const ncb = document.getElementById('confirmDeleteButton').cloneNode(true); document.getElementById('confirmDeleteButton').parentNode.replaceChild(ncb, document.getElementById('confirmDeleteButton')); ncb.addEventListener('click', (e) => { e.preventDefault(); df.submit(); }); dm.show(); });
+        // --- Select All & Bulk Delete ---
+        const sa = document.getElementById('selectAll');
+        const rcb = document.querySelectorAll('.row-checkbox');
+        const bdb = document.getElementById('bulkDeleteBtn');
+        const df = document.getElementById('deleteForm');
+        
+        function ubdbs() {
+            const cc = document.querySelectorAll('.row-checkbox:checked').length;
+            if (bdb) bdb.disabled = cc === 0;
+        }
+        sa?.addEventListener('change', () => {
+            rcb.forEach(cb => cb.checked = sa.checked);
+            ubdbs();
+        });
+        rcb.forEach(cb => cb.addEventListener('change', ubdbs));
+        ubdbs();
+        
+        bdb?.addEventListener('click', () => {
+            const count = document.querySelectorAll('.row-checkbox:checked').length;
+            if (count === 0) return;
+            const dme = document.getElementById('deleteDataModal');
+            if (!dme || !df) return;
+            const dm = bootstrap.Modal.getOrCreateInstance(dme);
+            
+            // [PERBAIKAN 404] Gunakan URL Basis yang benar
+            df.action = '{{ route("tim-distribusi.triwulanan.bulkDelete") }}'; 
+            let mi = df.querySelector('input[name="_method"]');
+            if (mi) mi.value = 'POST'; // Bulk delete biasanya POST
+            
+            df.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove());
+            document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
+                const i = document.createElement('input');
+                i.type = 'hidden';
+                i.name = 'ids[]';
+                i.value = cb.value;
+                df.appendChild(i);
+            });
+            document.getElementById('deleteModalBody').innerText = `Hapus ${count} data terpilih?`;
+            
+            const ncb = document.getElementById('confirmDeleteButton').cloneNode(true);
+            document.getElementById('confirmDeleteButton').parentNode.replaceChild(ncb, document.getElementById('confirmDeleteButton'));
+            ncb.addEventListener('click', (e) => {
+                e.preventDefault();
+                df.submit();
+            });
+            dm.show();
+        });
 
-        // --- Filters Per Page & Tahun (Sudah Benar) ---
+        // --- Filters Per Page & Tahun & Kegiatan ---
         const pps = document.getElementById('perPageSelect');
-            const ts = document.getElementById('tahunSelect');
-            const ks = document.getElementById('kegiatanSelect');
-            function hfc() {
-                const cu = new URL(window.location.href);
-                const p = cu.searchParams;
-                if (pps) p.set('per_page', pps.value);
-                if (ts) p.set('tahun', ts.value);
-                if (ks) {
-                    if (ks.value) { p.set('kegiatan', ks.value); }
-                    else { p.delete('kegiatan'); } // Hapus jika 'Semua'
+        const ts = document.getElementById('tahunSelect');
+        const ks = document.getElementById('kegiatanSelect');
+        
+        function hfc() {
+            const cu = new URL(window.location.href);
+            const p = cu.searchParams;
+            if (pps) p.set('per_page', pps.value);
+            if (ts) p.set('tahun', ts.value);
+            if (ks) {
+                if (ks.value) {
+                    p.set('kegiatan', ks.value);
+                } else {
+                    p.delete('kegiatan');
                 }
-                
-                // Ambil search term dari URL agar tidak hilang
-                const currentSearch = new URLSearchParams(window.location.search).get('search');
-                if (currentSearch) {
-                    p.set('search', currentSearch);
-                }
-
-                p.set('page', 1); // Selalu reset ke halaman 1
-                window.location.href = cu.pathname + '?' + p.toString();
             }
-            if (pps) pps.addEventListener('change', hfc);
-            if (ts) ts.addEventListener('change', hfc);
-            if (ks) ks.addEventListener('change', hfc);
+            const currentSearch = new URLSearchParams(window.location.search).get('search');
+            if (currentSearch) {
+                p.set('search', currentSearch);
+            }
+            p.set('page', 1);
+            window.location.href = cu.pathname + '?' + p.toString();
+        }
+        if (pps) pps.addEventListener('change', hfc);
+        if (ts) ts.addEventListener('change', hfc);
+        if (ks) ks.addEventListener('change', hfc);
 
 
-        // --- Fallback Error Modals (Sudah Benar) ---
-        // ... (kode sama seperti sebelumnya) ...
-        @if (session('error_modal') == 'tambahDataModal' && $errors->any()) const tmef = document.getElementById('tambahDataModal'); if (tmef) bootstrap.Modal.getOrCreateInstance(tmef).show(); @endif
-        @if (session('error_modal') == 'editDataModal' && $errors->any()) const eid_fb_input = document.getElementById('edit_id_fallback'); const eid_fb = eid_fb_input ? eid_fb_input.value : '{{ session('edit_id') }}'; if (eid_fb) { const emef = document.getElementById('editDataModal'); if(emef) { const edf = document.getElementById('editForm'); edf.action = `${distribusiTriwulananBaseUrl}/${eid_fb}`; bootstrap.Modal.getOrCreateInstance(emef).show(); @foreach ($errors->keys() as $f) const fel = edf.querySelector('[name="{{ $f }}"]'); if (fel) fel.classList.add('is-invalid'); const erel = edf.querySelector(`.invalid-feedback[data-field="{{ $f }}"]`); if (erel) erel.textContent = '{{ $errors->first($f) }}'; else { const erelById = edf.querySelector(`#edit_{{ $f }}_error`); if(erelById) erelById.textContent = '{{ $errors->first($f) }}'; } @endforeach } } @endif
+        // --- Fallback Error Modals ---
+        @if (session('error_modal') == 'tambahDataModal' && $errors->any())
+        const tmef = document.getElementById('tambahDataModal');
+        if (tmef) bootstrap.Modal.getOrCreateInstance(tmef).show();
+        @endif
+        
+        @if (session('error_modal') == 'editDataModal' && $errors->any())
+        const eid_fb_input = document.getElementById('edit_id_fallback');
+        const eid_fb = eid_fb_input ? eid_fb_input.value : '{{ session('edit_id') }}';
+        if (eid_fb) {
+            const emef = document.getElementById('editDataModal');
+            if (emef) {
+                const edf = document.getElementById('editForm');
+                // [PERBAIKAN 404] Gunakan URL Basis yang benar
+                edf.action = `${distribusiTriwulananBaseUrl}/${eid_fb}`;
+                bootstrap.Modal.getOrCreateInstance(emef).show();
+                @foreach ($errors->keys() as $f)
+                const fel = edf.querySelector('[name="{{ $f }}"]');
+                if (fel) fel.classList.add('is-invalid');
+                const erel = edf.querySelector(`.invalid-feedback[data-field="{{ $f }}"]`);
+                if (erel) erel.textContent = '{{ $errors->first($f) }}';
+                @endforeach
+            }
+        }
+        @endif
 
-        // --- Auto-hide Alerts (Sudah Benar) ---
-        // ... (kode sama seperti sebelumnya) ...
-        const alertList = document.querySelectorAll('.alert-dismissible[role="alert"]'); alertList.forEach(function (alert) { if (!alert.closest('.modal')) { const autoHide = {{ session('auto_hide', 'false') ? 'true' : 'false' }}; if(autoHide) { setTimeout(() => { bootstrap.Alert.getOrCreateInstance(alert).close(); }, 5000); } } })
+        // --- Auto-hide Alerts ---
+        const alertList = document.querySelectorAll('.alert-dismissible[role="alert"]');
+        alertList.forEach(function(alert) {
+            if (!alert.closest('.modal')) {
+                const autoHide = {{ session('auto_hide', 'false') ? 'true' : 'false' }};
+                if (autoHide) {
+                    setTimeout(() => {
+                        bootstrap.Alert.getOrCreateInstance(alert).close();
+                    }, 5000);
+                }
+            }
+        })
 
-         // --- Script untuk Update Opsi Export Modal (Sudah Benar) ---
-         // ... (kode sama seperti sebelumnya) ...
-          const exportModalEl = document.getElementById('exportModal'); if(exportModalEl) { exportModalEl.addEventListener('show.bs.modal', function () { const currentPageOption = document.querySelector('#exportModal #dataRange option[value="current_page"]'); const allDataOption = document.querySelector('#exportModal #dataRange option[value="all"]'); const totalData = {{ $listData->total() }}; const currentPageData = {{ $listData->count() }}; if(currentPageOption) currentPageOption.textContent = `Hanya Halaman Ini (${currentPageData} data)`; if(allDataOption) allDataOption.textContent = `Semua Data (${totalData} data)`; document.querySelector('#exportForm input[name="tahun"]').value = '{{ $selectedTahun ?? date('Y') }}'; document.querySelector('#exportForm input[name="kegiatan"]').value = '{{ $selectedKegiatan ?? '' }}'; document.querySelector('#exportForm input[name="search"]').value = '{{ $search ?? '' }}'; document.querySelector('#exportForm input[name="page"]').value = '{{ $listData->currentPage() }}'; document.querySelector('#exportForm input[name="per_page"]').value = '{{ request('per_page', $listData->perPage()) }}'; }); }
+        // --- Script untuk Update Opsi Export Modal ---
+        const exportModalEl = document.getElementById('exportModal');
+        if (exportModalEl) {
+            exportModalEl.addEventListener('show.bs.modal', function() {
+                const currentPageOption = document.querySelector('#exportModal select[name="dataRange"] option[value="current_page"]');
+                const allDataOption = document.querySelector('#exportModal select[name="dataRange"] option[value="all"]');
+                const totalData = {{ $listData->total() }};
+                const currentPageData = {{ $listData->count() }};
+                
+                if(currentPageOption) currentPageOption.textContent = `Hanya Halaman Ini (${currentPageData} data)`;
+                if(allDataOption) allDataOption.textContent = `Semua Data (${totalData} data)`;
+                
+                document.querySelector('#exportForm input[name="tahun"]').value = '{{ $selectedTahun ?? date('Y') }}';
+                document.querySelector('#exportForm input[name="kegiatan"]').value = '{{ $selectedKegiatan ?? '' }}';
+                document.querySelector('#exportForm input[name="search"]').value = '{{ $search ?? '' }}';
+                document.querySelector('#exportForm input[name="page"]').value = '{{ $listData->currentPage() }}';
+                document.querySelector('#exportForm input[name="per_page"]').value = '{{ request('per_page', $listData->perPage()) }}';
+            });
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        let searchDebounceTimer; 
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchDebounceTimer);
+                const currentSearchValue = this.value; 
+
+                searchDebounceTimer = setTimeout(() => {
+                    const currentUrl = new URL(window.location.href);
+                    const params = currentUrl.searchParams;
+
+                    if (currentSearchValue.trim() !== '') {
+                        params.set('search', currentSearchValue);
+                    } else {
+                        params.delete('search'); 
+                    }
+                    params.set('page', '1'); 
+
+                    // [MODIFIKASI] Tambahkan parameter focus_search=1
+                    params.set('focus_search', '1'); 
+
+                    // Reload halaman dengan URL baru (yang ada focus_search)
+                    window.location.href = currentUrl.pathname + '?' + params.toString();
+
+                }, 500); 
+            });
+        }
+
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('focus_search')) {
+            const searchInputToFocus = document.getElementById('searchInput');
+            if (searchInputToFocus) {
+                // Ambil nilai teks saat ini
+                const currentValue = searchInputToFocus.value;
+                const textLength = currentValue.length;
+
+                // 1. Set fokus ke input
+                searchInputToFocus.focus(); 
+                
+                // 2. [INI KUNCINYA] Pindahkan kursor ke akhir teks
+                // Kita set posisi awal dan akhir seleksi ke posisi paling akhir
+                searchInputToFocus.setSelectionRange(textLength, textLength);
+
+                // Hapus parameter focus_search dari URL tanpa reload
+                urlParams.delete('focus_search');
+                const newUrl = window.location.pathname + '?' + urlParams.toString();
+                history.replaceState(null, '', newUrl); 
+            }
+        }
 
     });
 </script>

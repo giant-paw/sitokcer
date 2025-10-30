@@ -64,6 +64,11 @@ Route::middleware('auth')->group(function () {
 
     /* DASHBOARD */
     Route::get('/dashboard-distribusi', [DashboardDistribusiController::class, 'index'])->name('dashboard.distribusi');
+
+    Route::get('/dashboard-distribusi/tahunan', [DashboardDistribusiController::class, 'detailTahunan'])->name('dashboard.distribusi.tahunan');
+Route::get('/dashboard-distribusi/triwulanan', [DashboardDistribusiController::class, 'detailTriwulanan'])->name('dashboard.distribusi.triwulanan');
+Route::get('/dashboard-distribusi/bulanan', [DashboardDistribusiController::class, 'detailBulanan'])->name('dashboard.distribusi.bulanan');
+
     Route::get('/dashboard-nwa', [DashboardNwaController::class, 'index'])->name('dashboard.nwa');
     Route::get('/dashboard-produksi', [DashboardProduksiController::class, 'index'])->name('dashboard.produksi');
     Route::get('/dashboard-sosial', [DashboardSosialController::class, 'index'])->name('dashboard.sosial');
