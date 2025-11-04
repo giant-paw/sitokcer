@@ -20,134 +20,167 @@ class DistribusiTriwulananController extends Controller
 {
     public function index(Request $request, $jenisKegiatan)
     {
-        // 1. Validasi jenis kegiatan
-        $validJenis = ['spunp', 'shkk'];
-        $jenisKegiatanLower = strtolower($jenisKegiatan);
-        if (!in_array($jenisKegiatanLower, $validJenis)) {
-            abort(404);
-        }
-        $prefixKegiatan = strtoupper($jenisKegiatan); // SPUNP atau SHKK
+        // Definisikan modul untuk controller ini
+        $currentModul = 'distribusi_triwulanan'; 
 
-        // 2. Logika Filter Tahun (Konsisten)
+        // 1. Validasi jenis kegiatan [Menggunakan Cek ke Master + Modul]
+        $prefixKegiatan = strtoupper($jenisKegiatan);
+        $jenisKegiatanLower = strtolower($jenisKegiatan);
+
+        // Cek: Apakah ada master kegiatan DENGAN prefix ini DAN modul ini?
+        $isValidJenisForModul = MasterKegiatan::where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+                                             ->where('modul', $currentModul)
+                                             ->exists();
+
+        if (!$isValidJenisForModul) {
+            abort(404, "Jenis kegiatan '{$jenisKegiatan}' tidak valid untuk modul {$currentModul}.");
+        }
+        // --- Akhir Validasi ---
+
+        // 2. Logika Filter Tahun 
         $selectedTahun = $request->input('tahun', date('Y'));
         
-        // Query ini bisa tetap sama, karena hanya mengambil daftar tahun
-        $availableTahun = DistribusiTriwulanan::query()
-             // Kita filter berdasarkan prefix nama_kegiatan lokal,
-             // ini akan mencakup data bersih dan kotor
-            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
-            ->select(DB::raw('YEAR(created_at) as tahun'))
-            ->distinct()->whereNotNull('created_at')->orderBy('tahun', 'desc')
-            ->pluck('tahun')->toArray();
-            
-        if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
-            array_unshift($availableTahun, date('Y'));
-        }
+        // Query availableTahun: Filter berdasarkan tahun dari data yang relevan dengan modul dan prefix ini
+         $availableTahun = DistribusiTriwulanan::query()
+             ->leftJoin('master_kegiatan', 'distribusi_triwulanan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+             // Filter data bersih berdasarkan modul
+             ->where('master_kegiatan.modul', $currentModul) 
+             // Filter berdasarkan prefix (baik data bersih maupun kotor)
+             ->where(function($q) use ($prefixKegiatan) { 
+                 $q->where('master_kegiatan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+                   ->orWhere(function($sub) use ($prefixKegiatan) {
+                       $sub->whereNull('distribusi_triwulanan.master_kegiatan_id')
+                           ->where('distribusi_triwulanan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%');
+                   });
+             })
+             ->select(DB::raw('YEAR(distribusi_triwulanan.created_at) as tahun'))
+             ->distinct()
+             ->whereNotNull('distribusi_triwulanan.created_at')
+             ->orderBy('tahun', 'desc')
+             ->pluck('tahun')
+             ->toArray();
+             
+         if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
+             array_unshift($availableTahun, date('Y'));
+         }
 
-        // 3. Kueri Utama [PERBAIKAN UTAMA DI SINI]
+
+        // 3. Kueri Utama [PERBAIKAN SCOPE VARIABLE]
         $query = DistribusiTriwulanan::query()
-            // Gunakan LEFT JOIN agar data yang 'master_kegiatan_id' nya NULL tetap muncul
             ->leftJoin('master_kegiatan', 'distribusi_triwulanan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
-            
-            // Filter jenis kegiatan: Cek di master JIKA ADA, atau cek di tabel lokal JIKA NULL
-            ->where(function($q) use ($prefixKegiatan) {
-                // 1. Cek di tabel master (untuk data bersih)
+            // Filter hanya kegiatan yang termasuk modul ini (data bersih)
+            // Data kotor (NULL ID) tidak bisa difilter by modul di sini, tapi akan tetap muncul krn LEFT JOIN
+            // Jika data kotor memiliki nama yg cocok prefix, tetap akan muncul di step berikutnya.
+            // Jika ingin lebih ketat (hanya tampilkan data bersih), ganti leftJoin -> join dan hapus orWhere di bawah.
+            ->where(function($q) use ($currentModul) {
+                 $q->where('master_kegiatan.modul', $currentModul)
+                   // Izinkan juga data yang ID masternya NULL (data kotor) untuk muncul
+                   ->orWhereNull('distribusi_triwulanan.master_kegiatan_id'); 
+            })
+            // Filter berdasarkan prefix jenisKegiatan dari URL
+            // [PERBAIKAN DI SINI: Tambahkan $currentModul ke 'use']
+            ->where(function($q) use ($prefixKegiatan, $currentModul) { 
+                // 1. Cek prefix di master (untuk data bersih)
                 $q->where('master_kegiatan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
-                  // 2. ATAU cek di tabel lokal jika ID-nya NULL (untuk data kotor)
-                  ->orWhere(function($sub) use ($prefixKegiatan) {
+                  // 2. ATAU cek prefix di tabel lokal jika ID-nya NULL (untuk data kotor)
+                  // [PERBAIKAN DI SINI: Tambahkan $currentModul ke 'use']
+                  ->orWhere(function($sub) use ($prefixKegiatan, $currentModul) {  
                       $sub->whereNull('distribusi_triwulanan.master_kegiatan_id')
                           ->where('distribusi_triwulanan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%');
                   });
             })
-            ->whereYear('distribusi_triwulanan.created_at', $selectedTahun); // Filter tahun
+            // Filter berdasarkan tahun
+            ->whereYear('distribusi_triwulanan.created_at', $selectedTahun);
 
-        // Filter Kegiatan Spesifik (Tab) [PERBAIKAN]
+        // Filter Kegiatan Spesifik (Tab) 
         $selectedKegiatan = $request->input('kegiatan', '');
         if ($selectedKegiatan !== '') {
-            // $selectedKegiatan bisa berupa ID (data bersih) atau Teks (data kotor)
             if (is_numeric($selectedKegiatan)) {
-                // Jika ID (data bersih), filter berdasarkan ID
                 $query->where('distribusi_triwulanan.master_kegiatan_id', $selectedKegiatan);
             } else {
-                // Jika Teks (data kotor), filter berdasarkan nama & pastikan ID-nya NULL
                 $query->whereNull('distribusi_triwulanan.master_kegiatan_id')
                       ->where('distribusi_triwulanan.nama_kegiatan', $selectedKegiatan);
             }
         }
 
-        // Filter Pencarian [PERBAIKAN]
+        // Filter Pencarian 
         $search = $request->input('search', '');
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                // Tentukan tabel dengan jelas untuk menghindari "ambiguous column"
+             $query->where(function ($q) use ($search) {
                 $q->where('distribusi_triwulanan.BS_Responden', 'like', "%{$search}%")
                   ->orWhere('distribusi_triwulanan.pencacah', 'like', "%{$search}%")
                   ->orWhere('distribusi_triwulanan.pengawas', 'like', "%{$search}%")
-                  // Cari di kedua kolom nama (master untuk data bersih, lokal untuk data kotor)
-                  ->orWhere('master_kegiatan.nama_kegiatan', 'like', "%{$search}%")
-                  ->orWhere('distribusi_triwulanan.nama_kegiatan', 'like', "%{$search}%");
+                  ->orWhere('master_kegiatan.nama_kegiatan', 'like', "%{$search}%") // Cari di nama master
+                  ->orWhere('distribusi_triwulanan.nama_kegiatan', 'like', "%{$search}%"); // Cari di nama lokal (kotor)
             });
         }
 
         // 4. Logika Pagination
-        $perPage = $request->input('per_page', 20);
-        if ($perPage == 'all') {
-            $total = (clone $query)->count();
-            $perPage = $total > 0 ? $total : 20;
+        $perPageInput = $request->input('per_page', 20); // Ganti nama variabel agar tidak konflik
+        $perPage = $perPageInput; // Tetapkan nilai default
+        if ($perPageInput == 'all') {
+            // Clone query SEBELUM select & order, agar count lebih akurat
+            $countQuery = (clone $query); 
+             // Hapus eager loading dari count query jika ada (tidak diperlukan)
+            $countQuery->setEagerLoads([]); 
+            $total = $countQuery->count('distribusi_triwulanan.id_distribusi_triwulanan'); // Hitung dari tabel utama
+            $perPage = $total > 0 ? $total : 20; // Jika total 0, tetap 20
         }
 
-        // 5. Ambil Data [PERBAIKAN]
-        $listData = $query
-            // PENTING: Pilih kolom dari tabel utama untuk menghindari data 'created_at' yg tumpang tindih
-            ->select('distribusi_triwulanan.*') 
-            // Eager load relasi (akan null jika ID-nya null, tapi ini bagus)
-            ->with('masterKegiatan') 
-            // Tentukan tabel untuk 'latest'
-            ->latest('distribusi_triwulanan.id_distribusi_triwulanan') 
-            ->paginate($perPage)
-            ->withQueryString();
 
-        // 6. Logika Hitung Tab (Dashboard) [PERBAIKAN BESAR]
+        // 5. Ambil Data
+        $listData = $query
+            ->select('distribusi_triwulanan.*') // Pilih kolom dari tabel utama
+            ->with('masterKegiatan') // Eager load relasi
+            ->latest('distribusi_triwulanan.id_distribusi_triwulanan') // Order by ID utama
+            ->paginate($perPage) // Gunakan $perPage yang sudah dihitung
+            ->withQueryString(); // Bawa semua parameter query string
+
+        // 6. Logika Hitung Tab (Dashboard) [PERBAIKAN SCOPE VARIABLE]
         $kegiatanCounts = DistribusiTriwulanan::query()
             ->leftJoin('master_kegiatan', 'distribusi_triwulanan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
-            // Gunakan filter WHERE yang sama persis dengan $query utama
-            ->where(function($q) use ($prefixKegiatan) {
+             // Filter hanya kegiatan yang relevan dengan MODUL ini (data bersih)
+             // ATAU data yang ID masternya NULL (data kotor)
+             ->where(function($q) use ($currentModul) {
+                 $q->where('master_kegiatan.modul', $currentModul)
+                   ->orWhereNull('distribusi_triwulanan.master_kegiatan_id'); 
+             })
+             // Filter berdasarkan prefix jenisKegiatan dari URL
+             // [PERBAIKAN DI SINI: Tambahkan $currentModul ke 'use']
+            ->where(function($q) use ($prefixKegiatan, $currentModul) { 
                 $q->where('master_kegiatan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
-                  ->orWhere(function($sub) use ($prefixKegiatan) {
+                  // [PERBAIKAN DI SINI: Tambahkan $currentModul ke 'use']
+                  ->orWhere(function($sub) use ($prefixKegiatan, $currentModul) { 
                       $sub->whereNull('distribusi_triwulanan.master_kegiatan_id')
                           ->where('distribusi_triwulanan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%');
                   });
             })
+            // Filter berdasarkan tahun
             ->whereYear('distribusi_triwulanan.created_at', $selectedTahun)
+            // Select kolom untuk grouping dan count
             ->select(
-                // "Ambil ID master JIKA ADA, kalau tidak, ambil Teks ngawurnya"
-                // Ini akan jadi 'value' di dropdown
                 DB::raw('COALESCE(master_kegiatan.id_master_kegiatan, distribusi_triwulanan.nama_kegiatan) as filter_value'),
-                
-                // "Ambil NAMA master JIKA ADA, kalau tidak, ambil Teks ngawurnya"
-                // Ini akan jadi 'nama' di dropdown
                 DB::raw('COALESCE(master_kegiatan.nama_kegiatan, distribusi_triwulanan.nama_kegiatan) as display_name'),
-                
                 DB::raw('count(distribusi_triwulanan.id_distribusi_triwulanan) as total')
             )
             ->groupBy('filter_value', 'display_name')
             ->orderBy('display_name')
             ->get();
+            
+        // Ambil master kegiatan hanya untuk MODUL ini (untuk keperluan lain, misal dropdown Autocomplete jika perlu)
+        // Filter prefix di sini sudah tidak terlalu relevan karena kita ambil semua master modul ini
+        $masterKegiatanList = MasterKegiatan::where('modul', $currentModul)
+                                           ->orderBy('nama_kegiatan')->get();
 
-        // Ambil master kegiatan hanya untuk jenis yang relevan (ini masih oke)
-        $masterKegiatanList = MasterKegiatan::where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
-                                            ->orderBy('nama_kegiatan')->get();
 
-        // 7. Kirim ke View
+        // 7. Kirim ke View (Variabel $search & $selectedKegiatan otomatis tersedia via request())
         return view('timDistribusi.distribusiTriwulanan', compact(
-            'listData',
-            'kegiatanCounts', // <-- $kegiatanCounts sekarang berisi data bersih & kotor
-            'jenisKegiatan',
-            'masterKegiatanList',
-            'availableTahun',
-            'selectedTahun',
-            'selectedKegiatan',
-            'search'
+            'listData', 
+            'kegiatanCounts', 
+            'jenisKegiatan',      
+            'masterKegiatanList', 
+            'availableTahun',     
+            'selectedTahun'      
         ));
     }
     

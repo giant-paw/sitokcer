@@ -20,7 +20,8 @@ class MasterKegiatan extends Model
         'nama_kegiatan',
         'deskripsi',
         'tim',
-        'target'
+        'target',
+        'modul',
     ];
 
     public function distribusiTahunan()

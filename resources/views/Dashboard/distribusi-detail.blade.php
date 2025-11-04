@@ -78,13 +78,20 @@
                 // --- KONFIGURASI CHART 1: PROGRESS (REALISASI vs TARGET) ---
                 // Ini untuk TRIWULANAN
                 
-                const dataSelesai = chartData.map(item => parseInt(item.realisasi_selesai) || 0);
+                const dataSelesai = chartData.map(item => {
+    const target = parseInt(item.target) || 0;
+    const selesai = parseInt(item.realisasi_selesai) || 0;
+    if (target === 0) return 0;
+    const persen = (selesai / target) * 100;
+    return persen > 100 ? 100 : persen; // Batasi max 100%
+});
                 const dataSisaTarget = chartData.map(item => {
-                    const target = parseInt(item.target) || 0;
-                    const selesai = parseInt(item.realisasi_selesai) || 0;
-                    const sisa = target - selesai;
-                    return sisa < 0 ? 0 : sisa; // Jangan sampai minus
-                });
+    const target = parseInt(item.target) || 0;
+    const selesai = parseInt(item.realisasi_selesai) || 0;
+    if (target === 0) return 0;
+    const sisaPersen = 100 - (selesai / target) * 100;
+    return sisaPersen < 0 ? 0 : sisaPersen;
+});
 
                 chartConfig = {
                     type: 'bar',
@@ -109,7 +116,7 @@
                         maintainAspectRatio: false,
                         scales: {
                             y: { stacked: true, ticks: { autoSkip: false } },
-                            x: { stacked: true, beginAtZero: true, title: { display: true, text: 'Jumlah Kegiatan (Realisasi vs Target)' } }
+                            x: { stacked: true, beginAtZero: true,  max: 100, title: { display: true, text: 'Persentase Progress (%)' } }
                         },
                         plugins: {
                             legend: { position: 'top' },

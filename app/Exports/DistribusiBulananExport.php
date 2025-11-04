@@ -2,91 +2,131 @@
 
 namespace App\Exports;
 
-use App\Models\Distribusi\DistribusiBulanan;
+use App\Models\Distribusi\DistribusiBulanan; // <-- [GANTI MODEL]
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use PhpOffice\PhpWord\TemplateProcessor;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Illuminate\Support\Facades\DB;
 
-class DistribusiBulananExport implements FromCollection, WithHeadings
+class DistribusiBulananExport implements FromCollection, WithHeadings, WithMapping
 {
     protected $dataRange;
     protected $dataFormat;
     protected $jenisKegiatan;
     protected $kegiatan;
     protected $search;
-    protected $tahun;
+    protected $selectedTahun;
     protected $currentPage;
     protected $perPage;
+    protected $currentModul; // <-- [TAMBAHAN]
 
-    public function __construct($dataRange, $dataFormat, $jenisKegiatan, $kegiatan = null, $search = null, $tahun = null, $currentPage = 1, $perPage = 20)
+    public function __construct($dataRange, $dataFormat, $jenisKegiatan, $kegiatan, $search, $selectedTahun, $currentPage, $perPage, $currentModul)
     {
         $this->dataRange = $dataRange;
         $this->dataFormat = $dataFormat;
-        $this->jenisKegiatan = $jenisKegiatan;
-        $this->kegiatan = $kegiatan;
+        $this->jenisKegiatan = $jenisKegiatan; // Ini prefix
+        $this->kegiatan = $kegiatan;      // Ini filter_value
         $this->search = $search;
-        $this->tahun = $tahun ?? date('Y');
+        $this->selectedTahun = $selectedTahun;
         $this->currentPage = $currentPage;
         $this->perPage = $perPage;
+        $this->currentModul = $currentModul;  // Simpan modul
     }
 
-    public function collection()
+    private function buildQuery()
     {
-        $query = DistribusiBulanan::query();
+        $prefixKegiatan = strtoupper($this->jenisKegiatan);
 
-        // Filter berdasarkan jenis kegiatan (VHTS, HKD, dll)
-        $query->where('nama_kegiatan', 'LIKE', strtoupper($this->jenisKegiatan) . '%');
+        $query = DistribusiBulanan::query() // <-- [GANTI MODEL]
+            ->leftJoin('master_kegiatan', 'distribusi_bulanan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+            ->where(function($q) {
+                 $q->where('master_kegiatan.modul', $this->currentModul)
+                   ->orWhereNull('distribusi_bulanan.master_kegiatan_id'); 
+            })
+            ->where(function($q) use ($prefixKegiatan) { 
+                $q->where('master_kegiatan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+                  ->orWhere(function($sub) use ($prefixKegiatan) {  
+                      $sub->whereNull('distribusi_bulanan.master_kegiatan_id')
+                          ->where('distribusi_bulanan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%');
+                  });
+            })
+            ->whereYear('distribusi_bulanan.created_at', $this->selectedTahun);
 
-        // Filter berdasarkan tahun
-        $query->whereYear('created_at', $this->tahun);
-
-        // Filter berdasarkan kegiatan spesifik (misal: VHTS Bulan 5)
         if (!empty($this->kegiatan)) {
-            $query->where('nama_kegiatan', $this->kegiatan);
+            if (is_numeric($this->kegiatan)) {
+                $query->where('distribusi_bulanan.master_kegiatan_id', $this->kegiatan);
+            } else {
+                $query->whereNull('distribusi_bulanan.master_kegiatan_id')
+                      ->where('distribusi_bulanan.nama_kegiatan', $this->kegiatan);
+            }
         }
 
-        // Filter berdasarkan search
         if (!empty($this->search)) {
-            $searchTerm = $this->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+             $query->where(function ($q) {
+                $q->where('distribusi_bulanan.BS_Responden', 'like', "%{$this->search}%")
+                  ->orWhere('distribusi_bulanan.pencacah', 'like', "%{$this->search}%")
+                  ->orWhere('distribusi_bulanan.pengawas', 'like', "%{$this->search}%")
+                  ->orWhere('master_kegiatan.nama_kegiatan', 'like', "%{$this->search}%") 
+                  ->orWhere('distribusi_bulanan.nama_kegiatan', 'like', "%{$this->search}%");
             });
         }
 
-        // Urutkan berdasarkan terbaru
-        $query->latest('id_distribusi_bulanan');
+        $query->select('distribusi_bulanan.*')->with('masterKegiatan');
+        return $query;
+    }
 
-        // Jika dataRange = 'current_page', ambil data halaman terkini saja
-        if ($this->dataRange == 'current_page') {
+    private function getExportData()
+    {
+        $query = $this->buildQuery();
+        $query->latest('distribusi_bulanan.id_distribusi_bulanan');
+
+        if ($this->dataRange == 'current_page' && $this->perPage != -1) {
             $offset = ($this->currentPage - 1) * $this->perPage;
-            $data = $query->offset($offset)->limit($this->perPage)->get();
+            return $query->offset($offset)->limit($this->perPage)->get();
+        }
+        return $query->get();
+    }
+    
+    public function collection()
+    {
+        return $this->getExportData();
+    }
+
+    public function map($item): array
+    {
+        $namaKegiatan = $item->masterKegiatan 
+                        ? $item->masterKegiatan->nama_kegiatan 
+                        : $item->nama_kegiatan;
+
+        $targetPenyelesaian = $item->target_penyelesaian;
+        $tanggalPengumpulan = $item->tanggal_pengumpulan;
+
+        if ($this->dataFormat == 'formatted_values') {
+             $targetPenyelesaian = $targetPenyelesaian ? $targetPenyelesaian->format('d/m/Y') : '-';
+             $tanggalPengumpulan = $tanggalPengumpulan ? $tanggalPengumpulan->format('d/m/Y') : '-';
         } else {
-            // Jika dataRange = 'all', ambil semua data
-            $data = $query->get();
+             $targetPenyelesaian = $targetPenyelesaian ? $targetPenyelesaian->format('Y-m-d H:i:s') : null;
+             $tanggalPengumpulan = $tanggalPengumpulan ? $tanggalPengumpulan->format('Y-m-d H:i:s') : null;
         }
 
-        return $data->map(function ($item) {
-            return [
-                $item->id_distribusi_bulanan,
-                $item->nama_kegiatan,
-                $item->BS_Responden,
-                $item->pencacah,
-                $item->pengawas,
-                $item->target_penyelesaian ? $item->target_penyelesaian->format('Y-m-d') : null,
-                $item->flag_progress,
-                $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('Y-m-d') : null,
-                $item->tahun_kegiatan ? $item->tahun_kegiatan->format('Y-m-d') : null,
-            ];
-        });
+        return [
+            $item->id_distribusi_bulanan, // <-- [GANTI ID]
+            $namaKegiatan, 
+            $item->BS_Responden,
+            $item->pencacah,
+            $item->pengawas,
+            $targetPenyelesaian,
+            $item->flag_progress,
+            $tanggalPengumpulan,
+            $item->tahun_kegiatan ?? null,
+            $item->master_kegiatan_id ?? null,
+        ];
     }
 
     public function headings(): array
     {
         return [
-            'ID Distribusi',
+            'ID Distribusi Bulanan', // <-- [GANTI HEADING]
             'Nama Kegiatan',
             'BS Responden',
             'Pencacah',
@@ -94,152 +134,8 @@ class DistribusiBulananExport implements FromCollection, WithHeadings
             'Target Penyelesaian',
             'Flag Progress',
             'Tanggal Pengumpulan',
-            'Tahun Kegiatan'
+            'Tahun Kegiatan',
+            'ID Master Kegiatan'
         ];
-    }
-
-    
-    private function getDataForWord()
-    {
-        $query = DistribusiBulanan::query();
-
-        // Filter berdasarkan jenis kegiatan
-        $query->where('nama_kegiatan', 'LIKE', strtoupper($this->jenisKegiatan) . '%');
-
-        // Filter berdasarkan tahun
-        $query->whereYear('created_at', $this->tahun);
-
-        // Filter berdasarkan kegiatan spesifik
-        if (!empty($this->kegiatan)) {
-            $query->where('nama_kegiatan', $this->kegiatan);
-        }
-
-        // Filter berdasarkan search
-        if (!empty($this->search)) {
-            $searchTerm = $this->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
-            });
-        }
-
-        // Urutkan berdasarkan terbaru
-        $query->latest('id_distribusi_bulanan');
-
-        // Ambil data sesuai range
-        if ($this->dataRange == 'current_page') {
-            $offset = ($this->currentPage - 1) * $this->perPage;
-            return $query->offset($offset)->limit($this->perPage)->get();
-        }
-
-        return $query->get();
-    }
-
-    public function exportToWord()
-    {
-        $templatePath = storage_path('templates/distribusi_bulanan_template.docx');
-
-        if (!file_exists($templatePath)) {
-            return response()->json([
-                'error' => 'Template Word tidak ditemukan di: ' . $templatePath
-            ], 404);
-        }
-
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        // Set tanggal cetak
-        $templateProcessor->setValue('tanggal_cetak', now()->format('d F Y'));
-
-        // Set judul laporan dengan filter yang aktif
-        $judulLaporan = 'Laporan Distribusi Bulanan ' . strtoupper($this->jenisKegiatan) . ' Tahun ' . $this->tahun;
-
-        if (!empty($this->kegiatan)) {
-            $judulLaporan .= ' - ' . $this->kegiatan;
-        }
-
-        if ($this->dataRange == 'current_page') {
-            $judulLaporan .= ' (Halaman ' . $this->currentPage . ')';
-        }
-
-        $templateProcessor->setValue('judul_laporan', $judulLaporan);
-
-        $data = $this->getDataForWord(); 
-
-        $dataCount = $data->count();
-
-        $placeholderToClone = 'id_distribusi';
-
-        if ($dataCount > 0) {
-            try {
-                $templateProcessor->cloneRow($placeholderToClone, $dataCount);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'error' => 'Gagal mengkloning baris di template. Pastikan placeholder `' . $placeholderToClone . '` ada di template Word.',
-                    'details' => $e->getMessage()
-                ], 500);
-            }
-
-            foreach ($data as $index => $row) {
-                $i = $index + 1;
-                $templateProcessor->setValue('no#' . $i, $i);
-                $templateProcessor->setValue('id_distribusi#' . $i, $row->id_distribusi_bulanan ?? '');
-                $templateProcessor->setValue('nama_kegiatan#' . $i, $row->nama_kegiatan ?? '');
-                $templateProcessor->setValue('blok_sensus#' . $i, $row->BS_Responden ?? '');
-                $templateProcessor->setValue('pencacahan#' . $i, $row->pencacah ?? '');
-                $templateProcessor->setValue('pengawas#' . $i, $row->pengawas ?? '');
-                $templateProcessor->setValue('tanggal_target#' . $i, $row->target_penyelesaian ?? '');
-                $templateProcessor->setValue('flag_progress#' . $i, $row->flag_progress ?? '');
-                $templateProcessor->setValue('tanggal_pengumpulan#' . $i, $row->tanggal_pengumpulan ?? '');
-                $templateProcessor->setValue('tahun_kegiatan#' . $i, $row->tahun_kegiatan ?? '');
-            }
-        } else {
-            // Jika data kosong
-            try {
-                $templateProcessor->cloneRow($placeholderToClone, 1);
-                $templateProcessor->setValue('no#1', '-');
-                $templateProcessor->setValue('id_distribusi#1', 'Tidak ada data');
-                $templateProcessor->setValue('nama_kegiatan#1', '-');
-                $templateProcessor->setValue('blok_sensus#1', '-');
-                $templateProcessor->setValue('pencacahan#1', '-');
-                $templateProcessor->setValue('pengawas#1', '-');
-                $templateProcessor->setValue('tanggal_target#1', '-');
-                $templateProcessor->setValue('flag_progress#1', '-');
-                $templateProcessor->setValue('tanggal_pengumpulan#1', '-');
-                $templateProcessor->setValue('tahun_kegiatan#1', '-');
-            } catch (\Exception $e) {
-                // Ignore jika gagal
-            }
-        }
-
-        // Generate nama file
-        $fileName = 'DistribusiBulanan_' . strtoupper($this->jenisKegiatan);
-
-        if (!empty($this->kegiatan)) {
-            $fileName .= '_' . str_replace(' ', '_', $this->kegiatan);
-        }
-
-        $fileName .= '_' . date('Ymd_His') . '.docx';
-
-        $filePath = storage_path('exports/' . $fileName);
-
-        // Pastikan folder exports ada
-        if (!is_dir(storage_path('exports'))) {
-            mkdir(storage_path('exports'), 0775, true);
-        }
-
-        // Simpan file Word
-        try {
-            $templateProcessor->saveAs($filePath);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Gagal menyimpan file Word.',
-                'details' => $e->getMessage()
-            ], 500);
-        }
-
-        // Download file dan hapus setelah download
-        return response()->download($filePath)->deleteFileAfterSend(true);
     }
 }

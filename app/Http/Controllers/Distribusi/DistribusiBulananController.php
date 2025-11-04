@@ -18,135 +18,200 @@ use Illuminate\Validation\Rule;
 
 class DistribusiBulananController extends Controller
 {
-    // ... (index method Anda sudah benar, tidak perlu diubah dari sebelumnya) ...
-     public function index(Request $request, $jenisKegiatan)
+    private $currentModul = 'distribusi_bulanan';
+
+    public function index(Request $request, $jenisKegiatan)
     {
-        $validJenis = ['vhts', 'hkd', 'shpb', 'shp', 'shpj', 'shpbg'];
-        if (!in_array(strtolower($jenisKegiatan), $validJenis)) {
-            abort(404);
-        }
-        $prefixKegiatan = strtoupper($jenisKegiatan); 
+        // 1. Validasi jenis kegiatan [PERUBAHAN LOGIKA]
+        $prefixKegiatan = strtoupper($jenisKegiatan);
+        $jenisKegiatanLower = strtolower($jenisKegiatan);
 
+        // Cek ke master: Apakah prefix ini ada DAN termasuk modul ini?
+        $isValidJenisForModul = MasterKegiatan::where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+                                             ->where('modul', $this->currentModul)
+                                             ->exists();
+
+        if (!$isValidJenisForModul) {
+            abort(404, "Jenis kegiatan '{$jenisKegiatan}' tidak valid untuk modul {$this->currentModul}.");
+        }
+        // --- Akhir Validasi ---
+
+        // 2. Logika Filter Tahun 
         $selectedTahun = $request->input('tahun', date('Y'));
+        
+         $availableTahun = DistribusiBulanan::query()
+             ->leftJoin('master_kegiatan', 'distribusi_bulanan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+             ->where('master_kegiatan.modul', $this->currentModul) 
+             ->where(function($q) use ($prefixKegiatan) { 
+                 $q->where('master_kegiatan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+                   ->orWhere(function($sub) use ($prefixKegiatan) {
+                       $sub->whereNull('distribusi_bulanan.master_kegiatan_id')
+                           ->where('distribusi_bulanan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%');
+                   });
+             })
+             ->select(DB::raw('YEAR(distribusi_bulanan.created_at) as tahun'))
+             ->distinct()
+             ->whereNotNull('distribusi_bulanan.created_at')
+             ->orderBy('tahun', 'desc')
+             ->pluck('tahun')
+             ->toArray();
+             
+         if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
+             array_unshift($availableTahun, date('Y'));
+         }
 
-        $availableTahun = DistribusiBulanan::query()
-            ->where('nama_kegiatan', 'Like', $prefixKegiatan . '%') // Filter jenis
-            ->select(DB::raw('YEAR(created_at) as tahun'))
-            ->distinct()
-            ->whereNotNull('created_at') // Pastikan created_at tidak null
-            ->orderBy('tahun', 'desc')
-            ->pluck('tahun')
-            ->toArray();
 
-        if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) { // Perbaiki logika check tahun
-            array_unshift($availableTahun, date('Y'));
-        }
-
+        // 3. Kueri Utama [PERUBAHAN LOGIKA: LEFT JOIN & MODUL]
         $query = DistribusiBulanan::query()
-            ->where('nama_kegiatan', 'Like', $prefixKegiatan . '%') // Filter jenis
-            ->whereYear('created_at', $selectedTahun); // Filter tahun
+            ->leftJoin('master_kegiatan', 'distribusi_bulanan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+            // Filter hanya data yang relevan dengan modul ini (bersih) ATAU data kotor (NULL)
+            ->where(function($q) {
+                 $q->where('master_kegiatan.modul', $this->currentModul)
+                   ->orWhereNull('distribusi_bulanan.master_kegiatan_id'); 
+            })
+            // Filter berdasarkan prefix jenisKegiatan dari URL
+            ->where(function($q) use ($prefixKegiatan) { 
+                $q->where('master_kegiatan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+                  ->orWhere(function($sub) use ($prefixKegiatan) {  
+                      $sub->whereNull('distribusi_bulanan.master_kegiatan_id')
+                          ->where('distribusi_bulanan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%');
+                  });
+            })
+            ->whereYear('distribusi_bulanan.created_at', $selectedTahun);
 
-        $selectedKegiatan = $request->input('kegiatan', ''); // Default string kosong
+        // Filter Kegiatan Spesifik (Tab) 
+        $selectedKegiatan = $request->input('kegiatan', '');
         if ($selectedKegiatan !== '') {
-            $query->where('nama_kegiatan', $selectedKegiatan);
+            if (is_numeric($selectedKegiatan)) {
+                $query->where('distribusi_bulanan.master_kegiatan_id', $selectedKegiatan);
+            } else {
+                $query->whereNull('distribusi_bulanan.master_kegiatan_id')
+                      ->where('distribusi_bulanan.nama_kegiatan', $selectedKegiatan);
+            }
         }
 
-        $search = $request->input('search', ''); // Simpan juga search term
+        // Filter Pencarian 
+        $search = $request->input('search', '');
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('BS_Responden', 'like', "%{$search}%")
-                    ->orWhere('pencacah', 'like', "%{$search}%")
-                    ->orWhere('pengawas', 'like', "%{$search}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$search}%");
+             $query->where(function ($q) use ($search) {
+                $q->where('distribusi_bulanan.BS_Responden', 'like', "%{$search}%")
+                  ->orWhere('distribusi_bulanan.pencacah', 'like', "%{$search}%")
+                  ->orWhere('distribusi_bulanan.pengawas', 'like', "%{$search}%")
+                  ->orWhere('master_kegiatan.nama_kegiatan', 'like', "%{$search}%") 
+                  ->orWhere('distribusi_bulanan.nama_kegiatan', 'like', "%{$search}%");
             });
         }
 
-        // --- PERBAIKAN FILTER PAGINATION 'ALL' ---
+        // 4. Logika Pagination
         $perPageInput = $request->input('per_page', 20);
         $perPage = $perPageInput;
         if ($perPageInput == 'all') {
-            $total = (clone $query)->count(); // Hitung total sebelum pagination
-            $perPage = $total > 0 ? $total : 20; // Set perPage ke total jika > 0
+            $countQuery = (clone $query); 
+            $countQuery->setEagerLoads([]); 
+            $total = $countQuery->count('distribusi_bulanan.id_distribusi_bulanan');
+            $perPage = $total > 0 ? $total : 20;
         }
-        // -----------------------------------------
 
-        $listData = $query->latest('id_distribusi_bulanan')->paginate($perPage)->withQueryString();
+        // 5. Ambil Data
+        $listData = $query
+            ->select('distribusi_bulanan.*') // Selalu SELECT dari tabel utama
+            ->with('masterKegiatan') // Eager load relasi
+            ->latest('distribusi_bulanan.id_distribusi_bulanan') 
+            ->paginate($perPage) 
+            ->withQueryString(); 
 
+        // 6. Logika Hitung Tab (Dashboard) [PERUBAHAN LOGIKA: COALESCE]
         $kegiatanCounts = DistribusiBulanan::query()
-            ->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%') // Filter jenis
-            ->whereYear('created_at', $selectedTahun)
-            ->select('nama_kegiatan', DB::raw('count(*) as total'))
-            ->groupBy('nama_kegiatan')
-            ->orderBy('nama_kegiatan')
+            ->leftJoin('master_kegiatan', 'distribusi_bulanan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+             ->where(function($q) {
+                 $q->where('master_kegiatan.modul', $this->currentModul)
+                   ->orWhereNull('distribusi_bulanan.master_kegiatan_id'); 
+             })
+            ->where(function($q) use ($prefixKegiatan) { 
+                $q->where('master_kegiatan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+                  ->orWhere(function($sub) use ($prefixKegiatan) { 
+                      $sub->whereNull('distribusi_bulanan.master_kegiatan_id')
+                          ->where('distribusi_bulanan.nama_kegiatan', 'LIKE', $prefixKegiatan . '%');
+                  });
+            })
+            ->whereYear('distribusi_bulanan.created_at', $selectedTahun)
+            ->select(
+                DB::raw('COALESCE(master_kegiatan.id_master_kegiatan, distribusi_bulanan.nama_kegiatan) as filter_value'),
+                DB::raw('COALESCE(master_kegiatan.nama_kegiatan, distribusi_bulanan.nama_kegiatan) as display_name'),
+                DB::raw('count(distribusi_bulanan.id_distribusi_bulanan) as total')
+            )
+            ->groupBy('filter_value', 'display_name')
+            ->orderBy('display_name')
             ->get();
+            
+        // Ambil daftar master murni untuk modul ini (jika diperlukan)
+        $masterKegiatanList = MasterKegiatan::where('modul', $this->currentModul)
+                                           ->orderBy('nama_kegiatan')->get();
 
-        $masterKegiatanList = MasterKegiatan::where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
-                                            ->orderBy('nama_kegiatan')->get();
-
+        // 7. Kirim ke View
         return view('timDistribusi.distribusiBulanan', compact(
-            'listData',
-            'kegiatanCounts',
+            'listData', 
+            'kegiatanCounts', 
             'jenisKegiatan',
-            'masterKegiatanList',
-            'availableTahun',
+            'masterKegiatanList', 
+            'availableTahun',     
             'selectedTahun',
-            'selectedKegiatan',
-            'search'
+            'selectedKegiatan', // dikirim untuk <select>
+            'search'            // dikirim untuk <input>
         ));
     }
 
 
     public function store(Request $request)
     {
-        // Validasi sudah benar dari kode Anda
         $baseRules = [
-            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden' => 'required|string|max:255',
-            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
-            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'master_kegiatan_id' => 'required|integer|exists:master_kegiatan,id_master_kegiatan',
+            'nama_kegiatan'      => 'required|string|max:255', // Tetap ada
+            'BS_Responden'       => 'required|string|max:255',
+            'pencacah'           => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas'           => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
-            'flag_progress' => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
-            'tanggal_pengumpulan' => 'nullable|date', // Sebaiknya nullable di backend
+            'flag_progress'      => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
+            'tanggal_pengumpulan' => 'nullable|date',
         ];
+
         $customMessages = [
-           'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar di master kegiatan.',
+           'master_kegiatan_id.required' => 'Kegiatan wajib dipilih dari daftar.',
+           'master_kegiatan_id.exists' => 'ID Kegiatan tidak terdaftar di master.',
            'pencacah.exists' => 'Nama pencacah tidak terdaftar di master petugas.',
            'pengawas.exists' => 'Nama pengawas tidak terdaftar di master petugas.',
         ];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
-           if ($request->ajax() || $request->wantsJson()) {
-               return response()->json(['message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
-           }
-           return back()->withErrors($validator)->withInput()->with('error_modal', 'tambahDataModal');
+              if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
+              }
+              return back()->withErrors($validator)->withInput()->with('error_modal', 'tambahDataModal');
         }
 
         $validatedData = $validator->validated();
         if ($request->filled('target_penyelesaian')) {
-           try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
         }
 
         DistribusiBulanan::create($validatedData);
 
-        // ===== PERBAIKAN ALERT TAMBAH =====
         session()->flash('success', 'Data berhasil ditambahkan!');
         session()->flash('auto_hide', true);
-        // ===================================
 
         if ($request->ajax() || $request->wantsJson()) {
-            // Response JSON tetap dikirim untuk konfirmasi AJAX
             return response()->json(['success' => 'Data berhasil ditambahkan!']);
         }
+        return back();
 
-        return back(); // Flash message sudah diset untuk non-AJAX / reload
     }
 
-    // edit method Anda sudah benar, tidak perlu diubah
-    public function edit($id) // Ganti parameter binding jadi $id
+    public function edit($id) 
     {
-        $distribusi_bulanan = DistribusiBulanan::findOrFail($id); // Gunakan findOrFail
+        $distribusi_bulanan = DistribusiBulanan::findOrFail($id); 
         $data = $distribusi_bulanan->toArray();
+        // Pastikan $data sekarang berisi 'master_kegiatan_id'
         $targetPenyelesaian = $distribusi_bulanan->target_penyelesaian;
         $tanggalPengumpulan = $distribusi_bulanan->tanggal_pengumpulan;
         $data['target_penyelesaian'] = $targetPenyelesaian ? Carbon::parse($targetPenyelesaian)->toDateString() : null;
@@ -203,9 +268,8 @@ class DistribusiBulananController extends Controller
 
         return back(); // Flash message sudah diset untuk non-AJAX / reload
     }
-
-    // ... (bulkDelete, destroy, searchPetugas, searchKegiatan sudah benar) ...
-     public function bulkDelete(Request $request)
+    
+    public function bulkDelete(Request $request)
     {
         $request->validate([
             'ids'   => 'required|array',
@@ -233,10 +297,9 @@ class DistribusiBulananController extends Controller
         return back(); // Redirect back akan menampilkan flash message
     }
 
-     public function searchPetugas(Request $request)
+    public function searchPetugas(Request $request)
     {
         $request->validate([
-            // 'field' => 'required|in:pencacah,pengawas', // Hapus jika JS tidak pakai
             'query' => 'nullable|string|max:100',
         ]);
         $query = $request->input('query', '');
@@ -247,56 +310,68 @@ class DistribusiBulananController extends Controller
         return response()->json($data);
     }
 
+    /**
+     * [PERBAIKAN] Autocomplete Kegiatan (Return ID & Nama, filter by Modul)
+     */
      public function searchKegiatan(Request $request, $jenisKegiatan = null)
      {
-         $request->validate(['query' => 'nullable|string|max:100']);
-         $query = $request->input('query', '');
-         $kegiatanQuery = MasterKegiatan::query();
+        $request->validate(['query' => 'nullable|string|max:100']);
+        $query = $request->input('query', '');
+        $kegiatanQuery = MasterKegiatan::query();
 
-         if ($jenisKegiatan) {
-              $validJenis = ['vhts', 'hkd', 'shpb', 'shp', 'shpj', 'shpbg'];
-             if (in_array(strtolower($jenisKegiatan), $validJenis)) {
-                 $kegiatanQuery->where('nama_kegiatan', 'LIKE', strtoupper($jenisKegiatan) . '%');
-             }
-         }
+        // Filter WAJIB berdasarkan MODUL
+        $kegiatanQuery->where('modul', $this->currentModul);
 
-         $data = $kegiatanQuery
-             ->where('nama_kegiatan', 'LIKE', "%{$query}%")
-             ->limit(10)
-             ->pluck('nama_kegiatan');
-         return response()->json($data);
+        // Filter berdasarkan prefix (jenisKegiatan dari URL)
+        if ($jenisKegiatan) {
+            $prefixKegiatan = strtoupper($jenisKegiatan);
+            $kegiatanQuery->where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%');
+        }
+
+        // Filter berdasarkan ketikan user
+        $data = $kegiatanQuery
+            ->where('nama_kegiatan', 'LIKE', "%{$query}%")
+            ->limit(10)
+            // [PENTING] Kembalikan ID dan Nama
+            ->select('id_master_kegiatan', 'nama_kegiatan') 
+            ->get(); 
+        return response()->json($data);
      }
 
 
-    // ... (export, import, downloadTemplate) ...
-      public function export(Request $request, $jenisKegiatan)
+    public function export(Request $request, $jenisKegiatan)
     {
-        $validJenis = ['vhts', 'hkd', 'shpb', 'shp', 'shpj', 'shpbg'];
-        if (!in_array(strtolower($jenisKegiatan), $validJenis)) {
+        // [PERBAIKAN] Validasi dinamis
+        $prefixKegiatan = strtoupper($jenisKegiatan);
+        $isValidJenisForModul = MasterKegiatan::where('nama_kegiatan', 'LIKE', $prefixKegiatan . '%')
+                                             ->where('modul', $this->currentModul)
+                                             ->exists();
+        if (!$isValidJenisForModul) {
             abort(404);
         }
 
         $dataRange = $request->input('dataRange', 'all');
         $dataFormat = $request->input('dataFormat', 'formatted_values');
         $exportFormat = $request->input('exportFormat', 'excel');
-        $kegiatan = $request->input('kegiatan'); // Filter tab
+        $kegiatan = $request->input('kegiatan'); 
         $search = $request->input('search');
-        $tahun = $request->input('tahun', date('Y')); // Ambil tahun dari request
+        $tahun = $request->input('tahun', date('Y')); 
         $currentPage = $request->input('page', 1);
         $perPageInput = $request->input('per_page', 20);
 
         $perPage = ($perPageInput == 'all' || $dataRange == 'all') ? -1 : (int)$perPageInput;
 
-        // Pastikan DistribusiBulananExport ada dan constructornya sesuai
+        // Pastikan DistribusiBulananExport di-update logikanya
         $exportClass = new DistribusiBulananExport(
             $dataRange,
             $dataFormat,
-            $jenisKegiatan,
-            $kegiatan,
+            $jenisKegiatan,     // Ini adalah prefix (misal: 'vhts')
+            $kegiatan,          // Ini adalah filter_value (bisa ID atau Teks)
             $search,
-            $tahun, // Kirim tahun ke export class
+            $tahun,             // Ini adalah tahun
             $currentPage,
-            $perPage
+            $perPage,
+            $this->currentModul // [TAMBAHAN] Kirim modul saat ini
         );
 
         $fileName = 'DistribusiBulanan_' . strtoupper($jenisKegiatan) . '_' . $tahun . '_' . now()->format('YmdHis');
@@ -308,10 +383,6 @@ class DistribusiBulananController extends Controller
                  'Content-Type' => 'text/csv',
              ]);
         }
-        // elseif ($exportFormat == 'word') {
-             // Pastikan DistribusiBulananExport punya method exportToWord
-             // return $exportClass->exportToWord();
-        // }
 
         return back()->with('error', 'Format ekspor tidak didukung.');
     }
@@ -319,23 +390,23 @@ class DistribusiBulananController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:2048' // Tambahkan csv jika didukung
+            'file' => 'required|mimes:xlsx,xls,csv|max:2048' 
         ],[
             'file.required' => 'File Excel/CSV wajib diunggah.',
             'file.mimes' => 'File harus berformat Excel (.xlsx, .xls) atau CSV (.csv).',
             'file.max' => 'Ukuran file maksimal 2MB.',
         ]);
+
         try {
             $file = $request->file('file');
-            // Pastikan App\Imports\DistribusiBulananImport ada
-            $import = new DistribusiBulananImport();
+            // [PENTING] Kirim modul saat ini ke Importer
+            $import = new DistribusiBulananImport($this->currentModul);
             Excel::import($import, $file);
 
-            $errors = $import->getErrors(); // Panggil method getErrors() dari trait
-            $successCount = $import->getSuccessCount(); // Panggil method getSuccessCount()
+            $errors = $import->getErrors(); 
+            $successCount = $import->getSuccessCount(); 
 
-             if (!empty($errors)) {
-                // Format error agar bisa ditampilkan di blade
+            if (!empty($errors)) {
                  $formattedErrors = collect($errors)->map(function ($err) {
                      return [
                          'row' => $err['row'] ?? '?',
@@ -344,13 +415,12 @@ class DistribusiBulananController extends Controller
                      ];
                  })->toArray();
 
-                return back()
-                    ->with('import_errors', $formattedErrors) // Kirim error yang diformat
-                    ->with('success_count', $successCount) // Kirim jumlah sukses (jika ada)
-                    ->with('warning', "Import selesai dengan {$successCount} data berhasil dan " . count($errors) . " data gagal. Lihat detail error di bawah.");
+                 return back()
+                     ->with('import_errors', $formattedErrors)
+                     ->with('success_count', $successCount) 
+                     ->with('warning', "Import selesai dengan {$successCount} data berhasil dan " . count($errors) . " data gagal.");
             }
 
-            // Jika tidak ada error
             return back()->with([
                 'success' => "Berhasil mengimpor {$successCount} data!",
                 'auto_hide' => true
@@ -361,23 +431,22 @@ class DistribusiBulananController extends Controller
              $formattedErrors = [];
              foreach ($failures as $failure) {
                  $formattedErrors[] = [
-                    'row' => $failure->row(),
-                    'error' => implode(', ', $failure->errors()), // Pesan error validasi
-                    'values' => $failure->values()[$failure->attribute()] ?? 'N/A'
+                     'row' => $failure->row(),
+                     'error' => implode(', ', $failure->errors()),
+                     'values' => $failure->values()[$failure->attribute()] ?? 'N/A'
                  ];
              }
              return back()
-                    ->with('import_errors', $formattedErrors)
-                    ->with('error', 'Import gagal karena ada data yang tidak valid.');
+                 ->with('import_errors', $formattedErrors)
+                 ->with('error', 'Import gagal karena ada data yang tidak valid.');
 
         } catch (\Exception $e) {
-            \Log::error('Import Error: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString()); // Log error detail
+            \Log::error('Import Error: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString()); 
             return back()->with('error', 'Terjadi kesalahan sistem saat import: ' . $e->getMessage());
         }
     }
 
-    // downloadTemplate sudah benar, tidak perlu diubah dari kode Anda
-      public function downloadTemplate()
+    public function downloadTemplate()
     {
          try {
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
@@ -398,31 +467,36 @@ class DistribusiBulananController extends Controller
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('FFD9EAD3');
 
+            // [PERBAIKAN] Ambil contoh kegiatan yang VALID untuk modul ini
+             $exampleKegiatan1 = MasterKegiatan::where('modul', $this->currentModul)->skip(0)->first();
+             $exampleKegiatan2 = MasterKegiatan::where('modul', $this->currentModul)->skip(1)->first();
+             $namaKeg1 = $exampleKegiatan1 ? $exampleKegiatan1->nama_kegiatan : 'NAMA_KEGIATAN_VALID_1';
+             $namaKeg2 = $exampleKegiatan2 ? $exampleKegiatan2->nama_kegiatan : 'NAMA_KEGIATAN_VALID_2';
+
              $exampleData = [
                 [
-                    'VHTS-JANUARI 2025',
+                    $namaKeg1,
                     'BS001',
                     'Nama Pencacah Valid', // Ganti dengan nama valid
                     'Nama Pengawas Valid', // Ganti dengan nama valid
                     '2025-01-31',
-                    'Belum',
+                    'Belum Selesai',
                     '2025-01-20'
                 ],
                 [
-                    'HKD-FEBRUARI 2025',
+                    $namaKeg2,
                     'BS002',
                     'Nama Pencacah Lain', // Ganti dengan nama valid
                     'Nama Pengawas Lain', // Ganti dengan nama valid
                     '2025-02-28',
                     'Selesai',
-                    '2025-02-25'
+                    '' // Boleh kosong
                 ]
             ];
             $sheet->fromArray($exampleData, null, 'A2');
-             $sheet->getStyle('A2:G3')->getFill()
+            $sheet->getStyle('A2:G3')->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('FFFFF4CC');
-
 
             foreach (range('A', 'G') as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
@@ -436,10 +510,10 @@ class DistribusiBulananController extends Controller
 
              $instructions = [
                 '1. Header (Baris 1) WAJIB ada (format: lowercase_underscore).',
-                '2. Semua kolom WAJIB diisi.',
-                '3. Nama Kegiatan, Pencacah, Pengawas HARUS SAMA PERSIS dengan data di Master.',
+                '2. Kolom selain "tanggal_pengumpulan" WAJIB diisi.',
+                '3. "nama_kegiatan" HARUS SAMA PERSIS dengan data di Master Kegiatan untuk modul ini (Contoh: ' . $namaKeg1 . ').',
                 '4. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY.',
-                '5. flag_progress: "Belum" atau "Selesai".',
+                '5. flag_progress: "Belum Selesai" atau "Selesai".',
                 '6. HAPUS baris contoh (baris 2-3) dan petunjuk ini sebelum import!',
             ];
              $instructionRow = 6;
@@ -449,8 +523,8 @@ class DistribusiBulananController extends Controller
                 $sheet->mergeCells("A{$instructionRow}:G{$instructionRow}");
                 $instructionRow++;
             }
-
-             $sheet->freezePane('A2');
+            
+            $sheet->freezePane('A2');
 
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
             $fileName = 'Template_Import_Distribusi_Bulanan.xlsx';
@@ -462,9 +536,9 @@ class DistribusiBulananController extends Controller
             ])->deleteFileAfterSend(true);
 
         } catch (\Exception $e) {
-             \Log::error('Template Download Error: ' . $e->getMessage());
+             \Log::error('Template Download Error: '. $e->getMessage());
             return back()->with('error', 'Gagal membuat template: ' . $e->getMessage());
         }
     }
 
-}
+} // <-- Ini adalah kurung kurawal penutup Class

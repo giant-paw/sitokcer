@@ -20,16 +20,21 @@
 
         .data-table th:nth-child(3) {
             /* Kolom 'Deskripsi' (kolom ke-3) */
-            width: 35%;
-            /* Beri ruang lebih besar untuk deskripsi */
+            width: 30%;
+            /* [PENYESUAIAN] Mengurangi sedikit lebar deskripsi untuk kolom baru */
         }
         
-        /* [PERBAIKAN] Sesuaikan kolom 4 & 5 (Tim & Target) */
+        /* [PENYESUAIAN] Sesuaikan kolom 4, 5, 6 */
         .data-table th:nth-child(4) {
             width: 15%; /* Tim */
         }
+
         .data-table th:nth-child(5) {
-            width: 10%; /* Target */
+            width: 15%; /* [TAMBAHAN] Modul */
+        }
+
+        .data-table th:nth-child(6) {
+            width: 10%; /* [DIGESER] Target (sebelumnya child 5) */
         }
 
 
@@ -90,10 +95,24 @@
                     <form action="{{ route('master.kegiatan.index') }}" method="GET" class="search-form"
                         style="display: flex; gap: 10px;">
 
-                        {{-- [UBAH] Filter tim (Tim) --}}
+                        {{-- [TAMBAHAN] Filter Modul --}}
                         <div>
-                            {{-- [DIPERBAIKI] Atribut 'onchange' dihapus agar form tidak langsung submit --}}
-                            <select name="filter_tim" class="form-input" style="min-width: 200px;"
+                            <select name="filter_modul" class="form-input" style="min-width: 200px;"
+                                onchange="this.form.submit()">
+                                <option value="">Semua Modul</option>
+                                {{-- Loop dari controller --}}
+                                @foreach($validModulOptions as $modul)
+                                    <option value="{{ $modul }}" @selected(request('filter_modul') == $modul)>
+                                        {{-- Format teks: 'distribusi_triwulanan' -> 'Distribusi Triwulanan' --}}
+                                        {{ ucwords(str_replace('_', ' ', $modul)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Filter tim (Tim) --}}
+                        <div>
+                            <select name="filter_tim" class="form-input" style="min-width: 150px;"
                                 onchange="this.form.submit()">
                                 <option value="">Semua Tim</option>
                                 <option value="Tim Sosial" @selected(request('filter_tim') == 'Tim Sosial')>Tim Sosial
@@ -107,9 +126,8 @@
                         </div>
 
                         {{-- Search input yang ada --}}
-                        {{-- [DIPERBAIKI] Value menggunakan request('search') agar konsisten --}}
                         <input type="text" class="search-input" name="search" value="{{ request('search') ?? '' }}"
-                            placeholder="Cari Nama/Deskripsi...">
+                            placeholder="Cari Nama/Deskripsi/Modul...">
                         <button class="search-btn" type="submit">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -139,7 +157,6 @@
                 </div>
             @endif
 
-            {{-- [PERBAIKAN "Tidak Bisa Destroy"] Tambahkan alert untuk session('error') --}}
             @if (session('error'))
                 <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert">
                     <div class="alert-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" 
@@ -175,8 +192,9 @@
                                 <th class="th-checkbox"><input type="checkbox" class="table-checkbox" id="selectAll"></th>
                                 <th>Nama Kegiatan</th>
                                 <th>Deskripsi</th>
-                                <th>Tim</th> {{-- [UBAH] Ganti nama header --}}
-                                <th>Target</th> {{-- [TAMBAH] Kolom Target --}}
+                                <th>Tim</th>
+                                <th>Modul</th> {{-- [TAMBAHAN] Kolom Modul --}}
+                                <th>Target</th>
                                 <th class="th-action">Aksi</th>
                             </tr>
                         </thead>
@@ -188,8 +206,9 @@
                                             name="ids[]" value="{{ $k->id_master_kegiatan }}"></td>
                                     <td class="user-name">{{ $k->nama_kegiatan }}</td>
                                     <td class="text-secondary">{{ $k->deskripsi }}</td>
-                                    <td class="text-secondary">{{ $k->tim }}</td> {{-- Kolom data ini tetap --}}
-                                    <td class="text-secondary">{{ $k->target ?? 0 }}</td> {{-- [TAMBAH] Data Target --}}
+                                    <td class="text-secondary">{{ $k->tim }}</td>
+                                    <td class="text-secondary">{{ ucwords(str_replace('_', ' ', $k->modul ?? '')) }}</td> {{-- [TAMBAHAN] Data Modul --}}
+                                    <td class="text-secondary">{{ $k->target ?? 0 }}</td>
                                     <td class="td-action">
                                         {{-- 11. Gunakan .action-buttons & .btn-icon --}}
                                         <div class="action-buttons">
@@ -220,7 +239,7 @@
                             @empty
                                 {{-- 12. Gunakan .empty-state --}}
                                 <tr>
-                                    <td colspan="6" class="empty-state"> {{-- [PERBAIKAN] Colspan 6 --}}
+                                    <td colspan="7" class="empty-state"> {{-- [PENYESUAIAN] Colspan 7 --}}
                                         <div class="empty-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
                                                 stroke-linecap="round" stroke-linejoin="round">
@@ -286,9 +305,8 @@
                             @error('nama_kegiatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        {{-- [UBAH] Form Group tim (Tim) --}}
                         <div class="form-group">
-                            <label for="tim" class="form-label">Tim (tim) <span class="required">*</span></label>
+                            <label for="tim" class="form-label">Tim <span class="required">*</span></label>
                             <select class="form-input @error('tim') is-invalid @enderror" id="tim" name="tim" required>
                                 <option value="">Pilih Tim</option>
                                 <option value="Tim Sosial" @selected(old('tim') == 'Tim Sosial')>Tim Sosial</option>
@@ -300,11 +318,24 @@
                             @error('tim') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        {{-- [TAMBAH] Form Group Target --}}
+                        {{-- [TAMBAHAN] Form Group Modul --}}
+                        <div class="form-group">
+                            <label for="modul" class="form-label">Modul <span class="required">*</span></label>
+                            <select class="form-input @error('modul') is-invalid @enderror" id="modul" name="modul" required>
+                                <option value="">Pilih Modul</option>
+                                @foreach($validModulOptions as $modul)
+                                    <option value="{{ $modul }}" @selected(old('modul') == $modul)>
+                                        {{ ucwords(str_replace('_', ' ', $modul)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('modul') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+
                         <div class="form-group">
                             <label for="target" class="form-label">Target</label>
                             <input type="number" class="form-input @error('target') is-invalid @enderror"
-                                   id="target" name="target" value="{{ old('target', 0) }}" min="0">
+                                    id="target" name="target" value="{{ old('target', 0) }}" min="0">
                             @error('target') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
@@ -362,9 +393,8 @@
                             @enderror
                         </div>
 
-                        {{-- [UBAH] Form Group Edit tim (Tim) --}}
                         <div class="form-group">
-                            <label for="edit_tim" class="form-label">Tim (tim) <span class="required">*</span></label>
+                            <label for="edit_tim" class="form-label">Tim <span class="required">*</span></label>
                             <select class="form-input @error('tim', 'edit_error') is-invalid @enderror" id="edit_tim"
                                 name="tim" required>
                                 <option value="">Pilih Tim</option>
@@ -376,11 +406,25 @@
                             @error('tim', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        {{-- [TAMBAH] Form Group Edit Target --}}
+                        {{-- [TAMBAHAN] Form Group Edit Modul --}}
+                        <div class="form-group">
+                            <label for="edit_modul" class="form-label">Modul <span class="required">*</span></label>
+                            <select class="form-input @error('modul', 'edit_error') is-invalid @enderror" id="edit_modul" 
+                                name="modul" required>
+                                <option value="">Pilih Modul</option>
+                                @foreach($validModulOptions as $modul)
+                                    <option value="{{ $modul }}">
+                                        {{ ucwords(str_replace('_', ' ', $modul)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('modul', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+
                         <div class="form-group">
                             <label for="edit_target" class="form-label">Target</label>
                             <input type="number" class="form-input @error('target', 'edit_error') is-invalid @enderror"
-                                   id="edit_target" name="target" min="0">
+                                    id="edit_target" name="target" min="0">
                             @error('target', 'edit_error') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
@@ -464,8 +508,9 @@
                 })
                 .then(data => {
                     document.getElementById('edit_nama_kegiatan').value = data.nama_kegiatan || '';
-                    document.getElementById('edit_tim').value = data.tim || ''; // Ini tetap sama, JS akan mencocokkan valuenya
-                    document.getElementById('edit_target').value = data.target ?? 0; // <-- [TAMBAH] Isi data target
+                    document.getElementById('edit_tim').value = data.tim || ''; 
+                    document.getElementById('edit_modul').value = data.modul || ''; // <-- [TAMBAHAN] Isi data modul
+                    document.getElementById('edit_target').value = data.target ?? 0;
                     document.getElementById('edit_deskripsi').value = data.deskripsi || '';
                     editForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
                 })
@@ -506,8 +551,6 @@
             bulkDeleteBtn?.addEventListener('click', () => {
                 const count = document.querySelectorAll('.row-checkbox:checked').length;
                 document.getElementById('deleteModalBody').innerText = `Apakah Anda yakin ingin menghapus ${count} data kegiatan yang dipilih?`;
-
-                // [PERBAIKAN] Typo '()d' telah dihapus, sekarang '()'
                 confirmDeleteButton.onclick = () => bulkDeleteForm.submit();
             });
 
@@ -516,11 +559,11 @@
                 new bootstrap.Modal(document.getElementById('tambahDataModal')).show();
             @endif
 
-                @if (session('error_modal') == 'editDataModal' && $errors->any() && session('edit_id'))
-                    const editModal = new bootstrap.Modal(document.getElementById('editDataModal'));
-                    editData({{ session('edit_id') }});
-                    editModal.show();
-                @endif
+            @if (session('error_modal') == 'editDataModal' && $errors->any() && session('edit_id'))
+                const editModal = new bootstrap.Modal(document.getElementById('editDataModal'));
+                editData({{ session('edit_id') }});
+                editModal.show();
+            @endif
         });
     </script>
 @endpush
