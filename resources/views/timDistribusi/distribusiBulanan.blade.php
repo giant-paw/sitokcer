@@ -115,7 +115,8 @@
                             @foreach ($kegiatanCounts ?? [] as $kegiatan)
                                 {{-- Gunakan filter_value dan display_name dari query COALESCE --}}
                                 <option value="{{ $kegiatan->filter_value }}" 
-                                    {{ $selectedKegiatan == $kegiatan->filter_value ? 'selected' : '' }}>
+                                    {{-- Gunakan request() untuk membandingkan --}}
+                                    {{ request('kegiatan') == $kegiatan->filter_value ? 'selected' : '' }}>
                                     {{ $kegiatan->display_name }} ({{ $kegiatan->total }})
                                 </option>
                             @endforeach
@@ -125,15 +126,12 @@
                     <div class="filter-group">
                         <label class="filter-label">Tahun:</label>
                         <select class="filter-select" id="tahunSelect">
-                            {{-- $availableTahun dikirim dari controller --}}
                             @foreach ($availableTahun as $tahun) <option value="{{ $tahun }}" {{ $selectedTahun == $tahun ? 'selected' : '' }}>{{ $tahun }}</option> @endforeach
                         </select>
                     </div>
                     
                     {{-- Search form --}}
-                    {{-- Form ini akan dikontrol oleh JS (Live Search) --}}
                     <form action="{{ route('tim-distribusi.bulanan.index', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET" class="search-form">
-                        {{-- Input tersembunyi untuk filter lain agar tidak hilang --}}
                         <input type="hidden" name="tahun" value="{{ $selectedTahun }}">
                         <input type="hidden" name="per_page" value="{{ request('per_page', 20) }}">
                         @if ($selectedKegiatan) <input type="hidden" name="kegiatan" value="{{ $selectedKegiatan }}"> @endif
@@ -232,7 +230,7 @@
     {{-- ================================================= --}}
 
     {{-- Modal Import --}}
-    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content modern-modal">
                 <form action="{{ route('tim-distribusi.bulanan.import') }}" method="POST" enctype="multipart/form-data">
@@ -247,10 +245,10 @@
 
                     <div class="modal-body">
                         <div class="alert alert-info d-flex align-items-start p-3" role="alert">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-3"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-3 flex-shrink-0" style="margin-top: 3px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                             <div>
                                 <small>
-                                    <strong>PENTING:</strong> Pastikan data `nama_kegiatan` dan `pencacah`/`pengawas` di file Excel Anda **sudah valid** dan terdaftar di data Master.
+                                    <strong>PENTING:</strong> Pastikan data `nama_kegiatan` di file Excel Anda **sudah valid** dan terdaftar di Master Kegiatan untuk modul **Distribusi Bulanan**.
                                 </small>
                             </div>
                         </div>
@@ -278,11 +276,9 @@
     </div>
     
     {{-- Modal Export --}}
-    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
-            {{-- Form action sudah benar, parameter di-pass via hidden input --}}
              <form action="{{ route('tim-distribusi.bulanan.export', ['jenisKegiatan' => $jenisKegiatan]) }}" method="GET" id="exportForm">
-                {{-- Input tersembunyi ini akan di-update oleh JS --}}
                 <input type="hidden" name="kegiatan" id="export_kegiatan"> 
                 <input type="hidden" name="search" id="export_search"> 
                 <input type="hidden" name="tahun" id="export_tahun"> 
@@ -295,7 +291,6 @@
                         <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
-                        {{-- Teks (count) di opsi ini akan di-update oleh JS --}}
                         <div class="form-group"> <label for="exportDataRangeBul" class="form-label">Jangkauan Data</label> <select class="form-select" id="exportDataRangeBul" name="dataRange" required> <option value="all">Semua Data</option> <option value="current_page">Halaman Ini</option> </select> </div>
                         <div class="form-group"> <label for="exportDataFormatBul" class="form-label">Format Nilai Tanggal</label> <select class="form-select" id="exportDataFormatBul" name="dataFormat"> <option value="formatted_values" selected>Format Tampilan (dd/mm/yyyy)</option> <option value="raw_values">Nilai Asli Database (yyyy-mm-dd)</option> </select> <small class="form-text text-muted">Pilih "Raw Values" untuk olah data.</small> </div>
                         <div class="form-group"> <label for="exportExportFormatBul" class="form-label">Format File</label> <select class="form-select" id="exportExportFormatBul" name="exportFormat" required> <option value="excel">Excel (.xlsx)</option> <option value="csv">CSV (.csv)</option> </select> </div>
@@ -317,7 +312,7 @@
                 <div class="modal-content modern-modal">
                     <div class="modal-header">
                         <div class="modal-header-content"> <h5 class="modal-title">Tambah Data {{ strtoupper($jenisKegiatan) }} Baru</h5> <p class="modal-subtitle">Isi form di bawah</p> </div>
-                        <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
+                        <button type="button" class="modal-close" data-bs-dismiss="modal" aria-label="Close"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="_form" value="tambahForm">
@@ -330,7 +325,6 @@
                                 placeholder="Ketik {{ strtoupper($jenisKegiatan) }}..." required autocomplete="off">
                             <input type="hidden" id="master_kegiatan_id" name="master_kegiatan_id" value="{{ old('master_kegiatan_id') }}">
                             <div class="autocomplete-suggestions" id="kegiatan-suggestions"></div>
-                            {{-- Error feedback untuk kedua field --}}
                             <div class="invalid-feedback" data-field="nama_kegiatan">@error('nama_kegiatan') {{ $message }} @enderror</div>
                             <div class="invalid-feedback" data-field="master_kegiatan_id">@error('master_kegiatan_id') {{ $message }} @enderror</div>
                         </div>
@@ -379,7 +373,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label> {{-- Opsional --}}
+                                    <label for="tanggal_pengumpulan" class="form-label">Tanggal Pengumpulan</label> {{-- Dibuat opsional di controller --}}
                                     <input type="date" class="form-input @error('tanggal_pengumpulan') is-invalid @enderror" id="tanggal_pengumpulan" name="tanggal_pengumpulan" value="{{ old('tanggal_pengumpulan') }}">
                                     <div class="invalid-feedback" data-field="tanggal_pengumpulan">@error('tanggal_pengumpulan') {{ $message }} @enderror</div>
                                 </div>
@@ -398,14 +392,15 @@
     {{-- Modal Edit Data --}}
     <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg modal-dialog-centered"> 
-            <form id="editForm" method="POST"> {{-- Action diatur oleh JS --}}
-                @csrf @method('PUT')
+            <form id="editForm" method="POST"> 
+                @csrf 
+                @method('PUT')
                 <input type="hidden" name="_form" value="editForm"> 
                 <input type="hidden" name="edit_id_fallback" id="edit_id_fallback" value="{{ session('edit_id') ?? '' }}">
                 <div class="modal-content modern-modal">
                     <div class="modal-header">
                         <div class="modal-header-content"> <h5 class="modal-title">Edit Data Bulanan</h5> <p class="modal-subtitle">Perbarui informasi data</p> </div>
-                        <button type="button" class="modal-close" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
+                        <button type="button" class="modal-close" data-bs-dismiss="modal" aria-label="Close"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
                         
@@ -479,19 +474,19 @@
     </div>
 
     {{-- Modal Delete --}}
-    <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
-            <form id="deleteForm" method="POST"> {{-- Action diatur JS --}}
+            <form id="deleteForm" method="POST"> 
                 @csrf
-                {{-- Method diatur JS --}}
+                {{-- Method (_method) di-set oleh JS --}}
                 <div class="modal-content modern-modal">
                     <div class="modal-header modal-header-danger">
                         <h5 class="modal-title">Konfirmasi Hapus</h5>
-                        <button type="button" class="modal-close modal-close-white" data-bs-dismiss="modal"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
+                        <button type="button" class="modal-close modal-close-white" data-bs-dismiss="modal" aria-label="Close"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>
                     </div>
                     <div class="modal-body">
                         <div class="delete-icon"> <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> </div>
-                        <p class="delete-text" id="deleteModalBody">Hapus data {{ strtoupper($jenisKegiatan) }} ini?</p>
+                        <p class="delete-text" id="deleteModalBody">Hapus data {{ strtoupper($jenisKegiatan) }} ini?</p> 
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -529,12 +524,20 @@
             const query = this.value;
             clearTimeout(debounceTimer);
 
-            if (query.length < 1) {
+            // [FIX] Jangan kosongkan hidden ID jika query < 2, tunggu sampai < 1
+            if (query.length < 1) { 
                 if (suggestionsContainer) suggestionsContainer.innerHTML = '';
                 if (hiddenInput) hiddenInput.value = ''; 
                 activeSuggestionIndex = -1;
-                return;
+                return; 
             }
+            
+            // Opsional: Tunda pencarian sampai 2 karakter
+            // if (query.length < 2) { 
+            //     if (suggestionsContainer) suggestionsContainer.innerHTML = '';
+            //     activeSuggestionIndex = -1;
+            //     return; 
+            // }
 
             debounceTimer = setTimeout(() => {
                 const finalSearchUrl = `${searchUrl}&query=${encodeURIComponent(query)}`;
@@ -613,7 +616,7 @@
             } else if (e.key === 'Enter') {
                 if (activeSuggestionIndex > -1) {
                     e.preventDefault();
-                    const selectedSuggestion = suggestions[activeSuggestionIndex];
+                    const selectedSuggestion = suggestions[activeSuggestionIndex]; // [FIX] Ganti 'activeSuggestionjIndex'
                     
                     const textContent = selectedSuggestion.textContent;
                     const idContent = selectedSuggestion.getAttribute('data-id'); 
@@ -641,17 +644,14 @@
         }
 
         document.addEventListener('click', (e) => {
-            if (e.target.id !== inputId && suggestionsContainer) {
+            if (e.target.id !== inputId && suggestionsContainer && !suggestionsContainer.contains(e.target)) {
                 suggestionsContainer.innerHTML = '';
                 activeSuggestionIndex = -1;
             }
         });
     }
 
-    // --- URL Basis BARU (Gunakan URL Helper Blade) ---
-    // [PERBAIKAN] Gunakan route helper Blade untuk URL
-    const distribusiBulananBaseUrl = '{{ route("tim-distribusi.bulanan.index", ["jenisKegiatan" => $jenisKegiatan]) }}';
-    // Hapus /${id} dari URL basis, tambahkan di fungsi
+    const distribusiBulananBaseUrl = `{{ url('tim-distribusi/bulanan') }}`;
     const currentJenisKegiatan = '{{ $jenisKegiatan }}'; 
 
     /**
@@ -700,7 +700,6 @@
         const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
         const deleteForm = document.getElementById('deleteForm');
         
-        // Set action ke route destroy
         deleteForm.action = `${distribusiBulananBaseUrl}/${id}`;
         
         let methodInput = deleteForm.querySelector('input[name="_method"]'); 
@@ -738,14 +737,19 @@
             const input = form.querySelector(`[name="${field}"]`); 
             const errorDiv = form.querySelector(`.invalid-feedback[data-field="${field}"]`); 
             if (input) input.classList.add('is-invalid'); 
-            if (errorDiv) errorDiv.textContent = messages[0];
+            if (errorDiv) {
+                errorDiv.textContent = messages[0];
+                errorDiv.style.display = 'block'; // Pastikan terlihat
+            }
             
-            // Fallback untuk 'master_kegiatan_id' agar errornya muncul di 'nama_kegiatan'
             if (field === 'master_kegiatan_id') {
                  const visibleInput = form.querySelector(`[name="nama_kegiatan"]`);
                  const visibleErrorDiv = form.querySelector(`.invalid-feedback[data-field="nama_kegiatan"]`);
                  if(visibleInput) visibleInput.classList.add('is-invalid');
-                 if(visibleErrorDiv) visibleErrorDiv.textContent = messages[0];
+                 if(visibleErrorDiv) {
+                    visibleErrorDiv.textContent = messages[0];
+                    visibleErrorDiv.style.display = 'block'; // Pastikan terlihat
+                 }
             }
         } 
     }
@@ -771,7 +775,7 @@
                 } 
             } else { 
                 modalInstance.hide(); 
-                location.reload(); 
+                window.location.reload(); // Reload untuk melihat data baru
             } 
         } catch (error) { 
             console.error('Fetch error:', error); 
@@ -787,6 +791,7 @@
 
         // --- Init Autocomplete (Gunakan route baru) ---
         @if(Route::has('tim-distribusi.bulanan.searchKegiatan'))
+            // [PERBAIKAN] URL harus menyertakan {jenisKegiatan}
             const kegiatanSearchUrl = `{{ route("tim-distribusi.bulanan.searchKegiatan", ['jenisKegiatan' => $jenisKegiatan]) }}?`;
             initAutocomplete('nama_kegiatan', 'kegiatan-suggestions', kegiatanSearchUrl);
             initAutocomplete('edit_nama_kegiatan', 'edit-kegiatan-suggestions', kegiatanSearchUrl);
@@ -842,12 +847,11 @@
             const count = document.querySelectorAll('.row-checkbox:checked').length; 
             if (count === 0) return; 
             if (!dme || !df) return; 
-            const dm = bootstrap.Modal.getOrCreateInstance(dme);
             
             df.action = '{{ route("tim-distribusi.bulanan.bulkDelete") }}'; 
             
             let mi = df.querySelector('input[name="_method"]'); 
-            if (mi) mi.remove(); // Hapus _method DELETE jika ada
+            if (mi) mi.remove(); // Pastikan method-nya POST
 
             df.querySelectorAll('input[name="ids[]"]').forEach(i => i.remove()); 
             document.querySelectorAll('.row-checkbox:checked').forEach(cb => { 
@@ -864,6 +868,7 @@
                 e.preventDefault(); 
                 df.submit(); 
             }); 
+            // Modal akan muncul karena data-bs-toggle="modal"
         });
 
         // --- Filters Per Page & Tahun & Kegiatan ---
@@ -883,7 +888,6 @@
                 else { p.delete('kegiatan'); } 
             }
             
-            // Ambil nilai dari input search
             const currentSearch = document.getElementById('searchInput')?.value;
             if (currentSearch && currentSearch.trim() !== '') {
                 p.set('search', currentSearch);
@@ -891,9 +895,9 @@
                 p.delete('search');
             }
 
-            p.set('page', 1); // Selalu reset ke halaman 1
+            p.set('page', 1); 
             
-            // [PERBAIKAN] Tambahkan 'focus_search' jika pemicunya BUKAN filter select
+            // Tambahkan 'focus_search' jika 'this' adalah searchInput
             if (this && this.id === 'searchInput') {
                  p.set('focus_search', '1');
             }
@@ -901,7 +905,6 @@
             window.location.href = cu.pathname + '?' + p.toString();
         }
 
-        // Filter select (PPS, TS, KS)
         if (pps) pps.addEventListener('change', hfc);
         if (ts) ts.addEventListener('change', hfc);
         if (ks) ks.addEventListener('change', hfc);
@@ -913,8 +916,7 @@
             searchInput.addEventListener('input', function() {
                 clearTimeout(searchDebounceTimer);
                 searchDebounceTimer = setTimeout(() => {
-                    // Gunakan 'call' untuk set 'this' ke searchInput
-                    hfc.call(searchInput); 
+                    hfc.call(searchInput); // 'this' akan jadi searchInput
                 }, 500); 
             });
         }
@@ -923,7 +925,7 @@
          if(searchForm) {
             searchForm.addEventListener('submit', (e) => {
                  e.preventDefault(); 
-                 hfc.call(searchInput || null); // Panggil hfc saat enter
+                 hfc.call(searchInput || null); 
             });
          }
         
@@ -932,12 +934,10 @@
         if (urlParams.has('focus_search')) {
             const searchInputToFocus = document.getElementById('searchInput');
             if (searchInputToFocus) {
-                // Bersihkan URL dulu
                 urlParams.delete('focus_search');
                 const newUrl = window.location.pathname + '?' + urlParams.toString();
                 history.replaceState(null, '', newUrl);
 
-                // Fokus dengan jeda
                 setTimeout(() => { 
                     const currentValue = searchInputToFocus.value;
                     const textLength = currentValue.length;
@@ -950,7 +950,11 @@
         // --- Fallback Error Modals ---
         @if (session('error_modal') == 'tambahDataModal' && $errors->any()) 
             const tmef = document.getElementById('tambahDataModal'); 
-            if (tmef) bootstrap.Modal.getOrCreateInstance(tmef).show(); 
+            if (tmef) {
+                // Tampilkan error secara manual
+                showFormErrors(tmef.querySelector('form'), @json($errors->toArray()));
+                bootstrap.Modal.getOrCreateInstance(tmef).show(); 
+            }
         @endif
         
         @if (session('error_modal') == 'editDataModal' && $errors->any()) 
@@ -962,26 +966,30 @@
                     const edf = document.getElementById('editForm'); 
                     edf.action = `${distribusiBulananBaseUrl}/${eid_fb}`; 
                     
-                    // Panggil editData untuk mengisi field (termasuk ID tersembunyi)
-                    editData(eid_fb); // Ini sudah memanggil editModal.show()
+                    editData(eid_fb); // Ini akan memuat data dan memanggil .show()
                     
                     // Tampilkan error secara manual
                     const editModalInstance = bootstrap.Modal.getOrCreateInstance(emef);
                     
                     emef.addEventListener('shown.bs.modal', () => {
+                         // Loop manual error dari $errors->all()
                          @foreach ($errors->keys() as $f)
                             const fel = edf.querySelector(`[name="{{ $f }}"]`); 
                             if (fel) fel.classList.add('is-invalid'); 
-                            // Gunakan [data-field] selector untuk error
                             const erel = edf.querySelector(`.invalid-feedback[data-field="{{ $f }}"]`); 
-                            if (erel) erel.textContent = '{{ $errors->first($f) }}';
+                            if (erel) {
+                                erel.textContent = '{{ $errors->first($f) }}';
+                                erel.style.display = 'block';
+                            }
                             
-                            // Fallback error untuk master_kegiatan_id
                             if ("{{$f}}" === "master_kegiatan_id") {
                                  const visFel = edf.querySelector(`[name="nama_kegiatan"]`);
                                  const visErel = edf.querySelector(`.invalid-feedback[data-field="nama_kegiatan"]`);
                                  if(visFel) visFel.classList.add('is-invalid');
-                                 if(visErel) visErel.textContent = '{{ $errors->first($f) }}';
+                                 if(visErel) {
+                                     visErel.textContent = '{{ $errors->first($f) }}';
+                                     visErel.style.display = 'block';
+                                 }
                             }
                          @endforeach
                     }, { once: true });
@@ -990,7 +998,7 @@
         @endif
 
         // --- Auto-hide Alerts ---
-        const alertList = document.querySelectorAll('.alert-dismissible[role="alert"]:not(.alert-warning)'); // Jangan auto-hide error import
+        const alertList = document.querySelectorAll('.alert-dismissible[role="alert"]:not(.alert-warning)'); 
         alertList.forEach(function (alert) { 
             if (!alert.closest('.modal')) { 
                 const autoHide = {{ session('auto_hide', 'false') ? 'true' : 'false' }}; 
@@ -1000,13 +1008,12 @@
                     }, 5000); 
                 } 
             } 
-        })
+        });
 
         // --- Update Export Modal ---
         const exportModalEl = document.getElementById('exportModal'); 
         if(exportModalEl) { 
             exportModalEl.addEventListener('show.bs.modal', function () {
-                // Update teks
                 const currentPageOption = document.querySelector('#exportModal select[name="dataRange"] option[value="current_page"]');
                 const allDataOption = document.querySelector('#exportModal select[name="dataRange"] option[value="all"]');
                 const totalData = {{ $listData->total() }}; 
@@ -1014,15 +1021,13 @@
                 if(currentPageOption) currentPageOption.textContent = `Hanya Halaman Ini (${currentPageData} data)`;
                 if(allDataOption) allDataOption.textContent = `Semua Data (${totalData} data)`; 
                 
-                // Update hidden input values
                 document.querySelector('#exportForm input[name="tahun"]').value = '{{ $selectedTahun ?? date('Y') }}';
                 document.querySelector('#exportForm input[name="kegiatan"]').value = '{{ $selectedKegiatan ?? '' }}';
                 document.querySelector('#exportForm input[name="search"]').value = '{{ $search ?? '' }}';
                 document.querySelector('#exportForm input[name="page"]').value = '{{ $listData->currentPage() }}';
-                document.querySelector('#exportForm input[name="per_page"]').value = '{{ request('per_page', $listData->perPage()) }}';
+                document.querySelector('#exportForm input[name="per_page"]').value = '{{ $listData->perPage() }}'; // Gunakan perPage()
             });
         }
-
     });
 </script>
 @endpush
