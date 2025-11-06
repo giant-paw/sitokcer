@@ -177,13 +177,14 @@
                     </a>
                     <ul class="submenu">
 
-                        <li class="{{ request()->is('tim-produksi/caturwulanan/upp*') ? 'active-link' : '' }}">
+                        <li class="{{ request()->route('jenisKegiatan') == 'ubinan' ? 'active-link' : '' }}">
                             <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan']) }}">Ubinan
                                 Padi Palawija</a>
                         </li>
-                        <li class="{{ request()->is('tim-produksi/caturwulanan/uup*') ? 'active-link' : '' }}">
+                        <li class="{{ request()->route('jenisKegiatan') == 'updating utp' ? 'active-link' : '' }}">
                             <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'updating utp']) }}">Updating UTP Palawija</a>
                         </li>
+
                     </ul>
                 </li>
 

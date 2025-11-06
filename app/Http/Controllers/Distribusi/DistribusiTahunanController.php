@@ -3,127 +3,192 @@
 namespace App\Http\Controllers\Distribusi;
 
 use App\Http\Controllers\Controller;
-use App\Models\Distribusi\DistribusiTahunan;
+use App\Models\Distribusi\DistribusiTahunan; // <-- [GANTI]
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Master\MasterPetugas;
 use App\Models\Master\MasterKegiatan;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
-use App\Exports\DistribusiTahunanExport; 
-use App\Imports\DistribusiTahunanImport; 
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\DistribusiTahunanExport; // <-- [GANTI]
+use App\Imports\DistribusiTahunanImport; // <-- [GANTI]
+use Illuminate\Validation\Rule;
 
 class DistribusiTahunanController extends Controller
 {
+    // Definisikan modul untuk controller ini
+    private $currentModul = 'distribusi_tahunan'; // <-- [GANTI]
+
+    /**
+     * Tampilkan halaman index, TANPA {jenisKegiatan}
+     */
     public function index(Request $request)
     {
+        // 1. Logika Filter Tahun 
         $selectedTahun = $request->input('tahun', date('Y'));
+        
+         $availableTahun = DistribusiTahunan::query() // <-- [GANTI]
+             ->leftJoin('master_kegiatan', 'distribusi_tahunan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+             ->where(function($q) {
+                 $q->where('master_kegiatan.modul', $this->currentModul)
+                   ->orWhereNull('distribusi_tahunan.master_kegiatan_id'); 
+             })
+             ->select(DB::raw('YEAR(distribusi_tahunan.created_at) as tahun'))
+             ->distinct()
+             ->whereNotNull('distribusi_tahunan.created_at')
+             ->orderBy('tahun', 'desc')
+             ->pluck('tahun')
+             ->toArray();
+             
+         if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
+             array_unshift($availableTahun, date('Y'));
+         }
 
-        $availableTahun = DistribusiTahunan::query()
-            ->select(DB::raw('YEAR(created_at) as tahun'))
-            ->distinct()->whereNotNull('created_at')
-            ->orderBy('tahun', 'desc')
-            ->pluck('tahun')->toArray();
+        // 2. Kueri Utama [PERUBAHAN LOGIKA: LEFT JOIN & MODUL]
+        $query = DistribusiTahunan::query() // <-- [GANTI]
+            ->leftJoin('master_kegiatan', 'distribusi_tahunan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+            // Filter hanya data yang relevan dengan modul ini (bersih) ATAU data kotor (NULL)
+            ->where(function($q) {
+                 $q->where('master_kegiatan.modul', $this->currentModul)
+                   ->orWhereNull('distribusi_tahunan.master_kegiatan_id'); 
+            })
+            ->whereYear('distribusi_tahunan.created_at', $selectedTahun);
 
-        if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
-            array_unshift($availableTahun, date('Y'));
-        }
-
-        $query = DistribusiTahunan::query()
-            ->whereYear('created_at', $selectedTahun);
-
+        // 3. Filter Kegiatan Spesifik (Tab) 
         $selectedKegiatan = $request->input('kegiatan', '');
         if ($selectedKegiatan !== '') {
-            $query->where('nama_kegiatan', $selectedKegiatan);
+            if (is_numeric($selectedKegiatan)) {
+                $query->where('distribusi_tahunan.master_kegiatan_id', $selectedKegiatan);
+            } else {
+                $query->whereNull('distribusi_tahunan.master_kegiatan_id')
+                      ->where('distribusi_tahunan.nama_kegiatan', $selectedKegiatan);
+            }
         }
 
+        // 4. Filter Pencarian 
         $search = $request->input('search', '');
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('BS_Responden', 'like', "%{$search}%")
-                    ->orWhere('pencacah', 'like', "%{$search}%")
-                    ->orWhere('pengawas', 'like', "%{$search}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$search}%");
+             $query->where(function ($q) use ($search) {
+                $q->where('distribusi_tahunan.BS_Responden', 'like', "%{$search}%")
+                  ->orWhere('distribusi_tahunan.pencacah', 'like', "%{$search}%")
+                  ->orWhere('distribusi_tahunan.pengawas', 'like', "%{$search}%")
+                  ->orWhere('master_kegiatan.nama_kegiatan', 'like', "%{$search}%") 
+                  ->orWhere('distribusi_tahunan.nama_kegiatan', 'like', "%{$search}%");
             });
         }
 
-        $perPage = $request->input('per_page', 20);
-        if ($perPage == 'all') {
-            $total = (clone $query)->count();
+        // 5. Logika Pagination
+        $perPageInput = $request->input('per_page', 20);
+        $perPage = $perPageInput;
+        if ($perPageInput == 'all') {
+            $countQuery = (clone $query); 
+            $countQuery->setEagerLoads([]); 
+            $total = $countQuery->count('distribusi_tahunan.id_distribusi');
             $perPage = $total > 0 ? $total : 20;
         }
 
-        $listData = $query->latest('id_distribusi')->paginate($perPage)->withQueryString();
+        // 6. Ambil Data
+        $listData = $query
+            ->select('distribusi_tahunan.*') 
+            ->with('masterKegiatan') 
+            ->latest('distribusi_tahunan.id_distribusi') 
+            ->paginate($perPage) 
+            ->withQueryString(); 
 
-        $kegiatanCounts = DistribusiTahunan::query()
-            ->whereYear('created_at', $selectedTahun)
-            ->select('nama_kegiatan', DB::raw('count(*) as total'))
-            ->groupBy('nama_kegiatan')
-            ->orderBy('nama_kegiatan')
+        // 7. Logika Hitung Tab (Dashboard) [COALESCE]
+        $kegiatanCounts = DistribusiTahunan::query() // <-- [GANTI]
+            ->leftJoin('master_kegiatan', 'distribusi_tahunan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+             ->where(function($q) {
+                 $q->where('master_kegiatan.modul', $this->currentModul)
+                   ->orWhereNull('distribusi_tahunan.master_kegiatan_id'); 
+             })
+            ->whereYear('distribusi_tahunan.created_at', $selectedTahun)
+            ->select(
+                DB::raw('COALESCE(master_kegiatan.id_master_kegiatan, distribusi_tahunan.nama_kegiatan) as filter_value'),
+                DB::raw('COALESCE(master_kegiatan.nama_kegiatan, distribusi_tahunan.nama_kegiatan) as display_name'),
+                DB::raw('count(distribusi_tahunan.id_distribusi) as total')
+            )
+            ->groupBy('filter_value', 'display_name')
+            ->orderBy('display_name')
             ->get();
+            
+        // 8. Ambil daftar master murni untuk modul ini (untuk autocomplete)
+        $masterKegiatanList = MasterKegiatan::where('modul', $this->currentModul)
+                                           ->orderBy('nama_kegiatan')->get();
 
-        $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
-
-        return view('timDistribusi.distribusiTahunan', compact(
-            'listData', 'kegiatanCounts', 'masterKegiatanList',
-            'availableTahun', 'selectedTahun', 'selectedKegiatan', 'search'
+        // 9. Kirim ke View
+        return view('timDistribusi.distribusiTahunan', compact( // <-- [GANTI]
+            'listData', 
+            'kegiatanCounts', 
+            // 'jenisKegiatan' tidak ada lagi
+            'masterKegiatanList', 
+            'availableTahun',     
+            'selectedTahun',
+            'selectedKegiatan', 
+            'search'
         ));
     }
+
 
     public function store(Request $request)
     {
         $baseRules = [
-            'nama_kegiatan'       => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden'        => 'required|string|max:255', // Dibuat required
+            'master_kegiatan_id' => 'required|integer|exists:master_kegiatan,id_master_kegiatan', 
+            'nama_kegiatan'       => 'required|string|max:255',
+            'BS_Responden'        => 'required|string|max:255',
             'pencacah'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'pengawas'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
-            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], // Disesuaikan
+            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], 
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-
+         
         $customMessages = [
-            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar.',
-            'pencacah.exists'      => 'Nama pencacah tidak terdaftar.',
-            'pengawas.exists'      => 'Nama pengawas tidak terdaftar.',
+            'master_kegiatan_id.required' => 'Kegiatan wajib dipilih dari daftar.',
+            'master_kegiatan_id.exists'   => 'ID Kegiatan tidak terdaftar di master.',
+            'pencacah.exists'             => 'Nama pencacah tidak terdaftar di master petugas.',
+            'pengawas.exists'             => 'Nama pengawas tidak terdaftar di master petugas.',
         ];
 
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['message' => 'Data yang diberikan tidak valid.', 'errors' => $validator->errors()], 422);
+                return response()->json(['message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
             }
-            // [FIX] Tambah error bag 'tambahForm'
-            return back()->withErrors($validator, 'tambahForm')->withInput()->with('error_modal', 'tambahDataModal');
+            return back()->withErrors($validator)->withInput()->with('error_modal', 'tambahDataModal');
         }
 
         $validatedData = $validator->validated();
+
         if ($request->filled('target_penyelesaian')) {
-            try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
+            try { 
+                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; 
+            } catch (\Exception $e) {
+                // Abaikan jika parsing gagal
+            }
         }
+
         DistribusiTahunan::create($validatedData);
 
-        // [FIX] Set session flash SEBELUM return JSON
-        $request->session()->flash('success', 'Data berhasil ditambahkan!');
-        $request->session()->flash('auto_hide', true);
+        session()->flash('success', 'Data berhasil ditambahkan!');
+        session()->flash('auto_hide', true);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil ditambahkan!']);
         }
-        return back()->with(['success' => 'Data berhasil ditambahkan!', 'auto_hide' => true]);
+        return back();
     }
+
     /**
-     * PERBAIKAN KUNCI:
-     * 1. Ambil $id manual.
-     * 2. Format tanggal untuk JavaScript (Y-m-d).
+     * Ambil data untuk modal edit.
      */
-    public function edit($id)
+    public function edit($id) 
     {
-        $distribusi_tahunan = DistribusiTahunan::findOrFail($id);
+        $distribusi_tahunan = DistribusiTahunan::findOrFail($id); 
         $data = $distribusi_tahunan->toArray();
+        // Pastikan $data sekarang berisi 'master_kegiatan_id'
         $targetPenyelesaian = $distribusi_tahunan->target_penyelesaian;
         $tanggalPengumpulan = $distribusi_tahunan->tanggal_pengumpulan;
         $data['target_penyelesaian'] = $targetPenyelesaian ? Carbon::parse($targetPenyelesaian)->toDateString() : null;
@@ -131,51 +196,57 @@ class DistribusiTahunanController extends Controller
         return response()->json($data);
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Update data.
+     */
+    public function update(Request $request, $id) 
     {
         $distribusi_tahunan = DistribusiTahunan::findOrFail($id);
         $baseRules = [
-            'nama_kegiatan'       => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
+            'master_kegiatan_id' => 'required|integer|exists:master_kegiatan,id_master_kegiatan', 
+            'nama_kegiatan'       => 'required|string|max:255',
             'BS_Responden'        => 'required|string|max:255',
             'pencacah'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'pengawas'            => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
-            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])], // Disesuaikan
+            'flag_progress'       => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-        $customMessages = [ /* ... */ ];
+        $customMessages = [
+            'master_kegiatan_id.required' => 'Kegiatan wajib dipilih dari daftar.',
+            'master_kegiatan_id.exists'   => 'ID Kegiatan tidak terdaftar di master.',
+            'pencacah.exists'             => 'Nama pencacah tidak terdaftar.',
+            'pengawas.exists'             => 'Nama pengawas tidak terdaftar.',
+        ];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
             }
-             // [FIX] Tambah error bag 'editForm'
-            return back()->withErrors($validator, 'editForm')->withInput()
+            return back()->withErrors($validator)->withInput()
                 ->with('error_modal', 'editDataModal')
-                ->with('edit_id', $distribusi_tahunan->distribusi);
+                ->with('edit_id', $distribusi_tahunan->id_distribusi);
         }
 
         $validatedData = $validator->validated();
         if ($request->filled('target_penyelesaian')) {
             try { $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year; } catch (\Exception $e) {}
         }
+
         $distribusi_tahunan->update($validatedData);
 
-        // [FIX] Set session flash SEBELUM return JSON
-        $request->session()->flash('success', 'Data berhasil diperbarui!');
-        $request->session()->flash('auto_hide', true);
+        session()->flash('success', 'Data berhasil diperbarui!');
+        session()->flash('auto_hide', true);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil diperbarui!']);
         }
-        
-        // [FIX] Ganti redirect() menjadi back()
-        return back()->with(['success' => 'Data berhasil diperbarui!', 'auto_hide' => true]);
+        return back();
     }
-
+    
     /**
-     * Hapus banyak data. (Sudah benar)
+     * Hapus banyak data.
      */
     public function bulkDelete(Request $request)
     {
@@ -185,32 +256,34 @@ class DistribusiTahunanController extends Controller
         ]);
 
         DistribusiTahunan::whereIn('id_distribusi', $request->ids)->delete();
-        // Hapus 'hide_after', cukup 'auto_hide'
+
         return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
     }
 
     /**
-     * PERBAIKAN KUNCI: Ambil $id manual.
+     * Hapus satu data.
      */
-    public function destroy($id)
+    public function destroy($id) 
     {
-        $distribusi = DistribusiTahunan::findOrFail($id);
-        $distribusi->delete();
+        $distribusi_tahunan = DistribusiTahunan::findOrFail($id); 
+        $distribusi_tahunan->delete();
+
+        session()->flash('success', 'Data berhasil dihapus!');
+        session()->flash('auto_hide', true);
 
         if (request()->ajax() || request()->wantsJson()) {
-             return response()->json(['success' => 'Data berhasil dihapus!']);
+             return response()->json(['success' => 'Data berhasil dihapus!']); 
         }
-        // Redirect dihapus, cukup back()
-        return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
+
+        return back(); 
     }
 
     /**
-     * Cari petugas (autocomplete). (Sudah benar)
+     * Cari petugas (autocomplete).
      */
     public function searchPetugas(Request $request)
     {
-        // Hapus validasi 'field' jika tidak dipakai di JS baru
-         $request->validate(['query' => 'nullable|string|max:100']);
+        $request->validate(['query' => 'nullable|string|max:100']);
         $query = $request->input('query', '');
         $data = MasterPetugas::query()
             ->where('nama_petugas', 'LIKE', "%{$query}%")
@@ -219,112 +292,140 @@ class DistribusiTahunanController extends Controller
         return response()->json($data);
     }
 
-    public function searchKegiatan(Request $request) 
-    {
-         $request->validate(['query' => 'nullable|string|max:100']);
-         $query = $request->input('query', '');
-         $data = MasterKegiatan::query()
-               ->where('nama_kegiatan', 'LIKE', "%{$query}%")
-               ->limit(10)
-               ->pluck('nama_kegiatan');
-         return response()->json($data);
-    }
+    /**
+     * Cari kegiatan (autocomplete).
+     */
+     public function searchKegiatan(Request $request) // Hapus parameter $jenisKegiatan
+     {
+        $request->validate(['query' => 'nullable|string|max:100']);
+        $query = $request->input('query', '');
+        $kegiatanQuery = MasterKegiatan::query();
+
+        // Filter WAJIB berdasarkan MODUL
+        $kegiatanQuery->where('modul', $this->currentModul);
+        // Hapus filter prefix
+
+        // Filter berdasarkan ketikan user
+        $data = $kegiatanQuery
+            ->where('nama_kegiatan', 'LIKE', "%{$query}%")
+            ->limit(10)
+            ->select('id_master_kegiatan', 'nama_kegiatan') 
+            ->get(); 
+        return response()->json($data);
+     }
 
     /**
-     * Export data. (Dipertahankan, perlu DistribusiTahunanExport yang sesuai)
+     * Ekspor data.
      */
-    public function export(Request $request)
+    public function export(Request $request) // Hapus parameter $jenisKegiatan
     {
-        // Validasi input export jika perlu
-        $request->validate([
-            'dataRange' => 'required|in:all,current_page',
-            'dataFormat' => 'required|in:formatted_values,raw_values',
-            'exportFormat' => 'required|in:excel,csv', // 'word' dihapus jika tidak diimplementasikan di Export Class
-            'kegiatan' => 'nullable|string',
-            'search' => 'nullable|string',
-            'page' => 'nullable|integer|min:1',
-            'per_page' => 'nullable', // Bisa integer atau 'all'
-        ]);
-
-        $dataRange = $request->input('dataRange');
-        $dataFormat = $request->input('dataFormat');
-        $exportFormat = $request->input('exportFormat');
-        $kegiatan = $request->input('kegiatan');
+        $dataRange = $request->input('dataRange', 'all');
+        $dataFormat = $request->input('dataFormat', 'formatted_values');
+        $exportFormat = $request->input('exportFormat', 'excel');
+        $kegiatan = $request->input('kegiatan'); 
         $search = $request->input('search');
+        $tahun = $request->input('tahun', date('Y')); 
         $currentPage = $request->input('page', 1);
-        $perPageInput = $request->input('per_page', 20); // Ambil per_page dari request
-        $selectedTahun = $request->input('tahun', date('Y')); // Ambil tahun
+        $perPageInput = $request->input('per_page', 20);
 
-        // Tentukan perPage untuk query export
-        $perPage = ($perPageInput == 'all' || $dataRange == 'all') ? -1 : (int)$perPageInput; // -1 untuk all
+        $perPage = ($perPageInput == 'all' || $dataRange == 'all') ? -1 : (int)$perPageInput;
 
-        // Pastikan DistribusiTahunanExport menerima semua parameter ini di constructornya
-        // Urutan parameter di constructor Export class HARUS SAMA
         $exportClass = new DistribusiTahunanExport(
             $dataRange,
             $dataFormat,
-            $kegiatan,
+            // $jenisKegiatan dihapus
+            $kegiatan,      
             $search,
+            $tahun,         
             $currentPage,
             $perPage,
-            $selectedTahun // Tambahkan $selectedTahun
+            $this->currentModul 
         );
 
-        $fileName = 'DistribusiTahunan_' . $selectedTahun . '_' . ($kegiatan ?? 'All') . '_' . now()->format('YmdHis');
+        $fileName = 'DistribusiTahunan_' . $tahun . '_' . now()->format('YmdHis');
 
         if ($exportFormat == 'excel') {
             return Excel::download($exportClass, $fileName . '.xlsx');
         } elseif ($exportFormat == 'csv') {
-             return Excel::download($exportClass, $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV, [
-                 'Content-Type' => 'text/csv', // Pastikan header CSV benar
+            return Excel::download($exportClass, $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV, [
+                 'Content-Type' => 'text/csv',
              ]);
         }
 
         return back()->with('error', 'Format ekspor tidak didukung.');
     }
+
+    /**
+     * Impor data.
+     */
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls|max:2048', // Max 2MB
-        ], [
-            'file.required' => 'File Excel wajib diunggah.',
-            'file.mimes' => 'File harus berformat Excel (.xlsx atau .xls).',
+            'file' => 'required|mimes:xlsx,xls,csv|max:2048' 
+        ],[
+            'file.required' => 'File Excel/CSV wajib diunggah.',
+            'file.mimes' => 'File harus berformat Excel (.xlsx, .xls) atau CSV (.csv).',
             'file.max' => 'Ukuran file maksimal 2MB.',
         ]);
+
         try {
             $file = $request->file('file');
-
-            // Buat instance import
-            $import = new DistribusiTahunanImport();
-
-            // Import file
+            // Kirim modul saat ini ke Importer
+            $import = new DistribusiTahunanImport($this->currentModul);
             Excel::import($import, $file);
-            // Ambil hasil import
-            $errors = $import->getErrors();
-            $successCount = $import->getSuccessCount();
-            // Jika ada error, kirim ke session
+
+            $errors = $import->getErrors(); 
+            $successCount = $import->getSuccessCount(); 
+
             if (!empty($errors)) {
-                return back()
-                    ->with('import_errors', $errors)
-                    ->with('success_count', $successCount)
-                    ->with('warning', "Import selesai dengan {$successCount} data berhasil dan " . count($errors) . " data gagal. Lihat detail error di bawah.");
+                 $formattedErrors = collect($errors)->map(function ($err) {
+                     return [
+                         'row' => $err['row'] ?? '?',
+                         'error' => $err['error'] ?? 'Unknown Error',
+                         'values' => $err['values'] ?? 'N/A'
+                     ];
+                 })->toArray();
+
+                 return back()
+                     ->with('import_errors', $formattedErrors)
+                     ->with('success_count', $successCount) 
+                     ->with('warning', "Import selesai dengan {$successCount} data berhasil dan " . count($errors) . " data gagal.");
             }
-            // Jika semua berhasil
+
             return back()->with([
                 'success' => "Berhasil mengimpor {$successCount} data!",
                 'auto_hide' => true
             ]);
+
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+             $failures = $e->failures();
+             $formattedErrors = [];
+             foreach ($failures as $failure) {
+                 $formattedErrors[] = [
+                     'row' => $failure->row(),
+                     'error' => implode(', ', $failure->errors()),
+                     'values' => $failure->values()[$failure->attribute()] ?? 'N/A'
+                 ];
+             }
+             return back()
+                 ->with('import_errors', $formattedErrors)
+                 ->with('error', 'Import gagal karena ada data yang tidak valid.');
+
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan saat import: ' . $e->getMessage());
+            \Log::error('Import Error: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString()); 
+            return back()->with('error', 'Terjadi kesalahan sistem saat import: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Download template impor.
+     */
     public function downloadTemplate()
     {
-        try {
+         try {
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            // ===== SET HEADER (Baris 1) =====
+
             $headers = [
                 'nama_kegiatan',
                 'bs_responden',
@@ -334,116 +435,74 @@ class DistribusiTahunanController extends Controller
                 'flag_progress',
                 'tanggal_pengumpulan'
             ];
-
-            $headerLabels = [
-                'Nama Kegiatan',
-                'BS Responden',
-                'Pencacah',
-                'Pengawas',
-                'Target Penyelesaian',
-                'Flag Progress',
-                'Tanggal Pengumpulan'
-            ];
-            // Tulis header
             $sheet->fromArray([$headers], null, 'A1');
-
-            // Style header (Bold + Background hijau muda)
             $sheet->getStyle('A1:G1')->getFont()->setBold(true);
             $sheet->getStyle('A1:G1')->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFD9EAD3'); // Hijau muda
+                ->getStartColor()->setARGB('FFD9EAD3');
 
-            // Tambahkan border pada header
-            $sheet->getStyle('A1:G1')->getBorders()->getAllBorders()
-                ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            // ===== CONTOH DATA (Baris 2-3) =====
-            // Ambil contoh dari database (opsional)
-            $contohKegiatan = MasterKegiatan::limit(2)->pluck('nama_kegiatan')->toArray();
-            $contohPetugas = MasterPetugas::limit(3)->pluck('nama_petugas')->toArray();
+            // Ambil contoh kegiatan yang VALID untuk modul ini
+            $exampleKegiatan1 = MasterKegiatan::where('modul', $this->currentModul)->inRandomOrder()->first();
+            $namaKeg1 = $exampleKegiatan1 ? $exampleKegiatan1->nama_kegiatan : 'NAMA_KEGIATAN_VALID_1';
+             
             $exampleData = [
                 [
-                    $contohKegiatan[0] ?? 'Sensus Penduduk 2025',
+                    $namaKeg1,
                     'BS001',
-                    $contohPetugas[0] ?? 'Ahmad Zaki',
-                    $contohPetugas[1] ?? 'Budi Santoso',
-                    '2025-12-31',
+                    'Nama Pencacah Valid', // Ganti dengan nama valid
+                    'Nama Pengawas Valid', // Ganti dengan nama valid
+                    '2025-01-31',
                     'Belum Selesai',
-                    '2025-11-15'
-                ],
-                [
-                    $contohKegiatan[1] ?? 'Survey Ekonomi Q1',
-                    'BS002',
-                    $contohPetugas[2] ?? 'Siti Nurhaliza',
-                    $contohPetugas[0] ?? 'Andi Wijaya',
-                    '2025-06-30',
-                    'Selesai',
-                    '2025-06-20'
+                    '' // Boleh kosong
                 ]
             ];
-            $row = 2;
-            foreach ($exampleData as $data) {
-                $col = 'A';
-                foreach ($data as $value) {
-                    $sheet->setCellValue($col . $row, $value);
-                    $col++;
-                }
-                $row++;
-            }
-            // Style contoh data (background kuning muda)
-            $sheet->getStyle('A2:G3')->getFill()
+            $sheet->fromArray($exampleData, null, 'A2');
+            $sheet->getStyle('A2:G2')->getFill() // Hanya baris 2
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFFFF4CC'); // Kuning muda
-            // ===== AUTO WIDTH COLUMNS =====
+                ->getStartColor()->setARGB('FFFFF4CC');
+
             foreach (range('A', 'G') as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             }
-            // ===== PETUNJUK PENGISIAN (Baris 5-12) =====
-            $sheet->setCellValue('A5', 'PETUNJUK PENGISIAN:');
-            $sheet->getStyle('A5')->getFont()->setBold(true)->setSize(12);
-            $sheet->getStyle('A5')->getFill()
+
+            $sheet->setCellValue('A4', 'PETUNJUK PENGISIAN:'); // Pindah ke baris 4
+            $sheet->getStyle('A4')->getFont()->setBold(true)->setSize(12);
+            $sheet->getStyle('A4')->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFB4C7E7'); // Biru muda
+                ->getStartColor()->setARGB('FFB4C7E7');
+
             $instructions = [
-                '1. Semua kolom WAJIB diisi kecuali Tanggal Pengumpulan (boleh kosong)',
-                '2. Header baris 1 HARUS tetap ada dengan format lowercase dan underscore',
-                '3. Nama Kegiatan, Pencacah, Pengawas harus berisi huruf (tidak boleh hanya angka)',
-                '4. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY (contoh: 2025-12-31 atau 31/12/2025)',
-                '5. Flag Progress hanya boleh diisi: "Belum Selesai" atau "Selesai" (case-sensitive)',
-                '6. BS Responden boleh berisi angka atau kombinasi huruf-angka',
-                '7. HAPUS baris contoh (baris 2-3) dan petunjuk ini sebelum import!',
-                '8. Simpan file dalam format .xlsx atau .xls'
+                '1. Header (Baris 1) WAJIB ada.',
+                '2. Kolom selain "tanggal_pengumpulan" WAJIB diisi.',
+                '3. "nama_kegiatan" HARUS SAMA PERSIS dengan data di Master Kegiatan untuk modul ini (Contoh: ' . $namaKeg1 . ').',
+                '4. "pencacah" dan "pengawas" HARUS SAMA PERSIS dengan data di Master Petugas.',
+                '5. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY.',
+                '6. flag_progress: "Belum Selesai" atau "Selesai".',
+                '7. HAPUS baris contoh (baris 2) dan petunjuk ini sebelum import!',
             ];
-            $instructionRow = 6;
+            $instructionRow = 5; // Mulai dari baris 5
             foreach ($instructions as $instruction) {
                 $sheet->setCellValue('A' . $instructionRow, $instruction);
                 $sheet->getStyle('A' . $instructionRow)->getFont()->setItalic(true);
+                $sheet->mergeCells("A{$instructionRow}:G{$instructionRow}");
                 $instructionRow++;
             }
-            // Merge cells untuk petunjuk agar lebih rapi
-            foreach (range(5, 13) as $r) {
-                $sheet->mergeCells("A{$r}:G{$r}");
-            }
-            // ===== TAMBAHKAN KOMENTAR/TOOLTIP PADA HEADER =====
-            $sheet->getComment('A1')->getText()->createTextRun('Isi dengan nama kegiatan sesuai Master Kegiatan');
-            $sheet->getComment('B1')->getText()->createTextRun('Kode BS Responden (contoh: BS001, 030001B)');
-            $sheet->getComment('C1')->getText()->createTextRun('Nama Pencacah sesuai Master Petugas');
-            $sheet->getComment('D1')->getText()->createTextRun('Nama Pengawas sesuai Master Petugas');
-            $sheet->getComment('E1')->getText()->createTextRun('Format: YYYY-MM-DD atau DD/MM/YYYY (WAJIB diisi)');
-            $sheet->getComment('F1')->getText()->createTextRun('Isi: "Belum Selesai" atau "Selesai" saja');
-            // ===== FREEZE HEADER ROW =====
+            
             $sheet->freezePane('A2');
-            // ===== SAVE TO TEMPORARY FILE =====
-            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-            $fileName = 'Template_Import_Distribusi_Tahunan_' . date('Ymd') . '.xlsx';
-            $tempFile = tempnam(sys_get_temp_dir(), 'template_distribusi_');
 
-            $writer->save($tempFile);
-            // Return download dan hapus file temporary setelah didownload
-            return response()->download($tempFile, $fileName, [
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $fileName = 'Template_Import_Distribusi_Tahunan.xlsx';
+            $temp_file = tempnam(sys_get_temp_dir(), $fileName);
+            $writer->save($temp_file);
+
+            return response()->download($temp_file, $fileName, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             ])->deleteFileAfterSend(true);
+
         } catch (\Exception $e) {
+             \Log::error('Template Download Error: '. $e->getMessage());
             return back()->with('error', 'Gagal membuat template: ' . $e->getMessage());
         }
     }
+
 }

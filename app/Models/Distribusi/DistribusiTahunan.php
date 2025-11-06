@@ -13,6 +13,7 @@ class DistribusiTahunan extends Model
     public $timestamps = true; 
 
     protected $fillable = [
+        'master_kegiatan_id',
         'nama_kegiatan',
         'BS_Responden',
         'pencacah',
@@ -25,7 +26,7 @@ class DistribusiTahunan extends Model
 
     public function masterKegiatan()
     {
-        return $this->belongsTo(MasterKegiatan::class, 'nama_kegiatan', 'nama_kegiatan');
+        return $this->belongsTo(MasterKegiatan::class, 'master_kegiatan_id', 'id_master_kegiatan');
     }
 
     protected $casts = [

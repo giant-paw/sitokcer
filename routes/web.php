@@ -20,9 +20,9 @@ use App\Http\Controllers\Distribusi\DistribusiBulananController;
 
 // Produksi
 use App\Http\Controllers\Produksi\ProduksiTahunanController;
-use App\Http\Controllers\Produksi\ProduksiCaturwulananController;
 use App\Http\Controllers\Produksi\ProduksiTriwulananController;
 use App\Http\Controllers\Produksi\ProduksiBulananController;
+use App\Http\Controllers\Produksi\ProduksiCaturwulananController;
 
 // NWA
 use App\Http\Controllers\Nwa\NwaTahunanController;
@@ -228,6 +228,7 @@ Route::get('/dashboard-distribusi/bulanan', [DashboardDistribusiController::clas
             Route::delete('/{id}', [DistribusiTahunanController::class, 'destroy'])->name('destroy');
             Route::post('/bulk-delete', [DistribusiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
             Route::get('/search-petugas', [DistribusiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
+            Route::get('/search-kegiatan', [DistribusiTriwulananController::class, 'searchKegiatan'])->name('searchKegiatan');
             Route::get('/export', [DistribusiTahunanController::class, 'export'])->name('export');
             Route::post('/import', [DistribusiTahunanController::class, 'import'])->name('import');
             Route::get('/download-template', [DistribusiTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
@@ -335,24 +336,56 @@ Route::get('/dashboard-distribusi/bulanan', [DashboardDistribusiController::clas
 
         });
 
-        // --- ROUTE PRODUKSI CATURWULANAN ---
         Route::prefix('caturwulanan')->name('caturwulanan.')->group(function () {
-            Route::post('/bulk-delete', [ProduksiCaturwulananController::class, 'bulkDelete'])->name('bulkDelete');
-            Route::get('/search-petugas', [ProduksiCaturwulananController::class, 'searchPetugas'])->name('searchPetugas');
-            Route::get('/{jenisKegiatan}/export', [ProduksiCaturwulananController::class, 'export'])->name('export');
+            Route::get('/search-petugas', [ProduksiCaturwulananController::class, 'searchPetugas'])
+                ->name('searchPetugas');
 
-            Route::post('/import', [ProduksiCaturwulananController::class, 'import'])->name('import');
-            Route::get('/download-template', [ProduksiCaturwulananController::class, 'downloadTemplate'])->name('downloadTemplate');
+            Route::get('/search-kegiatan', [ProduksiCaturwulananController::class, 'searchKegiatan'])
+                ->name('searchKegiatan');
 
+            Route::post('/bulk-delete', [ProduksiCaturwulananController::class, 'bulkDelete'])
+                ->name('bulkDelete');
 
-            // Route untuk proses CRUD
-            Route::post('/', [ProduksiCaturwulananController::class, 'store'])->name('store');
-            Route::get('/{produksi_caturwulanan}/edit', [ProduksiCaturwulananController::class, 'edit'])->name('edit');
-            Route::put('/{produksi_caturwulanan}', [ProduksiCaturwulananController::class, 'update'])->name('update');
-            Route::delete('/{produksi_caturwulanan}', [ProduksiCaturwulananController::class, 'destroy'])->name('destroy');
+            Route::post('/import', [ProduksiCaturwulananController::class, 'import'])
+                ->name('import');
 
-            // Route utama untuk menampilkan data berdasarkan jenis kegiatan
-            Route::get('/{jenisKegiatan}', [ProduksiCaturwulananController::class, 'index'])->name('index');
+            Route::get('/download-template', [ProduksiCaturwulananController::class, 'downloadTemplate'])
+                ->name('downloadTemplate');
+
+            Route::post('/', [ProduksiCaturwulananController::class, 'store'])
+                ->name('store');
+
+            
+            // --- 2. RUTE DINAMIS by ID (Gunakan batasan angka) ---
+            // Rute-rute ini menggunakan ID numerik (seperti .../123/edit)
+            // Kita batasi HANYA untuk angka agar tidak bentrok dengan 'jenisKegiatan'
+            
+            Route::get('/{produksi_caturwulanan}/edit', [ProduksiCaturwulananController::class, 'edit'])
+                ->name('edit')
+                ->where('produksi_caturwulanan', '[0-9]+'); // Hanya angka
+
+            Route::put('/{produksi_caturwulanan}', [ProduksiCaturwulananController::class, 'update'])
+                ->name('update')
+                ->where('produksi_caturwulanan', '[0-9]+'); // Hanya angka
+
+            Route::delete('/{produksi_caturwulanan}', [ProduksiCaturwulananController::class, 'destroy'])
+                ->name('destroy')
+                ->where('produksi_caturwulanan', '[0-9]+'); // Hanya angka
+
+                
+            // --- 3. RUTE DINAMIS by 'jenisKegiatan' (Harus diletakkan terakhir) ---
+            // Rute-rute ini menerima string (seperti 'ubinan' atau 'updating utp')
+            
+            // Definisikan Regex umum untuk nama kegiatan (membolehkan huruf, angka, spasi, -)
+            $jenisKegiatanRegex = '[a-zA-Z0-9\- ]+';
+
+            Route::get('/{jenisKegiatan}/export', [ProduksiCaturwulananController::class, 'export'])
+                ->name('export')
+                ->where('jenisKegiatan', $jenisKegiatanRegex); // Dinamis
+
+            Route::get('/{jenisKegiatan}', [ProduksiCaturwulananController::class, 'index'])
+                ->name('index')
+                ->where('jenisKegiatan', $jenisKegiatanRegex); // Dinamis
         });
 
         // --- ROUTE PRODUKSI TRIWULANAN ---
