@@ -3,36 +3,39 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('produksi_triwulanan', function (Blueprint $table) {
-            // 1. Tambahkan kolomnya
-            $table->unsignedBigInteger('master_kegiatan_id')
-                  ->nullable() // 'nullable()' penting agar data lama tidak error
-                  ->after('id_produksi_triwulanan'); // (Opsional) Menjaga kerapian
+            $table->integer('master_kegiatan_id') 
+                  ->nullable()
+                  ->after('id_produksi_triwulanan');
+        });
 
-            $table->foreign('master_kegiatan_id')
+        DB::statement('
+            UPDATE produksi_triwulanan pt
+            JOIN master_kegiatan mk ON pt.nama_kegiatan = mk.nama_kegiatan
+            SET pt.master_kegiatan_id = mk.id_master_kegiatan
+            WHERE pt.master_kegiatan_id IS NULL 
+              AND mk.modul = "produksi_triwulanan";
+        ');
+
+        Schema::table('produksi_triwulanan', function (Blueprint $table) {
+            $table->foreign('master_kegiatan_id', 'prod_triwulanan_master_keg_id_foreign')
                   ->references('id_master_kegiatan')
                   ->on('master_kegiatan')
-                  ->onDelete('set null');
+                  ->onDelete('set null') 
+                  ->onUpdate('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('produksi_triwulanan', function (Blueprint $table) {
-            // Hapus relasi DULU
-            $table->dropForeign(['master_kegiatan_id']);
-            // Hapus kolomnya
+            $table->dropForeign('prod_triwulanan_master_keg_id_foreign');
             $table->dropColumn('master_kegiatan_id');
         });
     }

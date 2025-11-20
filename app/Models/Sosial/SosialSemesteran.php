@@ -4,6 +4,8 @@ namespace App\Models\Sosial;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
+use App\Models\Master\MasterKegiatan;
 
 class SosialSemesteran extends Model
 {
@@ -13,6 +15,7 @@ class SosialSemesteran extends Model
     public $timestamps = true; // Perbaiki typo
 
     protected $fillable = [
+        'master_kegiatan_id',
         'nama_kegiatan',
         'BS_Responden',
         'pencacah',
@@ -31,4 +34,10 @@ class SosialSemesteran extends Model
         'target_penyelesaian' => 'datetime', 
         'tanggal_pengumpulan' => 'datetime', 
     ];
+
+     public function masterKegiatan()
+    {
+        return $this->belongsTo(MasterKegiatan::class, 'master_kegiatan_id', 'id_master_kegiatan');
+    }
+    
 }

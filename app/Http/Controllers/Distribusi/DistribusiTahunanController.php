@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Distribusi;
 
 use App\Http\Controllers\Controller;
-use App\Models\Distribusi\DistribusiTahunan; // <-- [GANTI]
+use App\Models\Distribusi\DistribusiTahunan; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -11,24 +11,21 @@ use App\Models\Master\MasterPetugas;
 use App\Models\Master\MasterKegiatan;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\DistribusiTahunanExport; // <-- [GANTI]
-use App\Imports\DistribusiTahunanImport; // <-- [GANTI]
+use App\Exports\DistribusiTahunanExport; 
+use App\Imports\DistribusiTahunanImport; 
 use Illuminate\Validation\Rule;
 
 class DistribusiTahunanController extends Controller
 {
     // Definisikan modul untuk controller ini
-    private $currentModul = 'distribusi_tahunan'; // <-- [GANTI]
+    private $currentModul = 'distribusi_tahunan'; 
 
-    /**
-     * Tampilkan halaman index, TANPA {jenisKegiatan}
-     */
     public function index(Request $request)
     {
         // 1. Logika Filter Tahun 
         $selectedTahun = $request->input('tahun', date('Y'));
         
-         $availableTahun = DistribusiTahunan::query() // <-- [GANTI]
+         $availableTahun = DistribusiTahunan::query() 
              ->leftJoin('master_kegiatan', 'distribusi_tahunan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
              ->where(function($q) {
                  $q->where('master_kegiatan.modul', $this->currentModul)
@@ -46,7 +43,7 @@ class DistribusiTahunanController extends Controller
          }
 
         // 2. Kueri Utama [PERUBAHAN LOGIKA: LEFT JOIN & MODUL]
-        $query = DistribusiTahunan::query() // <-- [GANTI]
+        $query = DistribusiTahunan::query() 
             ->leftJoin('master_kegiatan', 'distribusi_tahunan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
             // Filter hanya data yang relevan dengan modul ini (bersih) ATAU data kotor (NULL)
             ->where(function($q) {
@@ -97,7 +94,7 @@ class DistribusiTahunanController extends Controller
             ->withQueryString(); 
 
         // 7. Logika Hitung Tab (Dashboard) [COALESCE]
-        $kegiatanCounts = DistribusiTahunan::query() // <-- [GANTI]
+        $kegiatanCounts = DistribusiTahunan::query() 
             ->leftJoin('master_kegiatan', 'distribusi_tahunan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
              ->where(function($q) {
                  $q->where('master_kegiatan.modul', $this->currentModul)
@@ -118,7 +115,7 @@ class DistribusiTahunanController extends Controller
                                            ->orderBy('nama_kegiatan')->get();
 
         // 9. Kirim ke View
-        return view('timDistribusi.distribusiTahunan', compact( // <-- [GANTI]
+        return view('timDistribusi.distribusiTahunan', compact( 
             'listData', 
             'kegiatanCounts', 
             // 'jenisKegiatan' tidak ada lagi

@@ -3,128 +3,164 @@
 namespace App\Http\Controllers\Nwa;
 
 use App\Http\Controllers\Controller;
-use App\Models\Nwa\NwaTahunan;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use App\Models\Nwa\NwaTahunan;
 use App\Models\Master\MasterPetugas;
 use App\Models\Master\MasterKegiatan;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\NwaTahunanExport;
 use App\Imports\NwaTahunanImport;
+use Illuminate\Validation\Rule;
 
 class NwaTahunanController extends Controller
 {
+    // (Fungsi getPrefixMap tidak diperlukan untuk modul ini)
+
     public function index(Request $request)
     {
-        // 1. Logika Filter Tahun
-        $selectedTahun = $request->input('tahun', date('Y'));
+        $currentModul = 'nwa_tahunan';
+        $jenisKegiatan = 'SINASI'; 
 
-        $availableTahun = NwaTahunan::query()
-            ->select(DB::raw('YEAR(created_at) as tahun'))
+        $selectedTahun = $request->input('tahun', date('Y'));
+        
+        $availableTahunQuery = NwaTahunan::query()
+            ->leftJoin('master_kegiatan', 'nwa_tahunan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+            ->where(function($q) use ($currentModul) {
+                $q->where('master_kegiatan.modul', $currentModul)
+                ->orWhereNull('nwa_tahunan.master_kegiatan_id'); 
+            });
+            
+        $availableTahun = $availableTahunQuery
+            ->select(DB::raw('YEAR(nwa_tahunan.created_at) as tahun'))
             ->distinct()
-            ->whereNotNull('created_at')
+            ->whereNotNull('nwa_tahunan.created_at')
             ->orderBy('tahun', 'desc')
             ->pluck('tahun')
             ->toArray();
-
+            
         if (empty($availableTahun) || !in_array(date('Y'), $availableTahun)) {
             array_unshift($availableTahun, date('Y'));
         }
 
-        // 2. Kueri Utama
         $query = NwaTahunan::query()
-            ->whereYear('created_at', $selectedTahun);
+            ->leftJoin('master_kegiatan', 'nwa_tahunan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+            ->where(function($q) use ($currentModul) {
+                $q->where('master_kegiatan.modul', $currentModul)
+                ->orWhereNull('nwa_tahunan.master_kegiatan_id'); 
+            })
+            ->whereYear('nwa_tahunan.created_at', $selectedTahun);
 
-        // [DIUBAH] Menggunakan request->filled
-        if ($request->filled('kegiatan')) {
-            $query->where('nama_kegiatan', $request->kegiatan);
+        $selectedKegiatan = $request->input('kegiatan', '');
+        if ($selectedKegiatan !== '') {
+            if (is_numeric($selectedKegiatan)) {
+                $query->where('nwa_tahunan.master_kegiatan_id', $selectedKegiatan);
+            } else {
+                $query->whereNull('nwa_tahunan.master_kegiatan_id')
+                    ->where('nwa_tahunan.nama_kegiatan', $selectedKegiatan);
+            }
         }
 
-        // [DIUBAH] Menggunakan request->filled dan menghapus flag_progress
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+        $search = $request->input('search', '');
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('nwa_tahunan.BS_Responden', 'like', "%{$search}%")
+                ->orWhere('nwa_tahunan.pencacah', 'like', "%{$search}%")
+                ->orWhere('nwa_tahunan.pengawas', 'like', "%{$search}%")
+                ->orWhere('master_kegiatan.nama_kegiatan', 'like', "%{$search}%") 
+                ->orWhere('nwa_tahunan.nama_kegiatan', 'like', "%{$search}%");
             });
         }
 
-        // 3. Logika Pagination
-        $perPage = $request->input('per_page', 20);
-        if ($perPage == 'all') {
-            $total = (clone $query)->count();
-            $perPage = $total > 0 ? $total : 20;
+        $perPageInput = $request->input('per_page', 20); 
+        $perPage = $perPageInput; 
+        if ($perPageInput == 'all') {
+            $countQuery = (clone $query); 
+            $countQuery->setEagerLoads([]); 
+            
+            // [PERBAIKAN 1] Ganti 'id_nwa_tahunan' menjadi 'id_nwa'
+            $total = $countQuery->count('nwa_tahunan.id_nwa'); 
+            $perPage = $total > 0 ? $total : 20; 
         }
 
-        // 4. Ambil Data (Menggunakan primary key 'id_nwa')
-        $listData = $query->latest('id_nwa')->paginate($perPage)->withQueryString();
+        $listData = $query
+            ->select('nwa_tahunan.*') 
+            ->with('masterKegiatan') 
+            
+            // [PERBAIKAN 2] Ganti 'id_nwa_tahunan' menjadi 'id_nwa'
+            ->latest('nwa_tahunan.id_nwa') 
+            
+            ->paginate($perPage) 
+            ->withQueryString(); 
 
-        // 5. Logika Hitung Tab
-        $kegiatanCounts = NwaTahunan::query()
-            ->whereYear('created_at', $selectedTahun)
-            ->select('nama_kegiatan', DB::raw('count(*) as total'))
-            ->groupBy('nama_kegiatan')
-            ->orderBy('nama_kegiatan')
+        $kegiatanCountsQuery = NwaTahunan::query()
+            ->leftJoin('master_kegiatan', 'nwa_tahunan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+            ->where(function($q) use ($currentModul) {
+                $q->where('master_kegiatan.modul', $currentModul)
+                ->orWhereNull('nwa_tahunan.master_kegiatan_id'); 
+            })
+            ->whereYear('nwa_tahunan.created_at', $selectedTahun);
+            
+        $kegiatanCounts = $kegiatanCountsQuery
+            ->select(
+                DB::raw('COALESCE(master_kegiatan.id_master_kegiatan, nwa_tahunan.nama_kegiatan) as filter_value'),
+                DB::raw('COALESCE(master_kegiatan.nama_kegiatan, nwa_tahunan.nama_kegiatan) as display_name'),
+                
+                // [PERBAIKAN 3] Ganti 'id_nwa_tahunan' menjadi 'id_nwa'
+                DB::raw('count(nwa_tahunan.id_nwa) as total') 
+            )
+            ->groupBy('filter_value', 'display_name')
+            ->orderBy('display_name')
             ->get();
+            
+        $masterKegiatanList = MasterKegiatan::where('modul', $currentModul)
+                                            ->orderBy('nama_kegiatan')->get();
 
-        $masterKegiatanList = MasterKegiatan::orderBy('nama_kegiatan')->get();
-
-        // 6. Kirim ke View (Menggunakan view 'timNWA.tahunan.NWAtahunan')
         return view('timNWA.tahunan.NWAtahunan', compact(
-            'listData',
-            'kegiatanCounts',
-            'masterKegiatanList',
-            'availableTahun',
-            'selectedTahun'
+            'listData', 
+            'kegiatanCounts', 
+            'jenisKegiatan',
+            'masterKegiatanList', 
+            'availableTahun',     
+            'selectedTahun',
+            'selectedKegiatan',
+            'search'
         ));
     }
 
+    
     public function store(Request $request)
     {
-        // [DIUBAH] Aturan validasi disesuaikan
         $baseRules = [
-            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden' => 'required|string|max:255',
-            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
-            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'master_kegiatan_id' => 'required|integer|exists:master_kegiatan,id_master_kegiatan', 
+            'nama_kegiatan'      => 'required|string|max:255',
+            'BS_Responden'       => 'required|string|max:255',
+            'pencacah'           => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas'           => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
-            'flag_progress' => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
+            'flag_progress'      => ['required', Rule::in(['Belum Selesai', 'Selesai'])], 
             'tanggal_pengumpulan' => 'nullable|date',
         ];
-
+        
         $customMessages = [
-            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar.',
-            'pencacah.exists' => 'Nama pencacah tidak terdaftar.',
-            'pengawas.exists' => 'Nama pengawas tidak terdaftar.',
+            'master_kegiatan_id.required' => 'Kegiatan wajib dipilih dari daftar.',
+            'master_kegiatan_id.exists'   => 'ID Kegiatan tidak terdaftar di master.',
+            'pencacah.exists'             => 'Nama pencacah tidak terdaftar.',
+            'pengawas.exists'             => 'Nama pengawas tidak terdaftar.',
         ];
 
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    // [DIUBAH] Pesan disamakan
-                    'message' => 'Data yang diberikan tidak valid.',
-                    'errors' => $validator->errors()
-                ], 422);
+                return response()->json(['message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
             }
             return back()->withErrors($validator)->withInput()->with('error_modal', 'tambahDataModal');
         }
 
         $validatedData = $validator->validated();
-
-        if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try {
-                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
-            } catch (\Exception $e) {
-            }
-        }
-
         NwaTahunan::create($validatedData);
 
         session()->flash('success', 'Data berhasil ditambahkan!');
@@ -133,122 +169,97 @@ class NwaTahunanController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data berhasil ditambahkan!']);
         }
-
         return back();
     }
 
-    /**
-     * PERUBAHAN: Menggunakan $id dan memformat tanggal
-     */
-    public function edit($id)
+    public function edit($id) 
     {
-        $tahunan = NwaTahunan::findOrFail($id);
-
-        $data = $tahunan->toArray();
-
-        // INI ADALAH LOGIKA PENTING YANG HILANG
-        $targetPenyelesaian = $tahunan->target_penyelesaian;
-        $tanggalPengumpulan = $tahunan->tanggal_pengumpulan;
-
-        $data['target_penyelesaian'] = $targetPenyelesaian
-            ? Carbon::parse($targetPenyelesaian)->toDateString()
-            : null;
-
-        $data['tanggal_pengumpulan'] = $tanggalPengumpulan
-            ? Carbon::parse($tanggalPengumpulan)->toDateString()
-            : null;
-
+        $nwa_tahunan = NwaTahunan::findOrFail($id); 
+        $data = $nwa_tahunan->toArray();
+        try {
+            $data['target_penyelesaian'] = Carbon::parse($data['target_penyelesaian'])->toDateString();
+        } catch (\Exception $e) {
+            $data['target_penyelesaian'] = null;
+        }
+        try {
+            $data['tanggal_pengumpulan'] = Carbon::parse($data['tanggal_pengumpulan'])->toDateString();
+        } catch (\Exception $e) {
+            $data['tanggal_pengumpulan'] = null;
+        }
         return response()->json($data);
     }
 
-    /**
-     * PERUBAHAN: Menggunakan $id
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id) 
     {
-        $tahunan = NwaTahunan::findOrFail($id);
-
-        // [DIUBAH] Aturan validasi disesuaikan
+        $nwa_tahunan = NwaTahunan::findOrFail($id); 
         $baseRules = [
-            'nama_kegiatan' => 'required|string|max:255|exists:master_kegiatan,nama_kegiatan',
-            'BS_Responden' => 'required|string|max:255',
-            'pencacah' => 'required|string|max:255|exists:master_petugas,nama_petugas',
-            'pengawas' => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'master_kegiatan_id' => 'required|integer|exists:master_kegiatan,id_master_kegiatan', 
+            'nama_kegiatan'      => 'required|string|max:255',
+            'BS_Responden'       => 'required|string|max:255',
+            'pencacah'           => 'required|string|max:255|exists:master_petugas,nama_petugas',
+            'pengawas'           => 'required|string|max:255|exists:master_petugas,nama_petugas',
             'target_penyelesaian' => 'required|date',
-            'flag_progress' => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
+            'flag_progress'      => ['required', Rule::in(['Belum Selesai', 'Selesai'])],
             'tanggal_pengumpulan' => 'nullable|date',
         ];
         $customMessages = [
-            'nama_kegiatan.exists' => 'Nama kegiatan tidak terdaftar.',
-            'pencacah.exists' => 'Nama pencacah tidak terdaftar.',
-            'pengawas.exists' => 'Nama pengawas tidak terdaftar.',
+            'master_kegiatan_id.required' => 'Kegiatan wajib dipilih dari daftar.',
+            'master_kegiatan_id.exists'   => 'ID Kegiatan tidak terdaftar di master.',
+            'pencacah.exists'             => 'Nama pencacah tidak terdaftar.',
+            'pengawas.exists'             => 'Nama pengawas tidak terdaftar.',
         ];
         $validator = Validator::make($request->all(), $baseRules, $customMessages);
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    // [DIUBAH] Pesan disamakan
-                    'message' => 'Data tidak valid.',
-                    'errors' => $validator->errors()
-                ], 422);
+                return response()->json(['message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
             }
-            return back()->withErrors($validator)->withInput()
+            return back()->withErrors($validator, 'editForm') 
+                ->withInput()
                 ->with('error_modal', 'editDataModal')
-                ->with('edit_id', $tahunan->id_nwa); // Kirim ID untuk JS fallback
+                ->with('edit_id', $nwa_tahunan->id_nwa); // <-- GANTI ID
         }
 
         $validatedData = $validator->validated();
-
-        if ($request->has('target_penyelesaian') && !empty($request->target_penyelesaian)) {
-            try {
-                $validatedData['tahun_kegiatan'] = Carbon::parse($request->target_penyelesaian)->year;
-            } catch (\Exception $e) {
-            }
-        }
-
-        $tahunan->update($validatedData);
-
-        session()->flash('success', 'Data berhasil ditambahkan!');
+        $nwa_tahunan->update($validatedData);
+        
+        session()->flash('success', 'Data berhasil diperbarui!');
         session()->flash('auto_hide', true);
 
         if ($request->ajax() || $request->wantsJson()) {
-            // [DIUBAH] Pesan disamakan
             return response()->json(['success' => 'Data berhasil diperbarui!']);
         }
-        // [DIUBAH] Pesan disamakan
         return back();
     }
-
-    /**
-     * PERUBAHAN: Menggunakan $id
-     */
-    public function destroy($id)
-    {
-        $tahunan = NwaTahunan::findOrFail($id);
-        $tahunan->delete();
-
-        // [DIUBAH] Pesan disamakan
-        return back()->with(['success' => 'Data berhasil dihapus!', 'auto_hide' => true]);
-    }
-
+    
     public function bulkDelete(Request $request)
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:nwa_tahunan,id_nwa' // Menggunakan PK dan tabel yang benar
+            'ids.*' => 'exists:nwa_tahunan,id_nwa' // <-- GANTI TABEL/ID
         ]);
-
-        NwaTahunan::whereIn('id_nwa', $request->ids)->delete(); // Menggunakan PK yang benar
-        // [DIUBAH] Pesan disamakan
+        NwaTahunan::whereIn('id_nwa', $request->ids)->delete(); // <-- GANTI MODEL/ID
         return back()->with(['success' => 'Data yang dipilih berhasil dihapus!', 'auto_hide' => true]);
+    }
+
+    public function destroy(Request $request, $id) 
+    {
+        $nwa_tahunan = NwaTahunan::findOrFail($id); 
+        $nwa_tahunan->delete();
+
+        session()->flash('success', 'Data berhasil dihapus!');
+        session()->flash('auto_hide', true);
+
+        if ($request->ajax() || $request->wantsJson()) { 
+            return response()->json(['success' => 'Data berhasil dihapus!']); 
+        }
+
+        return back(); 
     }
 
     public function searchPetugas(Request $request)
     {
-        $request->validate([
-            'query' => 'nullable|string|max:100',
-        ]);
+        $request->validate(['query' => 'nullable|string|max:100']);
         $query = $request->input('query', '');
         $data = MasterPetugas::query()
             ->where('nama_petugas', 'LIKE', "%{$query}%")
@@ -256,198 +267,201 @@ class NwaTahunanController extends Controller
             ->pluck('nama_petugas');
         return response()->json($data);
     }
-    
-    public function export(Request $request)
-{
-    $dataRange = $request->input('dataRange', 'all');
-    $dataFormat = $request->input('dataFormat', 'formatted_values');
-    $exportFormat = $request->input('exportFormat');
-    
-    $kegiatan = $request->input('kegiatan');
-    $search = $request->input('search');
-    $tahun = $request->input('tahun', date('Y'));
-    
-    $currentPage = $request->input('page', 1);
-    $perPage = $request->input('per_page', 20);
-    if (!in_array($exportFormat, ['excel', 'csv', 'word'])) {
-        return back()->with('error', 'Format export tidak valid!');
-    }
-    
-    $exportClass = new NwaTahunanExport(
-        $dataRange,
-        $dataFormat,
-        $kegiatan,
-        $search,
-        $tahun,
-        $currentPage,
-        $perPage        
-    );
-    $fileName = 'NWA_Tahunan_' . $tahun . '_' . date('YmdHis');
-    if ($exportFormat == 'excel') {
-        return Excel::download($exportClass, $fileName . '.xlsx');
-    } elseif ($exportFormat == 'csv') {
-        return Excel::download($exportClass, $fileName . '.csv');
-    } elseif ($exportFormat == 'word') {
-        return $exportClass->exportToWord();
-    }
-    return back()->with('error', 'Format ekspor tidak didukung.');
-}
 
+    public function searchKegiatan(Request $request) 
+    {
+        $request->validate(['query' => 'nullable|string|max:100']);
+        $query = $request->input('query', '');
+        $kegiatanQuery = MasterKegiatan::query();
+        
+        $kegiatanQuery->where('modul', 'nwa_tahunan'); 
+
+        $data = $kegiatanQuery
+            ->where('nama_kegiatan', 'LIKE', "%{$query}%")
+            ->limit(10)
+            ->select('id_master_kegiatan', 'nama_kegiatan') 
+            ->get();
+        return response()->json($data);
+    }
+
+    public function export(Request $request) 
+    {
+        $dataRange = $request->input('dataRange', 'all');
+        $dataFormat = $request->input('dataFormat', 'formatted_values');
+        $exportFormat = $request->input('exportFormat', 'excel');
+        $kegiatan = $request->input('kegiatan');
+        $search = $request->input('search');
+        $currentPage = $request->input('page', 1);
+        $perPageInput = $request->input('per_page', 20);
+        $selectedTahun = $request->input('tahun', date('Y')); 
+        $perPage = ($perPageInput == 'all' || $dataRange == 'all') ? -1 : (int)$perPageInput; 
+        
+        $exportClass = new NwaTahunanExport( 
+            $dataRange,
+            $dataFormat,
+            $kegiatan,        
+            $search,
+            $currentPage,
+            $perPage,
+            $selectedTahun    
+        );
+
+        $fileName = 'NwaTahunan_' . $selectedTahun . '_' . now()->format('YmdHis'); 
+
+        if ($exportFormat == 'excel') {
+            return Excel::download($exportClass, $fileName . '.xlsx');
+        } elseif ($exportFormat == 'csv') {
+            return Excel::download($exportClass, $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV, [
+                'Content-Type' => 'text/csv',
+            ]);
+        } 
+
+        return back()->with('error', 'Format ekspor tidak didukung.');
+    }
+    
     public function import(Request $request)
     {
+        // (Logika import tidak berubah)
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls|max:2048', // Max 2MB
+            'file' => 'required|mimes:xlsx,xls,csv|max:2048',
         ], [
-            'file.required' => 'File Excel wajib diunggah.',
-            'file.mimes' => 'File harus berformat Excel (.xlsx atau .xls).',
+            'file.required' => 'File Excel/CSV wajib diunggah.',
+            'file.mimes' => 'File harus berformat Excel (.xlsx, .xls) atau CSV (.csv).',
             'file.max' => 'Ukuran file maksimal 2MB.',
         ]);
+
         try {
             $file = $request->file('file');
-
-            // Buat instance import (menggunakan NwaTahunanImport)
-            $import = new NwaTahunanImport();
-
-            // Import file
+            $import = new NwaTahunanImport(); 
             Excel::import($import, $file);
-            // Ambil hasil import
+            
             $errors = $import->getErrors();
             $successCount = $import->getSuccessCount();
-            // Jika ada error, kirim ke session
+
             if (!empty($errors)) {
+                $formattedErrors = collect($errors)->map(function ($err) {
+                    return [
+                        'row' => $err['row'] ?? '?',
+                        'error' => $err['error'] ?? 'Unknown Error',
+                        'values' => $err['values'] ?? 'N/A'
+                    ];
+                })->toArray();
+
                 return back()
-                    ->with('import_errors', $errors)
+                    ->with('import_errors', $formattedErrors)
                     ->with('success_count', $successCount)
-                    ->with('warning', "Import selesai dengan {$successCount} data berhasil dan " . count($errors) . " data gagal. Lihat detail error di bawah.");
+                    ->with('warning', "Import selesai dengan {$successCount} data berhasil dan " . count($errors) . " data gagal.");
             }
-            // Jika semua berhasil
+            
             return back()->with([
                 'success' => "Berhasil mengimpor {$successCount} data!",
                 'auto_hide' => true
             ]);
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+             $failures = $e->failures();
+             $formattedErrors = [];
+             foreach ($failures as $failure) {
+                 $formattedErrors[] = [
+                     'row' => $failure->row(),
+                     'error' => implode(', ', $failure->errors()),
+                     'values' => $failure->values()[$failure->attribute()] ?? 'N/A'
+                 ];
+             }
+             return back()
+                 ->with('import_errors', $formattedErrors)
+                 ->with('error', 'Import gagal karena ada data yang tidak valid.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan saat import: ' . $e->getMessage());
+            \Log::error('Import Error: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString()); 
+            return back()->with('error', 'Terjadi kesalahan sistem saat import: ' . $e->getMessage());
         }
     }
 
     public function downloadTemplate()
     {
+        // (Logika download template tidak berubah)
         try {
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            // ===== SET HEADER (Baris 1) =====
+
             $headers = [
-                'nama_kegiatan',
-                'bs_responden',
-                'pencacah',
-                'pengawas',
-                'target_penyelesaian',
-                'flag_progress',
+                'nama_kegiatan', 
+                'bs_responden', 
+                'pencacah', 
+                'pengawas', 
+                'target_penyelesaian', 
+                'flag_progress', 
                 'tanggal_pengumpulan'
             ];
-            
-            // Tulis header
             $sheet->fromArray([$headers], null, 'A1');
-
-            // Style header (Bold + Background hijau muda)
             $sheet->getStyle('A1:G1')->getFont()->setBold(true);
             $sheet->getStyle('A1:G1')->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFD9EAD3'); // Hijau muda
+                ->getStartColor()->setARGB('FFD9EAD3');
 
-            // Tambahkan border pada header
-            $sheet->getStyle('A1:G1')->getBorders()->getAllBorders()
-                ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            // ===== CONTOH DATA (Baris 2-3) =====
-            $contohKegiatan = MasterKegiatan::limit(2)->pluck('nama_kegiatan')->toArray();
-            $contohPetugas = MasterPetugas::limit(3)->pluck('nama_petugas')->toArray();
             $exampleData = [
                 [
-                    $contohKegiatan[0] ?? 'Sensus Penduduk 2025',
+                    'SINASI', 
                     'BS001',
-                    $contohPetugas[0] ?? 'Ahmad Zaki',
-                    $contohPetugas[1] ?? 'Budi Santoso',
+                    'Nama Petugas Valid 1', 
+                    'Nama Petugas Valid 2', 
                     '2025-12-31',
                     'Belum Selesai',
-                    '2025-11-15'
+                    ''
                 ],
                 [
-                    $contohKegiatan[1] ?? 'Survey Ekonomi Q1',
+                    'SINASI',
                     'BS002',
-                    $contohPetugas[2] ?? 'Siti Nurhaliza',
-                    $contohPetugas[0] ?? 'Andi Wijaya',
-                    '2025-06-30',
+                    'Nama Petugas Valid 3', 
+                    'Nama Petugas Valid 4', 
+                    '2025-12-31',
                     'Selesai',
-                    '2025-06-20'
+                    '2025-11-25'
                 ]
             ];
-            $row = 2;
-            foreach ($exampleData as $data) {
-                $col = 'A';
-                foreach ($data as $value) {
-                    $sheet->setCellValue($col . $row, $value);
-                    $col++;
-                }
-                $row++;
-            }
-            // Style contoh data (background kuning muda)
+            $sheet->fromArray($exampleData, null, 'A2');
             $sheet->getStyle('A2:G3')->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFFFF4CC'); // Kuning muda
-            // ===== AUTO WIDTH COLUMNS =====
+                ->getStartColor()->setARGB('FFFFF4CC'); 
+
             foreach (range('A', 'G') as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             }
-            // ===== PETUNJUK PENGISIAN (Baris 5-12) =====
+
             $sheet->setCellValue('A5', 'PETUNJUK PENGISIAN:');
             $sheet->getStyle('A5')->getFont()->setBold(true)->setSize(12);
             $sheet->getStyle('A5')->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFB4C7E7'); // Biru muda
+                ->getStartColor()->setARGB('FFB4C7E7');
             
-            // [DIUBAH] Petunjuk disesuaikan (semua kolom wajib, flag_progress)
             $instructions = [
-                '1. Semua kolom WAJIB diisi kecuali Tanggal Pengumpulan (boleh kosong)',
-                '2. Header baris 1 HARUS tetap ada dengan format lowercase dan underscore',
-                '3. Nama Kegiatan, Pencacah, Pengawas harus berisi huruf (tidak boleh hanya angka)',
-                '4. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY (contoh: 2025-12-31 atau 31/12/2025)',
-                '5. Flag Progress hanya boleh diisi: "Belum Selesai" atau "Selesai" (case-sensitive)',
-                '6. BS Responden boleh berisi angka atau kombinasi huruf-angka',
-                '7. HAPUS baris contoh (baris 2-3) dan petunjuk ini sebelum import!',
-                '8. Simpan file dalam format .xlsx atau .xls'
+                '1. Kolom WAJIB: nama_kegiatan, bs_responden, pencacah, pengawas, target_penyelesaian.',
+                '2. "nama_kegiatan" WAJIB diisi "SINASI".',
+                '3. "pencacah" dan "pengawas" TIDAK divalidasi ke master, tetapi tetap wajib diisi.',
+                '4. "flag_progress" TIDAK wajib. Jika diisi "Selesai", akan disimpan. Jika kosong/salah, otomatis "Belum Selesai".',
+                '5. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY.',
+                '6. HAPUS baris contoh (baris 2-3) dan petunjuk ini sebelum import!',
             ];
             $instructionRow = 6;
             foreach ($instructions as $instruction) {
                 $sheet->setCellValue('A' . $instructionRow, $instruction);
                 $sheet->getStyle('A' . $instructionRow)->getFont()->setItalic(true);
+                $sheet->mergeCells("A{$instructionRow}:G{$instructionRow}");
                 $instructionRow++;
             }
-            // Merge cells untuk petunjuk agar lebih rapi
-            foreach (range(5, 13) as $r) {
-                $sheet->mergeCells("A{$r}:G{$r}");
-            }
-            // ===== TAMBAHKAN KOMENTAR/TOOLTIP PADA HEADER =====
-            $sheet->getComment('A1')->getText()->createTextRun('Isi dengan nama kegiatan sesuai Master Kegiatan');
-            $sheet->getComment('B1')->getText()->createTextRun('Kode BS Responden (contoh: BS001, 030001B)');
-            $sheet->getComment('C1')->getText()->createTextRun('Nama Pencacah sesuai Master Petugas');
-            $sheet->getComment('D1')->getText()->createTextRun('Nama Pengawas sesuai Master Petugas');
-            $sheet->getComment('E1')->getText()->createTextRun('Format: YYYY-MM-DD atau DD/MM/YYYY (WAJIB diisi)');
-            $sheet->getComment('F1')->getText()->createTextRun('Isi: "Belum Selesai" atau "Selesai" saja');
-            $sheet->getComment('G1')->getText()->createTextRun('Format tanggal, boleh kosong jika belum ada');
-            // ===== FREEZE HEADER ROW =====
-            $sheet->freezePane('A2');
-            // ===== SAVE TO TEMPORARY FILE =====
-            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-            // [DIUBAH] Nama file dan prefix temp disesuaikan
-            $fileName = 'Template_Import_nwa_Tahunan_' . date('Ymd') . '.xlsx';
-            $tempFile = tempnam(sys_get_temp_dir(), 'template_nwa_');
+            
+            $sheet->freezePane('A2'); 
 
-            $writer->save($tempFile);
-            // Return download dan hapus file temporary setelah didownload
-            return response()->download($tempFile, $fileName, [
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $fileName = 'Template_Import_NWA_Tahunan.xlsx'; 
+            $temp_file = tempnam(sys_get_temp_dir(), $fileName);
+            $writer->save($temp_file);
+
+            return response()->download($temp_file, $fileName, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             ])->deleteFileAfterSend(true);
+
         } catch (\Exception $e) {
+            \Log::error('Template Download Error: '. $e->getMessage());
             return back()->with('error', 'Gagal membuat template: ' . $e->getMessage());
         }
     }

@@ -4,6 +4,8 @@ namespace App\Models\produksi;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Master\MasterKegiatan;
+use App\Models\Master\MasterPetugas;
 
 class ProduksiTriwulanan extends Model
 {
@@ -26,4 +28,10 @@ class ProduksiTriwulanan extends Model
         'target_penyelesaian' => 'datetime',
         'tanggal_pengumpulan' => 'datetime',
     ];
+
+
+    public function masterKegiatan()
+    {
+        return $this->belongsTo(MasterKegiatan::class, 'master_kegiatan_id', 'id_master_kegiatan');
+    }
 }

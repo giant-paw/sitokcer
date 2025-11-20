@@ -27,7 +27,6 @@ class ProduksiCaturwulananController extends Controller
             // Kunci (key) = $jenisKegiatan dari URL (lowercase)
             'ubinan'       => ['UbinanPadiPalawija'],
             'updating utp' => ['UpdatingUTPPalawija'],
-            // [REKOMENDASI] Ganti 'updating utp' menjadi 'updating-utp'
             // 'updating-utp' => ['UpdatingUTPPalawija'] 
         ];
         

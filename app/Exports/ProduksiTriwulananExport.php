@@ -3,237 +3,142 @@
 namespace App\Exports;
 
 use App\Models\Produksi\ProduksiTriwulanan;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use App\Models\Master\MasterKegiatan;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use PhpOffice\PhpWord\TemplateProcessor;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Carbon\Carbon;
 
-class ProduksiTriwulananExport implements FromCollection, WithHeadings
+class ProduksiTriwulananExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize
 {
+    // Properti untuk menyimpan filter
     protected $dataRange;
     protected $dataFormat;
     protected $jenisKegiatan;
     protected $kegiatan;
     protected $search;
-    protected $tahun;
-    protected $currentPage;
+    protected $page;
     protected $perPage;
+    protected $tahun;
+    protected $currentModul = 'produksi_triwulanan';
 
-    public function __construct($dataRange, $dataFormat, $jenisKegiatan, $kegiatan = null, $search = null, $tahun = null, $currentPage = 1, $perPage = 20)
+    public function __construct($dataRange, $dataFormat, $jenisKegiatan, $kegiatan, $search, $page, $perPage, $tahun)
     {
         $this->dataRange = $dataRange;
         $this->dataFormat = $dataFormat;
         $this->jenisKegiatan = $jenisKegiatan;
         $this->kegiatan = $kegiatan;
         $this->search = $search;
-        $this->tahun = $tahun ?? date('Y');
-        $this->currentPage = $currentPage;
+        $this->page = $page;
         $this->perPage = $perPage;
+        $this->tahun = $tahun;
     }
 
-    public function collection()
+    private function getPrefixMap($jenisKegiatan)
     {
-        $query = ProduksiTriwulanan::query();
+         $map = [
+            'tpi'       => ['TPI-'],
+            'sktr'      => ['SKTR-'],
+            'sphbst'    => ['SPHBST-'],
+            'sphtbf'    => ['SPHTBF-'],
+            'sphth'     => ['SPHTH-'],
+            'airbersih' => ['AIRBERSIH-']
+        ];
+        
+        $jenisKegiatanLower = strtolower($jenisKegiatan);
+        if (!isset($map[$jenisKegiatanLower])) {
+            return [];
+        }
+        return $map[$jenisKegiatanLower];
+    }
 
-        // Filter berdasarkan jenis kegiatan
-        $query->where('nama_kegiatan', 'LIKE', strtoupper($this->jenisKegiatan) . '%');
+    public function query()
+    {
+        $validPrefixes = $this->getPrefixMap($this->jenisKegiatan);
+        
+        $query = ProduksiTriwulanan::query()
+            ->leftJoin('master_kegiatan', 'produksi_triwulanan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+            ->where(function($q) {
+                $q->where('master_kegiatan.modul', $this->currentModul)
+                  ->orWhereNull('produksi_triwulanan.master_kegiatan_id'); 
+            })
+            ->where(function($q) use ($validPrefixes) {
+                if (empty($validPrefixes)) { $q->whereRaw('1 = 0'); return; }
+                foreach ($validPrefixes as $prefix) {
+                    $q->orWhere('master_kegiatan.nama_kegiatan', 'LIKE', $prefix . '%')
+                      ->orWhere(function($sub) use ($prefix) {
+                          $sub->whereNull('produksi_triwulanan.master_kegiatan_id')
+                              ->where('produksi_triwulanan.nama_kegiatan', 'LIKE', $prefix . '%');
+                      });
+                }
+            })
+            ->whereYear('produksi_triwulanan.created_at', $this->tahun);
 
-        // Filter berdasarkan tahun
-        $query->whereYear('created_at', $this->tahun);
-
-        // Filter berdasarkan kegiatan spesifik
-        if (!empty($this->kegiatan)) {
-            $query->where('nama_kegiatan', $this->kegiatan);
+        if ($this->kegiatan) {
+            if (is_numeric($this->kegiatan)) {
+                $query->where('produksi_triwulanan.master_kegiatan_id', $this->kegiatan);
+            } else {
+                $query->whereNull('produksi_triwulanan.master_kegiatan_id')
+                      ->where('produksi_triwulanan.nama_kegiatan', $this->kegiatan);
+            }
         }
 
-        // Filter berdasarkan search
-        if (!empty($this->search)) {
-            $searchTerm = $this->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('produksi_triwulanan.BS_Responden', 'like', "%{$this->search}%")
+                  ->orWhere('produksi_triwulanan.pencacah', 'like', "%{$this->search}%")
+                  ->orWhere('produksi_triwulanan.pengawas', 'like', "%{$this->search}%")
+                  ->orWhere('master_kegiatan.nama_kegiatan', 'like', "%{$this->search}%")
+                  ->orWhere('produksi_triwulanan.nama_kegiatan', 'like', "%{$this->search}%");
             });
         }
 
-        // Urutkan berdasarkan terbaru
-        $query->latest('id_produksi_triwulanan');
-
-        // Ambil data sesuai range
-        if ($this->dataRange == 'current_page') {
-            $offset = ($this->currentPage - 1) * $this->perPage;
-            $data = $query->offset($offset)->limit($this->perPage)->get();
-        } else {
-            $data = $query->get();
+        if ($this->dataRange === 'current_page' && $this->perPage != -1) {
+            $query->skip(($this->page - 1) * $this->perPage)->take($this->perPage);
         }
-
-        return $data->map(function ($item) {
-            return [
-                $item->id_produksi_triwulanan,
-                $item->nama_kegiatan,
-                $item->BS_Responden,
-                $item->pencacah,
-                $item->pengawas,
-                $item->target_penyelesaian ? $item->target_penyelesaian->format('Y-m-d') : null,
-                $item->flag_progress,
-                $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('Y-m-d') : null,
-            ];
-        });
+        
+        return $query->select('produksi_triwulanan.*')->with('masterKegiatan')
+                     ->latest('produksi_triwulanan.id_produksi_triwulanan');
     }
 
     public function headings(): array
     {
         return [
-            'ID Produksi',
+            'ID',
             'Nama Kegiatan',
-            'BS Responden',
+            'BS/Responden',
             'Pencacah',
             'Pengawas',
-            'Target Penyelesaian',
-            'Flag Progress',
-            'Tanggal Pengumpulan',
+            'Target Selesai',
+            'Progress',
+            'Tgl Kumpul',
         ];
     }
 
-    private function getDataForWord()
+    public function map($row): array
     {
-        $query = ProduksiTriwulanan::query();
+        $targetSelesai = $row->target_penyelesaian;
+        $tglKumpul = $row->tanggal_pengumpulan;
 
-        // Filter berdasarkan jenis kegiatan
-        $query->where('nama_kegiatan', 'LIKE', strtoupper($this->jenisKegiatan) . '%');
-
-        // Filter berdasarkan tahun
-        $query->whereYear('created_at', $this->tahun);
-
-        // Filter berdasarkan kegiatan spesifik
-        if (!empty($this->kegiatan)) {
-            $query->where('nama_kegiatan', $this->kegiatan);
-        }
-
-        // Filter berdasarkan search
-        if (!empty($this->search)) {
-            $searchTerm = $this->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%");
-            });
-        }
-
-        // Urutkan berdasarkan terbaru
-        $query->latest('id_produksi_triwulanan');
-
-        // Ambil data sesuai range
-        if ($this->dataRange == 'current_page') {
-            $offset = ($this->currentPage - 1) * $this->perPage;
-            return $query->offset($offset)->limit($this->perPage)->get();
-        }
-
-        return $query->get();
-    }
-
-    public function exportToWord()
-    {
-        $templatePath = storage_path('templates/produksi_triwulanan_template.docx');
-
-        if (!file_exists($templatePath)) {
-            return response()->json([
-                'error' => 'Template Word tidak ditemukan di: ' . $templatePath
-            ], 404);
-        }
-
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        // Set tanggal cetak
-        $templateProcessor->setValue('tanggal_cetak', now()->format('d F Y'));
-
-        // Set judul laporan dengan filter yang aktif
-        $judulLaporan = 'Laporan Produksi Triwulanan ' . strtoupper($this->jenisKegiatan) . ' Tahun ' . $this->tahun;
-
-        if (!empty($this->kegiatan)) {
-            $judulLaporan .= ' - ' . $this->kegiatan;
-        }
-
-        if ($this->dataRange == 'current_page') {
-            $judulLaporan .= ' (Halaman ' . $this->currentPage . ')';
-        }
-
-        $templateProcessor->setValue('judul_laporan', $judulLaporan);
-
-        $data = $this->getDataForWord();
-
-        $dataCount = $data->count();
-
-        $placeholderToClone = 'id_produksi';
-
-        if ($dataCount > 0) {
-            try {
-                $templateProcessor->cloneRow($placeholderToClone, $dataCount);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'error' => 'Gagal mengkloning baris di template. Pastikan placeholder `' . $placeholderToClone . '` ada di template Word.',
-                    'details' => $e->getMessage()
-                ], 500);
-            }
-
-            foreach ($data as $index => $row) {
-                $i = $index + 1;
-                $templateProcessor->setValue('no#' . $i, $i);
-                $templateProcessor->setValue('id_produksi#' . $i, $row->id_produksi_triwulanan ?? '');
-                $templateProcessor->setValue('nama_kegiatan#' . $i, $row->nama_kegiatan ?? '');
-                $templateProcessor->setValue('blok_sensus#' . $i, $row->BS_Responden ?? '');
-                $templateProcessor->setValue('pencacahan#' . $i, $row->pencacah ?? '');
-                $templateProcessor->setValue('pengawas#' . $i, $row->pengawas ?? '');
-                $templateProcessor->setValue('tanggal_target#' . $i, $row->target_penyelesaian ?? '');
-                $templateProcessor->setValue('flag_progress#' . $i, $row->flag_progress ?? '');
-                $templateProcessor->setValue('tanggal_pengumpulan#' . $i, $row->tanggal_pengumpulan ?? '');
-            }
+        if ($this->dataFormat === 'formatted_values') {
+            $targetSelesai = $targetSelesai ? Carbon::parse($targetSelesai)->format('d/m/Y') : '-';
+            $tglKumpul = $tglKumpul ? Carbon::parse($tglKumpul)->format('d/m/Y') : '-';
         } else {
-            // Jika data kosong, tambahkan baris "Tidak ada data"
-            try {
-                $templateProcessor->cloneRow($placeholderToClone, 1);
-                $templateProcessor->setValue('no#1', '-');
-                $templateProcessor->setValue('id_produksi#1', 'Tidak ada data');
-                $templateProcessor->setValue('nama_kegiatan#1', '-');
-                $templateProcessor->setValue('blok_sensus#1', '-');
-                $templateProcessor->setValue('pencacahan#1', '-');
-                $templateProcessor->setValue('pengawas#1', '-');
-                $templateProcessor->setValue('tanggal_target#1', '-');
-                $templateProcessor->setValue('flag_progress#1', '-');
-                $templateProcessor->setValue('tanggal_pengumpulan#1', '-');
-            } catch (\Exception $e) {
-                // Ignore jika gagal
-            }
+            $targetSelesai = $targetSelesai ? Carbon::parse($targetSelesai)->format('Y-m-d') : null;
+            $tglKumpul = $tglKumpul ? Carbon::parse($tglKumpul)->format('Y-m-d') : null;
         }
 
-        // Generate nama file dengan filter
-        $fileName = 'ProduksiTriwulanan_' . strtoupper($this->jenisKegiatan);
-
-        if (!empty($this->kegiatan)) {
-            $fileName .= '_' . str_replace(' ', '_', $this->kegiatan);
-        }
-
-        $fileName .= '_' . date('Ymd_His') . '.docx';
-
-        $filePath = storage_path('exports/' . $fileName);
-
-        // Pastikan folder exports ada
-        if (!is_dir(storage_path('exports'))) {
-            mkdir(storage_path('exports'), 0775, true);
-        }
-
-        // Simpan file Word
-        try {
-            $templateProcessor->saveAs($filePath);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Gagal menyimpan file Word.',
-                'details' => $e->getMessage()
-            ], 500);
-        }
-
-        // Download file dan hapus setelah download
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        return [
+            $row->id_produksi_triwulanan,
+            $row->masterKegiatan->nama_kegiatan ?? $row->nama_kegiatan, 
+            $row->BS_Responden,
+            $row->pencacah,
+            $row->pengawas,
+            $targetSelesai,
+            $row->flag_progress,
+            $tglKumpul,
+        ];
     }
 }

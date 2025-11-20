@@ -62,39 +62,72 @@ Route::middleware('auth')->group(function () {
                 ->name('logout');
 
 
-    /* DASHBOARD */
-    Route::get('/dashboard-distribusi', [DashboardDistribusiController::class, 'index'])->name('dashboard.distribusi');
+    // --- Dashboard Tim Distribusi ---
+    Route::prefix('dashboard/distribusi')->name('dashboard.distribusi.')->group(function () {
+        Route::get('/tahunan/{tahun}', [DashboardDistribusiController::class, 'detailTahunan'])->name('tahunan');
+        Route::get('/triwulanan/{tahun}', [DashboardDistribusiController::class, 'detailTriwulanan'])->name('triwulanan');
+        Route::get('/bulanan/{tahun}', [DashboardDistribusiController::class, 'detailBulanan'])->name('bulanan');
+        
+        // Halaman index (harus terakhir)
+        Route::get('/{tahun?}', [DashboardDistribusiController::class, 'index'])->name('index');
+    });
 
-    Route::get('/dashboard-distribusi/tahunan', [DashboardDistribusiController::class, 'detailTahunan'])->name('dashboard.distribusi.tahunan');
-Route::get('/dashboard-distribusi/triwulanan', [DashboardDistribusiController::class, 'detailTriwulanan'])->name('dashboard.distribusi.triwulanan');
-Route::get('/dashboard-distribusi/bulanan', [DashboardDistribusiController::class, 'detailBulanan'])->name('dashboard.distribusi.bulanan');
+    /// --- Dashboard Tim Sosial ---
+    Route::prefix('dashboard/sosial')->name('dashboard.sosial.')->group(function () {
+        
+        Route::get('/tahunan/{tahun}', [DashboardSosialController::class, 'detailTahunan'])->name('tahunan');
+        Route::get('/triwulanan/{tahun}', [DashboardSosialController::class, 'detailTriwulanan'])->name('triwulanan');
+        Route::get('/semesteran/{tahun}', [DashboardSosialController::class, 'detailSemesteran'])->name('semesteran');
+        
+        // Halaman index (harus terakhir)
+        Route::get('/{tahun?}', [DashboardSosialController::class, 'index'])->name('index');
+    });
 
-    Route::get('/dashboard-nwa', [DashboardNwaController::class, 'index'])->name('dashboard.nwa');
-    Route::get('/dashboard-produksi', [DashboardProduksiController::class, 'index'])->name('dashboard.produksi');
-    Route::get('/dashboard-sosial', [DashboardSosialController::class, 'index'])->name('dashboard.sosial');
+    // --- Dashboard Tim Produksi ---
+    Route::prefix('dashboard/produksi')->name('dashboard.produksi.')->group(function () {
+       
+        Route::get('/tahunan/{tahun}', [DashboardProduksiController::class, 'detailTahunan'])->name('tahunan');
+        Route::get('/caturwulan/{tahun}', [DashboardProduksiController::class, 'detailCaturwulan'])->name('caturwulan');
+        Route::get('/triwulanan/{tahun}', [DashboardProduksiController::class, 'detailTriwulanan'])->name('triwulanan');
+        Route::get('/bulanan/{tahun}', [DashboardProduksiController::class, 'detailBulanan'])->name('bulanan');
+        
+        Route::get('/{tahun?}', [DashboardProduksiController::class, 'index'])->name('index');
+    });
 
-    /* --- TIM SOSIAL --- */
+    Route::prefix('dashboard/nwa')->name('dashboard.nwa.')->group(function () {
+        
+        Route::get('/tahunan/{tahun}', [DashboardNwaController::class, 'detailTahunan'])->name('tahunan');
+        Route::get('/triwulanan/{tahun}', [DashboardNwaController::class, 'detailTriwulanan'])->name('triwulanan');
+        
+        // Halaman index (harus terakhir)
+        Route::get('/{tahun?}', [DashboardNwaController::class, 'index'])->name('index');
+    });
+
+   /* --- TIM SOSIAL --- */
     Route::prefix('sosial')->name('sosial.')->group(function () {
+        
+        /* --- SOSIAL TAHUNAN --- */
         Route::prefix('tahunan')->name('tahunan.')->group(function () {
-
-            // Rute-rute yang tidak punya parameter / spesifik
+        
             Route::get('/', [SosialTahunanController::class, 'index'])->name('index');
             Route::post('/', [SosialTahunanController::class, 'store'])->name('store');
             Route::get('/search-petugas', [SosialTahunanController::class, 'searchPetugas'])->name('searchPetugas');
             Route::get('/search-kegiatan', [SosialTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
             Route::post('/bulk-delete', [SosialTahunanController::class, 'bulkDelete'])->name('bulkDelete');
 
-            // export
             Route::get('/export', [SosialTahunanController::class, 'export'])->name('export');
             Route::post('/import', [SosialTahunanController::class, 'import'])->name('import');
             Route::get('/download-template', [SosialTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
 
-            Route::get('/{id}/edit', [SosialTahunanController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [SosialTahunanController::class, 'update'])->name('update');
-            Route::delete('/{id}', [SosialTahunanController::class, 'destroy'])->name('destroy');
-
+            Route::get('/{id}/edit', [SosialTahunanController::class, 'edit'])
+                ->name('edit')->where('id', '[0-9]+'); 
+            Route::put('/{id}', [SosialTahunanController::class, 'update'])
+                ->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [SosialTahunanController::class, 'destroy'])
+                ->name('destroy')->where('id', '[0-9]+');
         });
 
+        /* --- SOSIAL TRIWULANAN (SERUTI, DLL) --- */
         Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
 
             // Rute-rute yang tidak punya parameter / spesifik
@@ -102,119 +135,44 @@ Route::get('/dashboard-distribusi/bulanan', [DashboardDistribusiController::clas
             Route::post('/bulk-delete', [SosialTriwulanController::class, 'bulkDelete'])->name('bulkDelete');
             Route::get('/search-petugas', [SosialTriwulanController::class, 'searchPetugas'])->name('searchPetugas');
             Route::get('/search-kegiatan', [SosialTriwulanController::class, 'searchKegiatan'])->name('searchKegiatan');
-
-            Route::get('/{jenisKegiatan}/export', [SosialTriwulanController::class, 'export'])->name('export')
-                ->where('jenisKegiatan', 'seruti');
-
             Route::post('/import', [SosialTriwulanController::class, 'import'])->name('import');
             Route::get('/download-template', [SosialTriwulanController::class, 'downloadTemplate'])->name('downloadTemplate');
 
-            // Rute-rute yang menggunakan {id}
-            Route::get('/{id}/edit', [SosialTriwulanController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [SosialTriwulanController::class, 'update'])->name('update');
-            Route::delete('/{id}', [SosialTriwulanController::class, 'destroy'])->name('destroy');
+            // Rute dengan parameter {jenisKegiatan}
+            Route::get('/{jenisKegiatan}/export', [SosialTriwulanController::class, 'export'])->name('export');
+                // ->where('jenisKegiatan', 'seruti'); // (Constraint opsional)
 
+            // Rute-rute yang menggunakan {id}
+            Route::get('/{id}/edit', [SosialTriwulanController::class, 'edit'])->name('edit')->where('id', '[0-9]+');
+            Route::put('/{id}', [SosialTriwulanController::class, 'update'])->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [SosialTriwulanController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
+
+            // Rute index HARUS diletakkan PALING AKHIR
             Route::get('/{jenisKegiatan?}', [SosialTriwulanController::class, 'index'])->name('index');
 
         });
 
-        // --- ROUTE SOSIAL SEMESTERAN (SAKERNAS/SUSENAS) (SUDAH BENAR) ---
+        /* --- SOSIAL SEMESTERAN (SAKERNAS/SUSENAS) --- */
         Route::prefix('semesteran')->name('semesteran.')->group(function () {
-
-            // Rute-rute yang tidak punya parameter / spesifik
+            Route::get('/', [SosialSemesteranController::class, 'index'])->name('index');
             Route::post('/', [SosialSemesteranController::class, 'store'])->name('store');
-            Route::post('/bulk-delete', [SosialSemesteranController::class, 'bulkDelete'])->name('bulkDelete');
             Route::get('/search-petugas', [SosialSemesteranController::class, 'searchPetugas'])->name('searchPetugas');
             Route::get('/search-kegiatan', [SosialSemesteranController::class, 'searchKegiatan'])->name('searchKegiatan');
-
-            Route::get('/{jenisKegiatan}/export', [SosialSemesteranController::class, 'export'])->name('export')
-                ->where('jenisKegiatan', 'sakernas|susenas');
-
-            Route::post('/import', [SosialSemesteranController::class, 'import'])->name('import');
-            Route::get('/download-template', [SosialSemesteranController::class, 'downloadTemplate'])->name('downloadTemplate');    
-
-            // Rute-rute yang menggunakan {id}
-            Route::get('/{id}/edit', [SosialSemesteranController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [SosialSemesteranController::class, 'update'])->name('update');
-            Route::delete('/{id}', [SosialSemesteranController::class, 'destroy'])->name('destroy');
-
-            // Rute index HARUS diletakkan PALING AKHIR
-            Route::get('/{jenisKegiatan}', [SosialSemesteranController::class, 'index'])
-                ->where('jenisKegiatan', 'sakernas|susenas')
-                ->name('index');
-        });
-    });/* --- TIM SOSIAL --- */
-    Route::prefix('sosial')->name('sosial.')->group(function () {
-        // --- ROUTE SOSIAL TAHUNAN ---
-        Route::prefix('tahunan')->name('tahunan.')->group(function () {
-
-            // Rute-rute yang tidak punya parameter / spesifik
-            Route::get('/', [SosialTahunanController::class, 'index'])->name('index');
-            Route::post('/', [SosialTahunanController::class, 'store'])->name('store');
-            Route::get('/search-petugas', [SosialTahunanController::class, 'searchPetugas'])->name('searchPetugas');
-            Route::post('/bulk-delete', [SosialTahunanController::class, 'bulkDelete'])->name('bulkDelete');
-            // Tambahkan searchKegiatan jika ada di controller
-            // Route::get('/search-kegiatan', [SosialTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
-
-                Route::post('/import', [SosialTahunanController::class, 'import'])->name('import');
-            Route::get('/download-template', [SosialTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
-            // Rute-rute yang menggunakan {id}
-            // Ini akan cocok dengan controller baru ($id)
-            Route::get('/{id}/edit', [SosialTahunanController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [SosialTahunanController::class, 'update'])->name('update');
-            Route::delete('/{id}', [SosialTahunanController::class, 'destroy'])->name('destroy');
-
-            // HAPUS RUTE RESOURCE YANG LAMA
-            // Route::resource('/', SosialTahunanController::class)->parameters(['' => 'tahunan']); // <-- HAPUS/KOMENTARI
-        });
-
-        Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
-
-            // Rute-rute yang tidak punya parameter / spesifik
-            Route::post('/', [SosialTriwulanController::class, 'store'])->name('store');
-            Route::post('/bulk-delete', [SosialTriwulanController::class, 'bulkDelete'])->name('bulkDelete');
-            Route::get('/search-petugas', [SosialTriwulanController::class, 'searchPetugas'])->name('searchPetugas');
-            Route::get('/search-kegiatan', [SosialTriwulanController::class, 'searchKegiatan'])->name('searchKegiatan');
-
-            // Rute-rute yang menggunakan {id}
-            Route::get('/{id}/edit', [SosialTriwulanController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [SosialTriwulanController::class, 'update'])->name('update');
-            Route::delete('/{id}', [SosialTriwulanController::class, 'destroy'])->name('destroy');
-            Route::post('/import', [SosialTriwulanController::class, 'import'])->name('import');
-            Route::get('/download-template', [SosialTriwulanController::class, 'downloadTemplate'])->name('downloadTemplate');
-
-            // Rute index HARUS diletakkan PALING AKHIR
-            // Menerima parameter {jenisKegiatan}, default 'seruti' akan ditangani controller
-            Route::get('/{jenisKegiatan?}', [SosialTriwulanController::class, 'index'])->name('index');
-
-            // HAPUS RUTE RESOURCE YANG LAMA UNTUK SERUTI
-            // Route::resource('seruti', SosialTriwulanController::class); // <-- HAPUS/KOMENTARI
-        });
-
-        // --- ROUTE SOSIAL SEMESTERAN (SAKERNAS/SUSENAS) (SUDAH BENAR) ---
-        Route::prefix('semesteran')->name('semesteran.')->group(function () {
-
-            // Rute-rute yang tidak punya parameter / spesifik
-            Route::post('/', [SosialSemesteranController::class, 'store'])->name('store');
             Route::post('/bulk-delete', [SosialSemesteranController::class, 'bulkDelete'])->name('bulkDelete');
-            Route::get('/search-petugas', [SosialSemesteranController::class, 'searchPetugas'])->name('searchPetugas');
-            Route::get('/search-kegiatan', [SosialSemesteranController::class, 'searchKegiatan'])->name('searchKegiatan');
 
-            // Rute-rute yang menggunakan {id}
-            Route::get('/{id}/edit', [SosialSemesteranController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [SosialSemesteranController::class, 'update'])->name('update');
-            Route::delete('/{id}', [SosialSemesteranController::class, 'destroy'])->name('destroy');
-
+            Route::get('/export', [SosialSemesteranController::class, 'export'])->name('export');
             Route::post('/import', [SosialSemesteranController::class, 'import'])->name('import');
             Route::get('/download-template', [SosialSemesteranController::class, 'downloadTemplate'])->name('downloadTemplate');
 
-            // Rute index HARUS diletakkan PALING AKHIR
-            Route::get('/{jenisKegiatan}', [SosialSemesteranController::class, 'index'])
-                ->where('jenisKegiatan', 'sakernas|susenas')
-                ->name('index');
+            Route::get('/{id}/edit', [SosialSemesteranController::class, 'edit'])
+                ->name('edit')->where('id', '[0-9]+'); 
+            Route::put('/{id}', [SosialSemesteranController::class, 'update'])
+                ->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [SosialSemesteranController::class, 'destroy'])
+                ->name('destroy')->where('id', '[0-9]+');
         });
+        
     });
-
 
     /* --- TIM DISTRIBUSI --- */
     Route::prefix('tim-distribusi')->name('tim-distribusi.')->group(function () {
@@ -288,7 +246,7 @@ Route::get('/dashboard-distribusi/bulanan', [DashboardDistribusiController::clas
             // Route dengan jenis kegiatan (LEBIH SPESIFIK DULU)
             Route::get('/{jenisKegiatan}/export', [DistribusiBulananController::class, 'export'])
                 ->name('export')
-                ->where('jenisKegiatan', 'vhts|hkd|shpb|shp|shpj|shpbg');
+                ->where('jenisKegiatan', 'VHTS|vhts|hkd|HKD|shpb|SHPB|shp|SHP|shpj|SHPJ|shpbg|SHPBG');
 
             // Route CRUD dengan ID angka (HARUS PAKAI CONSTRAINT)
             Route::get('/{distribusi_bulanan}/edit', [DistribusiBulananController::class, 'edit'])
@@ -319,21 +277,27 @@ Route::get('/dashboard-distribusi/bulanan', [DashboardDistribusiController::clas
 
         // --- ROUTE PRODUKSI TAHUNAN ---
         Route::prefix('tahunan')->name('tahunan.')->group(function () {
-
-            Route::get('/', [ProduksiTahunanController::class, 'index'])->name('index');
-            Route::post('/', [ProduksiTahunanController::class, 'store'])->name('store');
+            
+            // --- 1. RUTE STATIS (Harus didefinisikan pertama) ---
             Route::get('/search-petugas', [ProduksiTahunanController::class, 'searchPetugas'])->name('searchPetugas');
+            Route::get('/search-kegiatan', [ProduksiTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
             Route::post('/bulk-delete', [ProduksiTahunanController::class, 'bulkDelete'])->name('bulkDelete');
-
-            Route::get('/export', [ProduksiTahunanController::class, 'export'])->name('export');
             Route::post('/import', [ProduksiTahunanController::class, 'import'])->name('import');
             Route::get('/download-template', [ProduksiTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
+            Route::get('/export', [ProduksiTahunanController::class, 'export'])->name('export'); // Rute Ekspor
 
+            // --- 2. RUTE INDEX & STORE ---
+            // GET /tahunan -> Menampilkan semua data (index)
+            Route::get('/', [ProduksiTahunanController::class, 'index'])->name('index');
+            // POST /tahunan -> Menyimpan data baru (store)
+            Route::post('/', [ProduksiTahunanController::class, 'store'])->name('store');
 
-            Route::get('/{id}/edit', [ProduksiTahunanController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [ProduksiTahunanController::class, 'update'])->name('update');
-            Route::delete('/{id}', [ProduksiTahunanController::class, 'destroy'])->name('destroy');
-
+            Route::get('/{id}/edit', [ProduksiTahunanController::class, 'edit'])
+                ->name('edit')->where('id', '[0-9]+'); 
+            Route::put('/{id}', [ProduksiTahunanController::class, 'update'])
+                ->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [ProduksiTahunanController::class, 'destroy'])
+                ->name('destroy')->where('id', '[0-9]+');
         });
 
         Route::prefix('caturwulanan')->name('caturwulanan.')->group(function () {
@@ -372,11 +336,6 @@ Route::get('/dashboard-distribusi/bulanan', [DashboardDistribusiController::clas
                 ->name('destroy')
                 ->where('produksi_caturwulanan', '[0-9]+'); // Hanya angka
 
-                
-            // --- 3. RUTE DINAMIS by 'jenisKegiatan' (Harus diletakkan terakhir) ---
-            // Rute-rute ini menerima string (seperti 'ubinan' atau 'updating utp')
-            
-            // Definisikan Regex umum untuk nama kegiatan (membolehkan huruf, angka, spasi, -)
             $jenisKegiatanRegex = '[a-zA-Z0-9\- ]+';
 
             Route::get('/{jenisKegiatan}/export', [ProduksiCaturwulananController::class, 'export'])
@@ -388,106 +347,121 @@ Route::get('/dashboard-distribusi/bulanan', [DashboardDistribusiController::clas
                 ->where('jenisKegiatan', $jenisKegiatanRegex); // Dinamis
         });
 
-        // --- ROUTE PRODUKSI TRIWULANAN ---
+        
         Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
+    
+            // --- 1. RUTE STATIS (Harus didefinisikan pertama) ---
+            Route::get('/search-petugas', [ProduksiTriwulananController::class, 'searchPetugas'])->name('searchPetugas');
+            Route::get('/search-kegiatan', [ProduksiTriwulananController::class, 'searchKegiatan'])->name('searchKegiatan');
             Route::post('/bulk-delete', [ProduksiTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
-
-            Route::get('/{jenisKegiatan}/export', [ProduksiTriwulananController::class, 'export'])->name('export')
-                ->where('jenisKegiatan', 'sktr|tpi|sphbst|sphtbf|sphth|airbersih');
-
             Route::post('/import', [ProduksiTriwulananController::class, 'import'])->name('import');
             Route::get('/download-template', [ProduksiTriwulananController::class, 'downloadTemplate'])->name('downloadTemplate');
-
-
-            // Route untuk proses CRUD
             Route::post('/', [ProduksiTriwulananController::class, 'store'])->name('store');
-            Route::get('/{produksi_triwulanan}/edit', [ProduksiTriwulananController::class, 'edit'])->name('edit');
-            Route::put('/{produksi_triwulanan}', [ProduksiTriwulananController::class, 'update'])->name('update');
-            Route::delete('/{produksi_triwulanan}', [ProduksiTriwulananController::class, 'destroy'])->name('destroy');
 
-            Route::get('/{jenisKegiatan}', [ProduksiTriwulananController::class, 'index'])->name('index');
+            
+            // --- 2. RUTE DINAMIS by ID (Gunakan batasan angka) ---
+            Route::get('/{produksi_triwulanan}/edit', [ProduksiTriwulananController::class, 'edit'])
+                ->name('edit')->where('produksi_triwulanan', '[0-9]+'); 
+            Route::put('/{produksi_triwulanan}', [ProduksiTriwulananController::class, 'update'])
+                ->name('update')->where('produksi_triwulanan', '[0-9]+');
+            Route::delete('/{produksi_triwulanan}', [ProduksiTriwulananController::class, 'destroy'])
+                ->name('destroy')->where('produksi_triwulanan', '[0-9]+');
+
+                
+            // --- 3. RUTE DINAMIS by 'jenisKegiatan' (Harus diletakkan terakhir) ---
+            $jenisKegiatanRegex = '[a-zA-Z0-9\-]+'; // Membolehkan huruf, angka, dan strip
+
+            Route::get('/{jenisKegiatan}/export', [ProduksiTriwulananController::class, 'export'])
+                ->name('export')->where('jenisKegiatan', $jenisKegiatanRegex); 
+
+            Route::get('/{jenisKegiatan}', [ProduksiTriwulananController::class, 'index'])
+                ->name('index')->where('jenisKegiatan', $jenisKegiatanRegex); 
         });
-        // --- ROUTE Produksi Bulanan ---
+
         Route::prefix('bulanan')->name('bulanan.')->group(function () {
-            Route::get('/search-petugas', [ProduksiBulananController::class, 'searchPetugas'])->name('searchPetugas');
-            Route::post('/bulk-delete', [ProduksiBulananController::class, 'bulkDelete'])->name('bulkDelete');
-            Route::get('/{jenisKegiatan}/export', [ProduksiBulananController::class, 'export'])->name('export')
-                ->where('jenisKegiatan', 'ksapadi|ksajagung|lptb|sphsbs|sppalawija|perkebunan|ibs');
-            // Export route
-            Route::get('/{jenisKegiatan}/export', [ProduksiBulananController::class, 'export'])->name('export')
-                ->where('jenisKegiatan', 'ksapadi|ksajagung|lptb|sphsbs|sppalawija|perkebunan|ibs');
+        
+        // --- 1. RUTE STATIS (Harus didefinisikan pertama) ---
+        Route::get('/search-petugas', [ProduksiBulananController::class, 'searchPetugas'])->name('searchPetugas');
+        Route::get('/search-kegiatan', [ProduksiBulananController::class, 'searchKegiatan'])->name('searchKegiatan'); // <-- Menambahkan yang hilang
+        Route::post('/bulk-delete', [ProduksiBulananController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::post('/import', [ProduksiBulananController::class, 'import'])->name('import');
+        Route::get('/download-template', [ProduksiBulananController::class, 'downloadTemplate'])->name('downloadTemplate');
+        Route::post('/', [ProduksiBulananController::class, 'store'])->name('store');
 
-            Route::post('/import', [ProduksiBulananController::class, 'import'])->name('import');
-            Route::get('/download-template', [ProduksiBulananController::class, 'downloadTemplate'])->name('downloadTemplate');
+        
+        // --- 2. RUTE DINAMIS by ID (Gunakan batasan angka) ---
+        // Ini memastikan '123/edit' tidak dianggap sebagai 'jenisKegiatan'
+        Route::get('/{produksi_bulanan}/edit', [ProduksiBulananController::class, 'edit'])
+            ->name('edit')->where('produksi_bulanan', '[0-9]+'); 
+        Route::put('/{produksi_bulanan}', [ProduksiBulananController::class, 'update'])
+            ->name('update')->where('produksi_bulanan', '[0-9]+');
+        Route::delete('/{produksi_bulanan}', [ProduksiBulananController::class, 'destroy'])
+            ->name('destroy')->where('produksi_bulanan', '[0-9]+');
 
-            // Route untuk proses CRUD
-            Route::post('/', [ProduksiBulananController::class, 'store'])->name('store');
+            
+        // --- 3. RUTE DINAMIS by 'jenisKegiatan' (Harus diletakkan terakhir) ---
+        // Regex ini mengizinkan slug yang kita buat (misal: 'ksa-padi')
+        $jenisKegiatanRegex = '[a-zA-Z0-9\-]+'; 
 
-            Route::get('/{produksi_bulanan}/edit', [ProduksiBulananController::class, 'edit'])->name('edit');
-            Route::put('/{produksi_bulanan}', [ProduksiBulananController::class, 'update'])->name('update');
-            Route::delete('/{produksi_bulanan}', [ProduksiBulananController::class, 'destroy'])->name('destroy');
+        Route::get('/{jenisKegiatan}/export', [ProduksiBulananController::class, 'export']) // <-- Menghapus duplikat
+            ->name('export')->where('jenisKegiatan', $jenisKegiatanRegex); 
 
-            // Route utama untuk menampilkan data berdasarkan jenis kegiatan
-            Route::get('/{jenisKegiatan}', [ProduksiBulananController::class, 'index'])->name('index');
-        });
+        Route::get('/{jenisKegiatan}', [ProduksiBulananController::class, 'index'])
+            ->name('index')->where('jenisKegiatan', $jenisKegiatanRegex); 
+    });
+       
     });
 
     Route::prefix('nwa')->name('nwa.')->middleware('web')->group(function () {
 
         // --- ROUTE NWA TAHUNAN (DIROMBAK) ---
         Route::prefix('tahunan')->name('tahunan.')->group(function () {
-
-            // Rute-rute yang tidak punya parameter / spesifik
-            Route::get('/', [NwaTahunanController::class, 'index'])->name('index');
-            Route::post('/', [NwaTahunanController::class, 'store'])->name('store');
-            Route::post('/bulk-delete', [NwaTahunanController::class, 'bulkDelete'])->name('bulkDelete');
+            // --- 1. RUTE STATIS ---
             Route::get('/search-petugas', [NwaTahunanController::class, 'searchPetugas'])->name('searchPetugas');
-
-
-            // Rute untuk ekspor data
-            Route::get('/export', [NwaTahunanController::class, 'export'])->name('export');
-
+            Route::get('/search-kegiatan', [NwaTahunanController::class, 'searchKegiatan'])->name('searchKegiatan');
+            Route::post('/bulk-delete', [NwaTahunanController::class, 'bulkDelete'])->name('bulkDelete');
             Route::post('/import', [NwaTahunanController::class, 'import'])->name('import');
             Route::get('/download-template', [NwaTahunanController::class, 'downloadTemplate'])->name('downloadTemplate');
+            Route::get('/export', [NwaTahunanController::class, 'export'])->name('export');
 
-
-            // Rute search (jika ada, tambahkan di sini, misal: search-petugas)
-            // Route::get('/search-petugas', [NwaTahunanController::class, 'searchPetugas'])->name('searchPetugas');
-
-            // Rute-rute yang menggunakan {id}
-            // Ini akan cocok dengan controller baru ($id)
-            Route::get('/{id}/edit', [NwaTahunanController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [NwaTahunanController::class, 'update'])->name('update');
-            Route::delete('/{id}', [NwaTahunanController::class, 'destroy'])->name('destroy');
-
-            // JANGAN GUNAKAN Route::resource DI SINI
-            // Route::resource('/', NwaTahunanController::class)->parameters(['' => 'tahunan']); // <-- HAPUS INI
+            // --- 2. RUTE INDEX & STORE ---
+            Route::get('/', [NwaTahunanController::class, 'index'])->name('index');
+            Route::post('/', [NwaTahunanController::class, 'store'])->name('store');
+            
+            // --- 3. RUTE DINAMIS by ID ---
+            Route::get('/{id}/edit', [NwaTahunanController::class, 'edit'])
+                ->name('edit')->where('id', '[0-9]+'); 
+            Route::put('/{id}', [NwaTahunanController::class, 'update'])
+                ->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [NwaTahunanController::class, 'destroy'])
+                ->name('destroy')->where('id', '[0-9]+');
         });
 
 
-        // --- ROUTE NWA TRIWULANAN (DIROMBAK) ---
+        // --- ROUTE NWA TRIWULANAN  ---
         Route::prefix('triwulanan')->name('triwulanan.')->group(function () {
-
-            // Rute-rute yang tidak punya parameter / spesifik
-            Route::post('/', [NwaTriwulananController::class, 'store'])->name('store');
-            Route::post('/bulk-delete', [NwaTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
+            
             Route::get('/search-petugas', [NwaTriwulananController::class, 'searchPetugas'])->name('searchPetugas');
-
-            Route::get('/{jenisKegiatan}/export', [NwaTriwulananController::class, 'export'])->name('export')
-                ->where('jenisKegiatan', 'sklnp|snaper|sktnp');
-
+            Route::get('/search-kegiatan', [NwaTriwulananController::class, 'searchKegiatan'])->name('searchKegiatan');
+            Route::post('/bulk-delete', [NwaTriwulananController::class, 'bulkDelete'])->name('bulkDelete');
             Route::post('/import', [NwaTriwulananController::class, 'import'])->name('import');
             Route::get('/download-template', [NwaTriwulananController::class, 'downloadTemplate'])->name('downloadTemplate');
+            Route::post('/', [NwaTriwulananController::class, 'store'])->name('store');
+            
+            Route::get('/{id}/edit', [NwaTriwulananController::class, 'edit'])
+                ->name('edit')->where('id', '[0-9]+'); 
+            Route::put('/{id}', [NwaTriwulananController::class, 'update'])
+                ->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [NwaTriwulananController::class, 'destroy'])
+                ->name('destroy')->where('id', '[0-9]+');
+                
+            $jenisKegiatanRegex = '[a-zA-Z0-9\-]+'; // Membolehkan slug (URL bersih)
 
-            // Rute-rute yang menggunakan {id}
-            // Menggunakan {id} polos agar cocok dengan controller yang dirombak
-            Route::get('/{id}/edit', [NwaTriwulananController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [NwaTriwulananController::class, 'update'])->name('update');
-            Route::delete('/{id}', [NwaTriwulananController::class, 'destroy'])->name('destroy');
+            Route::get('/{jenisKegiatan}/export', [NwaTriwulananController::class, 'export'])
+                ->name('export')->where('jenisKegiatan', $jenisKegiatanRegex); 
 
-            // Rute index HARUS diletakkan PALING AKHIR
-            // agar tidak "menangkap" request untuk 'bulk-delete' atau '{id}/edit'
-            Route::get('/{jenisKegiatan}', [NwaTriwulananController::class, 'index'])->name('index');
+            Route::get('/{jenisKegiatan}', [NwaTriwulananController::class, 'index'])
+                ->name('index')->where('jenisKegiatan', $jenisKegiatanRegex); 
         });
     });
 

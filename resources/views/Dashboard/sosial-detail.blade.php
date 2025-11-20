@@ -11,8 +11,8 @@
             <div class="text-center">
                 <i class="bi bi-bar-chart-line fs-1 text-muted"></i>
                 <h4 class="mt-3 text-muted">Tidak ada data kegiatan untuk periode {{ $periode }} tahun {{ $selectedTahun }}.</h4>
-                {{-- Tombol kembali sekarang menggunakan $selectedTahun --}}
-                <a href="{{ route('dashboard.distribusi.index', ['tahun' => $selectedTahun]) }}" class="btn btn-primary mt-3">
+                {{-- [PERUBAHAN] Route diubah ke .sosial.index --}}
+                <a href="{{ route('dashboard.sosial.index', ['tahun' => $selectedTahun]) }}" class="btn btn-primary mt-3">
                     Kembali ke Dashboard
                 </a>
             </div>
@@ -25,8 +25,8 @@
                         <h4 class="mb-0 fw-bold">Grafik Kegiatan {{ $periode }} (Tahun {{ $selectedTahun }})</h4>
                         <p class="text-muted mb-0">Menampilkan progress realisasi (Selesai) dibandingkan dengan Target.</p>
                     </div>
-                    {{-- Tombol kembali sekarang menggunakan $selectedTahun --}}
-                    <a href="{{ route('dashboard.distribusi.index', ['tahun' => $selectedTahun]) }}" class="btn btn-outline-primary">
+                    {{-- [PERUBAHAN] Route diubah ke .sosial.index --}}
+                    <a href="{{ route('dashboard.sosial.index', ['tahun' => $selectedTahun]) }}" class="btn btn-outline-primary">
                         <i class="bi bi-arrow-left me-1"></i>
                         Kembali
                     </a>
@@ -49,7 +49,8 @@
 {{-- Load Library Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-{{-- [PERUBAHAN] Script untuk render chart 100% stacked --}}
+{{-- Script ini SAMA PERSIS dengan 'distribusi-detail' dan akan bekerja --}}
+{{-- karena variabel $chartData memiliki struktur yang identik. --}}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         
@@ -83,9 +84,6 @@
                 // Jika tidak, hitung sisanya ke 100%
                 return 100 - persenSelesai;
             });
-            
-            // Dataset 3 (Opsional): Jika realisasi > target (Over Target)
-            // Kita bisa tambahkan ini di tooltip saja agar bar tidak lebih dari 100%
             
             // --- Konfigurasi Chart ---
             const chartConfig = {
@@ -124,7 +122,7 @@
                     plugins: {
                         legend: { position: 'top' },
                         tooltip: {
-                            // --- [PERUBAHAN] Tooltip Kustom ---
+                            // --- Tooltip Kustom ---
                             callbacks: {
                                 label: function(context) {
                                     // Hanya tampilkan label untuk dataset 'Selesai'
@@ -152,7 +150,6 @@
                     }
                 }
             };
-
             new Chart(ctx, chartConfig);
         }
     });

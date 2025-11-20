@@ -2,7 +2,7 @@
 
 namespace App\Imports;
 
-use App\Models\Produksi\ProduksiCaturwulan; // <-- [GANTI]
+use App\Models\Produksi\ProduksiBulanan;
 use App\Models\Master\MasterKegiatan;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -11,24 +11,18 @@ use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Carbon\Carbon;
 
-class ProduksiCaturwulanImport implements ToCollection, WithHeadingRow, SkipsOnError
+class ProduksiBulananImport implements ToCollection, WithHeadingRow, SkipsOnError
 {
     use SkipsErrors;
 
     protected $errors = [];
     protected $successCount = 0;
     protected $masterKegiatanMap;
-    protected $currentModul; 
 
-    /**
-     * Muat data master KEGIATAN saja.
-     */
-    public function __construct($currentModul)
+    public function __construct()
     {
-        $this->currentModul = $currentModul;
-        // Buat map: ['Nama Kegiatan' => ID] untuk modul ini
-        $this->masterKegiatanMap = MasterKegiatan::where('modul', $this->currentModul)
-                                               ->pluck('id_master_kegiatan', 'nama_kegiatan');
+        $this->masterKegiatanMap = MasterKegiatan::where('modul', 'produksi_bulanan')
+                                                ->pluck('id_master_kegiatan', 'nama_kegiatan');
     }
 
     public function collection(Collection $rows)
@@ -44,12 +38,12 @@ class ProduksiCaturwulanImport implements ToCollection, WithHeadingRow, SkipsOnE
                     $this->errors[] = [
                         'row' => $rowNumber,
                         'error' => $validation['message'],
-                        'values' => $rowArray['nama_kegiatan'] ?? $rowArray['flag_progress'] ?? 'N/A'
+                        'values' => $rowArray['nama_kegiatan'] ?? 'N/A'
                     ];
                     continue;
                 }
-
-                ProduksiCaturwulan::create($validation['data']); // <-- [GANTI]
+                
+                ProduksiBulanan::create($validation['data']);
                 $this->successCount++;
 
             } catch (\Exception $e) {
@@ -62,21 +56,16 @@ class ProduksiCaturwulanImport implements ToCollection, WithHeadingRow, SkipsOnE
         }
     }
 
-    /**
-     * Validasi disederhanakan: Hanya Kegiatan dan Flag Progress.
-     */
     protected function validateRow($row, $rowNumber)
     {
-        $dataToCreate = []; // Kumpulkan data bersih di sini
+        $dataToCreate = []; 
 
-        // 1. Validasi Kolom Wajib
         $requiredFields = [
             'nama_kegiatan'     => 'Nama Kegiatan',
             'bs_responden'      => 'BS Responden',
             'pencacah'          => 'Pencacah',
             'pengawas'          => 'Pengawas',
             'target_penyelesaian' => 'Target Penyelesaian',
-            'flag_progress'     => 'Flag Progress',
         ];
 
         foreach ($requiredFields as $field => $label) {
@@ -85,73 +74,60 @@ class ProduksiCaturwulanImport implements ToCollection, WithHeadingRow, SkipsOnE
             }
         }
         
-        // 2. Validasi Nama Kegiatan (WAJIB ke Master)
         $namaKegiatan = trim($row['nama_kegiatan']);
         if (!isset($this->masterKegiatanMap[$namaKegiatan])) {
-            return ['valid' => false, 'message' => "Nama Kegiatan '{$namaKegiatan}' tidak terdaftar di master untuk modul {$this->currentModul}."];
+            return ['valid' => false, 'message' => "Nama Kegiatan '{$namaKegiatan}' tidak terdaftar di master (modul produksi_bulanan)."];
         }
-        $dataToCreate['master_kegiatan_id'] = $this->masterKegiatanMap[$namaKegiatan]; // Ambil ID!
-        $dataToCreate['nama_kegiatan'] = $namaKegiatan; // Tetap simpan namanya
+        $dataToCreate['master_kegiatan_id'] = $this->masterKegiatanMap[$namaKegiatan]; 
+        $dataToCreate['nama_kegiatan'] = $namaKegiatan; 
 
-        // 3. Ambil Data Pencacah & Pengawas (TANPA VALIDASI ke Master)
         $dataToCreate['pencacah'] = trim($row['pencacah']);
         $dataToCreate['pengawas'] = trim($row['pengawas']);
 
-        // 4. Validasi Flag Progress (WAJIB)
-        $flagProgressInput = strtolower(trim($row['flag_progress']));
+        $flagProgressInput = strtolower(trim($row['flag_progress'] ?? '')); 
         if (in_array($flagProgressInput, ['selesai', 'done', '1'])) {
-             $dataToCreate['flag_progress'] = 'Selesai';
-        } elseif (in_array($flagProgressInput, ['belum', 'belum selesai', 'progress', '0'])) {
-             $dataToCreate['flag_progress'] = 'Belum Selesai';
+            $dataToCreate['flag_progress'] = 'Selesai';
         } else {
-            return ['valid' => false, 'message' => "Flag Progress '{$row['flag_progress']}' tidak valid (gunakan: Selesai/Belum Selesai)"];
+            $dataToCreate['flag_progress'] = 'Belum Selesai';
         }
 
-        // 5. Validasi Tanggal
         try {
-            $dataToCreate['target_penyelesaian'] = $this->parseDate($row['target_penyelesaian'], false);
+            $dataToCreate['target_penyelesaian'] = $this->parseDate($row['target_penyelesaian'], false); 
             $dataToCreate['tanggal_pengumpulan'] = $this->parseDate($row['tanggal_pengumpulan'], true); 
         } catch (\Exception $e) {
             return ['valid' => false, 'message' => $e->getMessage()];
         }
 
-        // 6. Masukkan sisa data
         $dataToCreate['BS_Responden'] = $row['bs_responden'];
         if (isset($dataToCreate['target_penyelesaian'])) {
-            $dataToCreate['tahun_kegiatan'] = Carbon::parse($dataToCreate['target_penyelesaian'])->year;
+            // $dataToCreate['tahun_kegiatan'] = Carbon::parse($dataToCreate['target_penyelesaian'])->year;
         } else {
-             return ['valid' => false, 'message' => "Target Penyelesaian tidak valid"];
+             return ['valid' => false, 'message' => "Target Penyelesaian tidak valid untuk menghitung tahun"];
         }
 
         return ['valid' => true, 'data' => $dataToCreate];
     }
 
-    /**
-     * Fungsi parseDate (Tidak berubah)
-     */
     protected function parseDate($date, $isNullable = false)
     {
         $date = is_string($date) ? trim($date) : $date;
-
         if (empty($date)) {
-            if ($isNullable) return null;
+            if ($isNullable) return null; 
             throw new \Exception("Tanggal wajib diisi dan tidak boleh kosong");
         }
-        
         if (is_numeric($date)) {
             return Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($date))
-                   ->format('Y-m-d H:i:s');
+                ->format('Y-m-d H:i:s');
         }
         $formats = ['Y-m-d', 'd/m/Y', 'd-m-Y', 'Y/m/d', 'Y-m-d H:i:s'];
         foreach ($formats as $format) {
             try {
                 return Carbon::createFromFormat($format, (string)$date)->format('Y-m-d H:i:s');
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) { /* Coba format berikutnya */ }
         }
         try {
             return Carbon::parse((string)$date)->format('Y-m-d H:i:s');
-        } catch (\Exception $e) {}
-        
+        } catch (\Exception $e) { /* Gagal */ }
         throw new \Exception("Format tanggal tidak valid: '{$date}' (gunakan YYYY-MM-DD atau DD/MM/YYYY)");
     }
 

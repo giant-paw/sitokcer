@@ -3,84 +3,110 @@
 namespace App\Exports;
 
 use App\Models\Nwa\NwaTahunan;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use App\Models\Master\MasterKegiatan;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use PhpOffice\PhpWord\TemplateProcessor;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Carbon\Carbon;
 
-class NwaTahunanExport implements FromCollection, WithHeadings
+class NwaTahunanExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize
 {
     protected $dataRange;
     protected $dataFormat;
     protected $kegiatan;
     protected $search;
-    protected $tahun;
-    protected $currentPage;
+    protected $page;
     protected $perPage;
-    public function __construct($dataRange, $dataFormat, $kegiatan = null, $search = null, $tahun = null, $currentPage = 1, $perPage = 20)
+    protected $tahun;
+    protected $currentModul = 'nwa_tahunan';
+
+    public function __construct($dataRange, $dataFormat, $kegiatan, $search, $page, $perPage, $tahun)
     {
         $this->dataRange = $dataRange;
         $this->dataFormat = $dataFormat;
         $this->kegiatan = $kegiatan;
         $this->search = $search;
-        $this->tahun = $tahun ?? date('Y');
-        $this->currentPage = $currentPage;
+        $this->page = $page;
         $this->perPage = $perPage;
+        $this->tahun = $tahun;
     }
-    public function collection()
+
+    public function query()
     {
-        $query = NwaTahunan::query();
-        // Filter berdasarkan tahun (menggunakan created_at)
-        $query->whereYear('created_at', $this->tahun);
-        // Filter berdasarkan kegiatan spesifik
-        if (!empty($this->kegiatan)) {
-            $query->where('nama_kegiatan', $this->kegiatan);
+        $query = NwaTahunan::query()
+            ->leftJoin('master_kegiatan', 'nwa_tahunan.master_kegiatan_id', '=', 'master_kegiatan.id_master_kegiatan')
+            ->where(function($q) {
+                $q->where('master_kegiatan.modul', $this->currentModul)
+                  ->orWhereNull('nwa_tahunan.master_kegiatan_id'); 
+            })
+            ->whereYear('nwa_tahunan.created_at', $this->tahun);
+
+        if ($this->kegiatan) {
+            if (is_numeric($this->kegiatan)) {
+                $query->where('nwa_tahunan.master_kegiatan_id', $this->kegiatan);
+            } else {
+                $query->whereNull('nwa_tahunan.master_kegiatan_id')
+                      ->where('nwa_tahunan.nama_kegiatan', $this->kegiatan);
+            }
         }
-        // Filter berdasarkan search
-        if (!empty($this->search)) {
-            $searchTerm = $this->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('BS_Responden', 'like', "%{$searchTerm}%")
-                    ->orWhere('pencacah', 'like', "%{$searchTerm}%")
-                    ->orWhere('pengawas', 'like', "%{$searchTerm}%")
-                    ->orWhere('nama_kegiatan', 'like', "%{$searchTerm}%")
-                    ->orWhere('flag_progress', 'like', "%{$searchTerm}%");
+
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('nwa_tahunan.BS_Responden', 'like', "%{$this->search}%")
+                  ->orWhere('nwa_tahunan.pencacah', 'like', "%{$this->search}%")
+                  ->orWhere('nwa_tahunan.pengawas', 'like', "%{$this->search}%")
+                  ->orWhere('master_kegiatan.nama_kegiatan', 'like', "%{$this->search}%")
+                  ->orWhere('nwa_tahunan.nama_kegiatan', 'like', "%{$this->search}%");
             });
         }
-        // Urutkan berdasarkan terbaru
-        $query->latest('id_nwa');
-        // Jika dataRange = 'current_page', ambil data halaman terkini saja
-        if ($this->dataRange == 'current_page') {
-            $offset = ($this->currentPage - 1) * $this->perPage;
-            $data = $query->offset($offset)->limit($this->perPage)->get();
-        } else {
-            // Jika dataRange = 'all', ambil semua data
-            $data = $query->get();
+
+        if ($this->dataRange === 'current_page' && $this->perPage != -1) {
+            $query->skip(($this->page - 1) * $this->perPage)->take($this->perPage);
         }
         
-        return $data->map(function ($item) {
-            return [
-                $item->id_nwa,
-                $item->nama_kegiatan,
-                $item->BS_Responden,
-                $item->pencacah,
-                $item->pengawas,
-                $item->id_nwa, 
-                $item->flag_progress,
-                $item->tanggal_pengumpulan ? $item->tanggal_pengumpulan->format('Y-m-d') : null,
-            ];
-        });
+        return $query->select('nwa_tahunan.*')->with('masterKegiatan')
+                     ->latest('nwa_tahunan.id_nwa'); // Ganti PK
     }
+
     public function headings(): array
     {
         return [
-            'ID NWA',
+            'ID',
             'Nama Kegiatan',
-            'BS Responden',
+            'BS/Responden',
             'Pencacah',
             'Pengawas',
-            'ID NWA Tahunan',
-            'Flag Progress',
-            'Tanggal Pengumpulan',
+            'Target Selesai',
+            'Progress',
+            'Tgl Kumpul',
+        ];
+    }
+
+    public function map($row): array
+    {
+        try {
+            $targetSelesai = Carbon::parse($row->target_penyelesaian)->format('d/m/Y');
+        } catch (\Exception $e) {
+            $targetSelesai = $row->target_penyelesaian; 
+        }
+
+        try {
+            $tglKumpul = Carbon::parse($row->tanggal_pengumpulan)->format('d/m/Y');
+        } catch (\Exception $e) {
+            $tglKumpul = $row->tanggal_pengumpulan;
+        }
+
+        return [
+            $row->id_nwa, // Ganti PK
+            $row->masterKegiatan->nama_kegiatan ?? $row->nama_kegiatan, 
+            $row->BS_Responden,
+            $row->pencacah,
+            $row->pengawas,
+            $targetSelesai,
+            $row->flag_progress,
+            $tglKumpul,
         ];
     }
 }

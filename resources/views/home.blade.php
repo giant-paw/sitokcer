@@ -9,6 +9,7 @@
 
         {{-- Hero Section --}}
         <div class="hero-section mb-5">
+            {{-- Tambahkan div hero-content untuk z-index di atas overlay --}}
             <div class="hero-content">
                 <h1 class="hero-title">SITOKCER</h1>
                 <p class="hero-subtitle">Sistem Monitoring Pekerjaan untuk Efisiensi Maksimal</p>
@@ -17,7 +18,7 @@
 
         {{-- Main Dashboard Cards --}}
         <div class="dashboard-grid mb-5">
-            <a href="{{ route('dashboard.distribusi') }}" class="dash-card dash-card-distribusi">
+            <a href="{{ route('dashboard.distribusi.index') }}" class="dash-card dash-card-distribusi">
                 <div class="dash-card-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -30,7 +31,7 @@
                 <p class="dash-card-desc">Monitor distribusi & logistik</p>
             </a>
 
-            <a href="{{ route('dashboard.produksi') }}" class="dash-card dash-card-produksi">
+            <a href="{{ route('dashboard.produksi.index') }}" class="dash-card dash-card-produksi">
                 <div class="dash-card-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -42,7 +43,7 @@
                 <p class="dash-card-desc">Data produksi & output</p>
             </a>
 
-            <a href="{{ route('dashboard.sosial') }}" class="dash-card dash-card-sosial">
+            <a href="{{ route('dashboard.sosial.index') }}" class="dash-card dash-card-sosial">
                 <div class="dash-card-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -56,7 +57,7 @@
                 <p class="dash-card-desc">Statistik sosial & demografi</p>
             </a>
 
-            <a href="{{ route('dashboard.nwa') }}" class="dash-card dash-card-nwa">
+            <a href="{{ route('dashboard.nwa.index') }}" class="dash-card dash-card-nwa">
                 <div class="dash-card-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -121,18 +122,18 @@
                     <div class="quick-access-panel">
                         <h5 class="quick-title">Akses Cepat</h5>
                         <div class="quick-grid">
-                            <div class="quick-item">
+                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ibs bulanan']) }}" class="quick-item quick-item-link">
                                 <span class="quick-icon">📅</span>
                                 <span class="quick-label">IBS Bulanan</span>
-                            </div>
-                            <div class="quick-item">
+                            </a>
+                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'skp']) }}" class="quick-item quick-item-link">
                                 <span class="quick-icon">📦</span>
                                 <span class="quick-label">SKP</span>
-                            </div>
-                            <div class="quick-item">
+                            </a>
+                            <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'air bersih']) }}" class="quick-item quick-item-link">
                                 <span class="quick-icon">💧</span>
                                 <span class="quick-label">Air Bersih</span>
-                            </div>
+                            </a>
                             <a href="{{ route('tim-produksi.caturwulanan.index', ['jenisKegiatan' => 'ubinan padi']) }}"
                                 class="quick-item quick-item-link">
                                 <span class="quick-icon">🌾</span>
@@ -147,27 +148,23 @@
     </div>
 
     <style>
-        /* Hero Section */
+        /* 1. Hero Section - MEMPERTAHANKAN GAMBAR */
         .hero-section {
-            
-
-            {{-- TAMBAHKAN INI --}}
-            /* Ganti 'images/hero-foto.jpg' dengan path ke foto Anda di folder public */
-            background-image: url("{{ asset('hero-foto.jpg') }}");
+            /* Menggunakan path hero-foto.jpg sesuai permintaan Anda */
+            background-image: url("{{ asset('hero-foto.jpg') }}"); 
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
             position: relative; /* Penting untuk overlay */
-            overflow: hidden; /* Menjaga overlay tetap di dalam border-radius */
-            /* ---------------- */
-
+            overflow: hidden; 
+            
             border-radius: 20px;
             padding: 60px 40px;
             text-align: center;
             box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2);
         }
 
-        {{-- TAMBAHKAN RULE BARU INI UNTUK OVERLAY --}}
+        /* Tambahkan RULE untuk OVERLAY */
         .hero-section::before {
             content: '';
             position: absolute;
@@ -175,14 +172,13 @@
             left: 0;
             right: 0;
             bottom: 0;
-            /* Ini adalah overlay gradien gelap yang mirip dengan warna asli Anda */
-            /* Anda bisa ganti dengan `background: rgba(0, 0, 0, 0.5);` untuk overlay hitam sederhana */
-            /* background: linear-gradient(135deg, rgba(71, 71, 72, 0.75), rgba(62, 61, 62, 0.75)); */
-            border-radius: 20px; /* Samakan dengan parent */
+            /* Overlay gelap untuk membuat tulisan putih lebih jelas */
+            background: rgba(0, 0, 0, 0.5); /* Overlay hitam transparan */
+            border-radius: 20px; 
             z-index: 1; /* Posisikan di atas background-image */
         }
 
-        {{-- TAMBAHKAN INI UNTUK MEMPOSISIKAN KONTEN DI ATAS OVERLAY --}}
+        /* Tambahkan RULE untuk KONTEN DI ATAS OVERLAY */
         .hero-content {
             position: relative;
             z-index: 2; /* Posisikan di atas overlay (::before) */
@@ -206,19 +202,17 @@
             margin: 0;
         }
 
-        /* Dashboard Grid */
+        /* 2. Dashboard Grid */
         .dashboard-grid {
             display: grid;
-            {{-- DIUBAH (dari 250px) agar kartu bisa lebih sempit --}}
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 24px;
         }
 
         .dash-card {
             background: #ffffff;
             border-radius: 16px;
-            {{-- DIUBAH (dari 15px 24px) agar lebih ringkas --}}
-            padding: 16px 20px;
+            padding: 15px 24px;
             text-decoration: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid #e5e7eb;
@@ -239,10 +233,6 @@
             transition: transform 0.3s ease;
         }
 
-        /* .dash-card:hover::before {
-        transform: scaleX(1);
-    } */
-
         .dash-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
@@ -250,16 +240,13 @@
         }
 
         .dash-card-icon {
-            {{-- DIUBAH (dari 56px) --}}
-            width: 48px;
-            {{-- DIUBAH (dari 56px) --}}
-            height: 48px;
+            width: 56px; 
+            height: 56px; 
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            {{-- DIUBAH (dari 20px) --}}
-            margin-bottom: 16px;
+            margin-bottom: 20px; 
             color: #667eea;
             background: rgba(102, 126, 234, 0.1);
         }
@@ -285,12 +272,10 @@
         }
 
         .dash-card-title {
-            {{-- DIUBAH (dari 1.25rem) --}}
-            font-size: 1.1rem;
+            font-size: 1.25rem;
             font-weight: 600;
             color: #1f2937;
-            {{-- DIUBAH (dari 8px) --}}
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
 
         .dash-card-desc {

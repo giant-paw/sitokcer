@@ -20,7 +20,6 @@ class DistribusiTriwulananController extends Controller
 {
     public function index(Request $request, $jenisKegiatan)
     {
-        // Definisikan modul untuk controller ini
         $currentModul = 'distribusi_triwulanan'; 
 
         // 1. Validasi jenis kegiatan [Menggunakan Cek ke Master + Modul]
